@@ -54,8 +54,12 @@ learnMath/
 │   ├── 13-官网设计文档.md       # 官网 2.0：六大区 40+ 页型/SEO/L0·L13 链/品牌
 │   ├── 14-官网UI设计文档.md     # 官网UI 2.0：暗色/⌘K/mega-menu/线框/组件
 │   ├── 15-移动端UI设计文档.md   # 移动端：5-Tab/44屏/五玩移动形态/用户流/组件
+│   ├── 16-Web学习端UI设计文档.md # Web大屏：18屏/深钻三区/图谱画布/考试布局
+│   ├── 17-管理端UI设计文档.md   # 管理端：19屏/列表模板/三大自研界面
 │   ├── design/official/index.html  # 官网高保真原型 2.0（浏览器直接打开）
-│   └── design/mobile/index.html    # 移动端手机框原型 44 屏（浏览器直接打开）
+│   ├── design/mobile/index.html    # 移动端手机框原型 44 屏（浏览器直接打开）
+│   ├── design/web/index.html       # Web学习端原型 18 屏（浏览器直接打开）
+│   └── design/admin/index.html     # 管理端原型 19 屏（浏览器直接打开）
 ├── docker-compose.yml
 └── pnpm-workspace.yaml
 ```

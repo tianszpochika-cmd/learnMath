@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数源 MathOrigin — Web 学习端原型 18 屏（docs/16 · WD1-WD6）</title>
+<style>
+:root{
+  --p:#2F6BFF; --p6:#1E4FD6; --p7:#173DB0; --p50:#EEF4FF; --p100:#E0EBFF;
+  --violet:#8B5CF6; --gold:#FFB020;
+  --grad:linear-gradient(135deg,#4F7BFF,#8B5CF6);
+  --ok:#22C55E; --warn:#F59E0B; --bad:#EF4444;
+  --p1:#2F6BFF; --p2:#10B981; --p3:#8B5CF6; --p4:#F59E0B; --p5:#EC4899; --p6o:#F97316;
+  --ink:#0F172A; --ink2:#475569; --ink3:#94A3B8;
+  --bg:#F6F7FA; --card:#fff; --line:#E5E7EB;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0E1116;font-family:-apple-system,"PingFang SC","HarmonyOS Sans","Microsoft YaHei",sans-serif;color:var(--ink)}
+.layout{display:flex;min-height:100vh}
+/* 侧栏目录 */
+.side{width:236px;flex:none;background:#151A22;color:#9BA6B5;padding:18px 12px 40px;overflow-y:auto;height:100vh;position:sticky;top:0}
+.brand{font-weight:800;color:#fff;font-size:14.5px;padding:0 8px 4px}
+.brand small{display:block;font-weight:400;font-size:11px;color:#5C6779;margin-top:4px}
+.grp{font-size:10.5px;letter-spacing:.12em;color:#5C6779;font-weight:700;margin:16px 8px 6px}
+.side a{display:flex;gap:8px;font-size:12.5px;padding:7px 10px;border-radius:8px;cursor:pointer;color:#9BA6B5;text-decoration:none}
+.side a:hover{background:#1E2530;color:#fff}
+.side a.on{background:var(--p);color:#fff}
+.side a .no{font-size:10px;opacity:.55;min-width:26px}
+.side a.core::after{content:"🎯";margin-left:auto;font-size:10px}
+/* 浏览器框 */
+.stage{flex:1;padding:26px 16px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.win{width:1280px;max-width:100%;background:#DEE3EB;border-radius:14px;padding:10px 10px 0;box-shadow:0 40px 80px -30px rgba(0,0,0,.6)}
+.win-bar{display:flex;align-items:center;gap:8px;padding:0 6px 9px}
+.win-dot{width:11px;height:11px;border-radius:50%}
+.win-url{flex:1;background:#F3F5F9;border-radius:8px;font-size:11.5px;color:#7A8598;padding:5px 12px}
+.vp{background:var(--bg);border-radius:8px;overflow:hidden;position:relative;height:800px}
+.hint{color:#5C6779;font-size:12px;max-width:1100px;line-height:1.7}
+.hint b{color:#9BA6B5}
+/* 顶导航 WD1/WD2 */
+.nav{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:26px;padding:0 28px;position:relative;z-index:30}
+.logo{display:flex;gap:9px;align-items:center;font-weight:800;font-size:16.5px}
+.logo i{width:30px;height:30px;border-radius:8px;background:var(--grad);color:#fff;display:grid;place-items:center;font-style:italic}
+.nav a{font-size:14.5px;color:var(--ink2);cursor:pointer}
+.nav a:hover,.nav a.on{color:var(--p);font-weight:600}
+.nav .right{margin-left:auto;display:flex;gap:16px;align-items:center;font-size:15px}
+.nav .kbd{font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 10px;color:var(--ink3);cursor:pointer}
+.av{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px;cursor:pointer}
+/* 屏 */
+.scr{display:none;padding:26px 32px 50px;animation:fade .25s}
+.scr.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:26px}h2{font-size:20px}h3{font-size:16.5px}
+.mut{color:var(--ink3);font-size:13.5px}
+.mt{margin-top:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 24px;border-radius:11px;font-size:14.5px;font-weight:700;border:none;cursor:pointer;background:var(--grad);color:#fff}
+.btn:active{transform:scale(.98)}
+.btn.sm{height:34px;padding:0 16px;font-size:13.5px;border-radius:9px}
+.btn.ghost{background:#fff;color:var(--p);border:1.5px solid #C7D6FF}
+.btn.gray{background:#EEF0F4;color:var(--ink2);box-shadow:none}
+.btn.danger{background:#EF4444}
+.btn.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;background:var(--p50);color:var(--p7);border-radius:99px;padding:4px 13px;font-weight:600;cursor:default}
+.chip.g{background:#F1F3F7;color:var(--ink3)}
+.tag{font-size:11px;font-weight:800;border-radius:6px;padding:2px 8px}
+.tag.p1{background:#E4EDFF;color:#2F6BFF}.tag.p4{background:#FEF3C7;color:#B45309}
+.tag.p6t{background:#FFEDD5;color:#C2410C}.tag.p2t{background:#D1FAE5;color:#047857}
+.tag.p3t{background:#EDE9FE;color:#6D28D9}.tag.bad{background:#FEE2E2;color:#B91C1C}
+.math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.rowline{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;cursor:pointer}
+.rowline:hover{border-color:#C7D6FF}
+.ring{--v:.64;width:66px;height:66px;border-radius:50%;background:conic-gradient(var(--p) calc(var(--v)*360deg),#E5E7EB 0);display:grid;place-items:center;position:relative;flex:none}
+.ring::before{content:"";position:absolute;inset:7px;background:#fff;border-radius:50%}
+.ring span{position:relative;font-weight:800;font-size:14px}
+.bar{height:9px;border-radius:6px;background:#E5E7EB;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--grad)}
+.sect{font-size:12.5px;font-weight:800;color:var(--ink3);letter-spacing:.06em;margin:20px 0 10px}
+/* 作答 WD4 */
+.exam{display:grid;grid-template-columns:1fr 320px;gap:18px}
+.opt{display:flex;gap:11px;align-items:flex-start;background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:11px;cursor:pointer;font-size:15.5px;transition:border .15s}
+.opt:hover{border-color:var(--p)}
+.opt .k{font-weight:800;color:var(--p)}
+.opt.right{border-color:var(--ok);background:#F0FDF4}
+.opt.wrong{border-color:var(--bad);background:#FEF2F2}
+.agrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.acell{aspect-ratio:1;border-radius:9px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;cursor:pointer;background:#fff}
+.acell.done{background:var(--p);border-color:var(--p);color:#fff}
+.acell.cur{border-color:var(--p);color:var(--p)}
+.acell.flag{background:#FEF3C7;border-color:#F59E0B;color:#B45309}
+.mbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mbar button{font-size:13.5px;min-width:36px;height:30px;border-radius:7px;border:1px solid var(--line);background:#fff;cursor:pointer;font-family:"Cambria Math",serif}
+.mbar button:hover{border-color:var(--p);color:var(--p)}
+.fillin{width:100%;max-width:420px;height:40px;border:1.5px solid var(--line);border-radius:9px;padding:0 12px;font-size:15.5px;font-family:"Cambria Math",serif;font-style:italic;outline:none}
+.fillin:focus{border-color:var(--p)}
+/* 深钻 WD3 */
+.dd{display:grid;grid-template-columns:1fr 360px;gap:16px}
+.dtabs{display:flex;gap:8px;margin:14px 0}
+.dtab{padding:9px 22px;border-radius:10px;font-size:14px;font-weight:700;color:var(--ink3);cursor:pointer;background:#fff;border:1px solid var(--line)}
+.dtab.on{background:var(--p);border-color:var(--p);color:#fff}
+.chain .st{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:12px;cursor:pointer;position:relative;transition:all .15s}
+.chain .st:hover{border-color:#C7D6FF}
+.chain .st.sel{border-color:var(--p);box-shadow:0 0 0 3px rgba(47,107,255,.14)}
+.chain .st.sub{margin-left:34px}
+.chain .st .kk{font-size:11.5px;font-weight:800;color:var(--p)}
+.chain .st .tx{font-size:15px;font-weight:600;margin-top:3px}
+.chain .st .dep{position:absolute;left:-26px;top:50%;width:20px;height:1.5px;background:#C7D6FF}
+.rail{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;align-self:start;position:sticky;top:16px}
+.rail h4{font-size:13px;color:var(--ink3);letter-spacing:.05em;margin:14px 0 6px}
+.rail h4:first-child{margin-top:0}
+.rail .box{background:#F8FAFC;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.7}
+.rail .box.err{border-color:#FECACA;background:#FEF2F2}
+.chipnode{display:inline-block;font-size:12px;background:var(--p50);color:var(--p7);padding:2px 10px;border-radius:99px;cursor:pointer;margin:3px 4px 0 0}
+/* 图谱 WD5 */
+.gwrap{position:relative;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.gtop{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.gtop input{height:34px;border:1px solid var(--line);border-radius:9px;padding:0 12px;width:220px;outline:none;font-size:13.5px}
+.gcanvas{height:430px;position:relative;background:
+  repeating-linear-gradient(0deg,#F3F5F9 0 1px,transparent 1px 28px),
+  repeating-linear-gradient(90deg,#F3F5F9 0 1px,transparent 1px 28px)}
+.gnode{position:absolute;width:74px;height:74px;border-radius:50%;display:grid;place-items:center;text-align:center;font-size:11.5px;font-weight:700;color:#fff;cursor:pointer;transition:transform .15s;line-height:1.25;padding:4px}
+.gnode:hover{transform:scale(1.12);z-index:5}
+.gedge{position:absolute;height:1.5px;background:#CBD5E1;transform-origin:0 50%}
+.gedge::after{content:"";position:absolute;right:-1px;top:-3.5px;border:4px solid transparent;border-left-color:#CBD5E1}
+.gdrawer{position:absolute;right:0;top:0;bottom:0;width:330px;background:#fff;border-left:1px solid var(--line);padding:16px;box-shadow:-8px 0 24px -12px rgba(0,0,0,.15);display:none}
+.gdrawer.on{display:block;animation:slidein .25s}
+@keyframes slidein{from{transform:translateX(30px);opacity:0}to:none}
+/* AI WD6 */
+#aibub{position:absolute;right:22px;bottom:22px;width:56px;height:56px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:22px;cursor:pointer;box-shadow:0 12px 28px -8px rgba(79,123,255,.6);z-index:40}
+#aipanel{position:absolute;right:0;top:0;bottom:0;width:42%;max-width:520px;background:#fff;border-left:1px solid var(--line);z-index:45;transform:translateX(105%);transition:transform .3s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column}
+#aipanel.on{transform:none}
+.aistream{flex:1;overflow-y:auto;padding:16px}
+.bub{max-width:86%;padding:10px 14px;border-radius:13px;font-size:14.5px;line-height:1.7;margin-bottom:11px}
+.bub.ai{background:#F1F3F7;border-top-left-radius:4px}
+.bub.me{background:var(--p);color:#fff;margin-left:auto;border-top-right-radius:4px}
+.aiin{display:flex;gap:9px;padding:12px 14px;border-top:1px solid var(--line)}
+.aiin input{flex:1;height:40px;border-radius:10px;border:1.5px solid var(--line);padding:0 12px;outline:none;font-size:14.5px}
+.ctxbar{background:var(--p50);border-bottom:1px solid var(--p100);font-size:12.5px;color:var(--p7);padding:9px 14px;display:flex;justify-content:space-between}
+/* 搜索层 */
+#searchov{position:absolute;inset:0;background:rgba(2,6,23,.5);backdrop-filter:blur(3px);z-index:60;display:none;padding-top:80px;justify-content:center}
+#searchov.on{display:flex}
+.s\boxed{width:640px;background:#fff;border-radius:16px;overflow:hidden;height:fit-content;box-shadow:0 30px 60px -20px rgba(0,0,0,.5)}
+.sbox input{width:100%;border:none;outline:none;font-size:17px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.sres{padding:8px}
+.sitem{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:10px;cursor:pointer;font-size:14.5px}
+.sitem:hover{background:var(--p50)}
+.sgrp{font-size:11px;color:var(--ink3);font-weight:800;letter-spacing:.08em;padding:10px 13px 4px}
+/* 图表占位 */
+.ph{height:170px;border:1px solid var(--line);border-radius:12px;background:
+  repeating-linear-gradient(0deg,#EEF1F6 0 1px,transparent 1px 26px),
+  repeating-linear-gradient(90deg,#EEF1F6 0 1px,transparent 1px 26px),#fff;position:relative;overflow:hidden}
+.ph::after{content:"";position:absolute;inset:0;background:
+  linear-gradient(115deg,transparent 15%,rgba(47,107,255,.28) 40%,rgba(139,92,246,.25) 65%,transparent 88%)}
+.radarph{height:190px;border:1px solid var(--line);border-radius:12px;background:#fff;display:grid;place-items:center;position:relative}
+.radarph::before{content:"";width:150px;height:150px;background:
+  radial-gradient(circle,transparent 24%,#E5E7EB 25% 26%,transparent 27%),
+  radial-gradient(circle,transparent 49%,#E5E7EB 50% 51%,transparent 52%),
+  conic-gradient(from 0deg,rgba(47,107,255,.3) 0 18%,rgba(139,92,246,.3) 18% 30%,rgba(47,107,255,.3) 30% 47%,rgba(139,92,246,.3) 47% 62%,rgba(47,107,255,.3) 62% 80%,rgba(139,92,246,.3) 80% 100%);
+  clip-path:polygon(50% 4%,93% 30%,86% 82%,50% 96%,14% 82%,7% 30%);border-radius:50%}
+.radarph span{position:absolute;bottom:8px;font-size:11.5px;color:var(--ink3)}
+/* toast */
+#wto{position:absolute;left:50%;bottom:34px;transform:translateX(-50%) translateY(12px);background:rgba(15,23,42,.93);color:#fff;font-size:14px;border-radius:99px;padding:10px 22px;opacity:0;transition:.25s;z-index:90;pointer-events:none}
+#wto.on{opacity:1;transform:translateX(-50%)}
+@media(max-width:960px){.side{display:none}.hint{display:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+<!-- 目录 -->
+<aside class="side">
+  <div class="brand">数源 MathOrigin<small>Web 学习端 · 18 屏（docs/16 · WD1-WD6）</small></div>
+  <div class="grp">认证与首页</div>
+  <a data-go="w01"><span class="no">W01</span>登录/注册 🎯</a>
+  <a data-go="w02"><span class="no">W02</span>学习概览首页 🎯</a>
+  <div class="grp">学习</div>
+  <a data-go="w03"><span class="no">W03</span>路径+课程详情</a>
+  <a data-go="w04"><span class="no">W04</span>课时页(双栏) 🎯</a>
+  <a data-go="w05"><span class="no">W05</span>深钻页(三区) 🎯</a>
+  <a data-go="w06"><span class="no">W06</span>图谱画布 🎯</a>
+  <a data-go="w07"><span class="no">W07</span>节点详情(四卡)</a>
+  <div class="grp">作答与测评</div>
+  <a data-go="w08"><span class="no">W08</span>作答页(考试布局) 🎯</a>
+  <a data-go="w09"><span class="no">W09</span>成绩报告 🎯</a>
+  <a data-go="w10"><span class="no">W10</span>错题+断链 🎯</a>
+  <a data-go="w11"><span class="no">W11</span>测评→报告</a>
+  <div class="grp">计划与资源</div>
+  <a data-go="w12"><span class="no">W12</span>计划日历</a>
+  <a data-go="w13"><span class="no">W13</span>统计看板</a>
+  <a data-go="w14"><span class="no">W14</span>公式馆</a>
+  <div class="grp">社区与我的</div>
+  <a data-go="w15"><span class="no">W15</span>社区</a>
+  <a data-go="w16"><span class="no">W16</span>排行/挑战</a>
+  <a data-go="w17"><span class="no">W17</span>个人中心/设置</a>
+  <a data-go="w18"><span class="no">W18</span>全屏搜索(⌘K)</a>
+</aside>
+
+<!-- 浏览器窗 -->
+<div class="stage">
+<div class="win">
+  <div class="win-bar">
+    <span class="win-dot" style="background:#FF5F57"></span><span class="win-dot" style="background:#FEBC2E"></span><span class="win-dot" style="background:#28C840"></span>
+    <div class="win-url" id="winUrl">https://learn.mathorigin.cn/login</div>
+  </div>
+  <div class="vp" id="vp">
+
+    <!-- W01 登录 -->
+    <div class="scr on" id="w01" style="padding:0;height:100%">
+      <div style="display:grid;grid-template-columns:1.15fr 1fr;height:100%">
+        <div style="background:linear-gradient(150deg,#0B1220,#1E293B);color:#fff;padding:70px 60px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden">
+          <div style="position:absolute;right:-40px;bottom:-60px;font-size:280px;opacity:.06;font-style:italic">∫</div>
+          <div class="logo" style="color:#fff;font-size:20px"><i style="width:40px;height:40px;font-size:20px">π</i>数源 MathOrigin</div>
+          <h1 style="font-size:40px;margin-top:28px;color:#fff;line-height:1.25">每一步，<br>都讲清楚为什么</h1>
+          <p style="color:#94A3B8;margin-top:16px;max-width:420px;line-height:1.9">同一知识体系，六条到达路径。推理链深钻 · 知识图谱 · 公式馆——大屏是深度学习的主场。</p>
+          <div style="margin-top:34px;display:flex;gap:10px;flex-wrap:wrap">
+            <span class="tag p1" style="background:rgba(47,107,255,.25);color:#9BB4FF">深钻五玩</span>
+            <span class="tag p3t" style="background:rgba(139,92,246,.25);color:#C4B5FD">全屏图谱</span>
+            <span class="tag p2t" style="background:rgba(16,185,129,.22);color:#6EE7B7">作答考试布局</span>
+          </div>
+        </div>
+        <div style="display:grid;place-items:center;background:#fff;padding:40px">
+          <div style="width:340px">
+            <h2>登录 / 注册</h2>
+            <p class="mut mt">手机号验证码为主（M2 同源）</p>
+            <div class="card mt" style="padding:4px 14px;display:flex;align-items:center;gap:8px"><b>+86</b><div style="width:1px;height:20px;background:var(--line)"></div><input value="138 8888 8888" style="border:none;outline:none;font-size:16px;flex:1;background:none"></div>
+            <label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--ink2);margin:14px 2px;cursor:pointer">
+              <input type="checkbox" id="agCk" style="margin-top:3px;width:15px;height:15px;accent-color:#2F6BFF">
+              <span>已阅读并同意《用户协议》《隐私政策》（01-U05）</span></label>
+            <button class="btn" style="width:100%" id="smsW">获取验证码 →</button>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button class="btn gray sm" style="flex:1" onclick="wto('微信扫码登录（未配置渠道自动隐藏）')">微信扫码</button>
+              <button class="btn gray sm" style="flex:1" onclick="wto('账号密码登录')">账号密码</button>
+              <button class="btn gray sm" style="flex:1" onclick="wto('邮箱登录/注册')">邮箱</button>
+            </div>
+            <p class="mut mt" style="text-align:center">登录成功 → 首页（新用户弹测评引导 D3）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 其余屏需要顶导航：给除 w01 外统一包？——用 JS 在非 w01 屏显示 nav -->
+    <div id="shellNav" style="display:none">
+      <div class="nav">
+        <div class="logo"><i>π</i>数源 MathOrigin</div>
+        <a data-go="w03">路径</a><a data-go="w06" class="on">图谱</a><a data-go="w08">题库</a><a data-go="w15">社区</a><a data-go="w14">公式馆</a>
+        <div class="right">
+          <span class="kbd" id="kKey">🔍 Ctrl K</span>
+          <span style="cursor:pointer;position:relative" onclick="wto('通知中心（4 类）')">🔔<i style="position:absolute;top:-2px;right:-3px;width:7px;height:7px;background:#EF4444;border-radius:50%"></i></span>
+          <span class="av" data-go="w17">A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- W02 首页 -->
+    <div class="scr" id="w02">
+      <h1>早上好，同学A 👋</h1>
+      <p class="mut">连续学习 12 天 · 白银段位 · 今天有 3 个任务</p>
+      <div class="grid2 mt">
+        <div class="card" style="background:linear-gradient(135deg,#2F6BFF,#6D8DFF);border:none;color:#fff">
+          <div style="display:flex;justify-content:space-between"><b style="font-size:16px">今日任务 1/3</b><span style="font-size:13px;opacity:.85" data-go="w12">计划详情 ›</span></div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <div style="flex:1;background:rgba(255,255,255,.15);border-radius:9px;padding:10px;font-size:13px">☐ 学 1 课时</div>
+            <div style="flex:1;background:rgba(255,255,255,.15);border-radius:9px;padding:10px;font-size:13px">☑ 每日一练 ✓</div>
+            <div style="flex:1;background:rgba(255,255,255,.15);border-radius:9px;padding:10px;font-size:13px">☐ 错题重练</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;gap:16px;align-items:center">
+          <div class="ring"><span>64%</span></div>
+          <div style="flex:1"><b>一元二次方程 · 求根公式</b><div class="mut mt">第 5/8 课时 · 继续上次进度</div>
+            <button class="btn sm mt" data-go="w04">继续学习 →</button></div>
+        </div>
+      </div>
+      <div class="sect">每日一练 & 推荐</div>
+      <div class="grid3">
+        <div class="card" style="cursor:pointer;border-top:4px solid var(--p4)" data-go="w08"><b>🎯 每日一练 · 5 题</b><div class="mut mt">到期：错题3 + 薄弱点2 · 约6分钟</div></div>
+        <div class="card" style="cursor:pointer;border-top:4px solid var(--p6o)" data-go="w16"><b>♜ 闯关 · 第 3 关</b><div class="mut mt">星级 46 · 距黄金差 14⭐</div></div>
+        <div class="card" style="cursor:pointer;border-top:4px solid var(--p2)" data-go="w06"><b>◈ 图谱掌握度</b><div class="mut mt">41 点已掌握 · 3 点前置待补</div></div>
+      </div>
+      <div class="sect">学习热力（周）</div>
+      <div class="card"><div style="display:grid;grid-template-columns:repeat(14,1fr);gap:5px">
+        <i style="height:22px;border-radius:6px;background:#D1FAE5"></i><i style="height:22px;border-radius:6px;background:#10B981"></i><i style="height:22px;border-radius:6px;background:#6EE7B7"></i><i style="height:22px;border-radius:6px;background:#ECFDF5"></i><i style="height:22px;border-radius:6px;background:#10B981"></i><i style="height:22px;border-radius:6px;background:#D1FAE5"></i><i style="height:22px;border-radius:6px;background:#6EE7B7"></i>
+        <i style="height:22px;border-radius:6px;background:#10B981"></i><i style="height:22px;border-radius:6px;background:#D1FAE5"></i><i style="height:22px;border-radius:6px;background:#ECFDF5"></i><i style="height:22px;border-radius:6px;background:#6EE7B7"></i><i style="height:22px;border-radius:6px;background:#10B981"></i><i style="height:22px;border-radius:6px;background:#D1FAE5"></i><i style="height:22px;border-radius:6px;background:#10B981"></i>
+      </div></div>
+    </div>
+
+    <!-- W03 路径+课程 -->
+    <div class="scr" id="w03">
+      <h1>路径中心 · 系统课程</h1>
+      <div class="grid2 mt">
+        <div>
+          <div class="card" style="display:flex;gap:16px;align-items:center">
+            <div class="ring" style="--v:.64"><span>64%</span></div>
+            <div><b style="font-size:17px">一元二次方程 · 从因式分解到求根</b><div class="mut mt">8 课时 · 已完成 5 · 正确率 83%</div></div>
+          </div>
+          <div class="sect">章节树（🔒=前置未达 D4）</div>
+          <div class="rowline"><span style="color:var(--ok)">✓</span><div style="flex:1"><b>第 1 章 等式的性质</b><div class="mut">3 课时</div></div></div>
+          <div class="rowline"><span style="color:var(--ok)">✓</span><div style="flex:1"><b>第 2 章 因式分解</b><div class="mut">3 课时 · 随堂练全对</div></div></div>
+          <div class="rowline" style="border-color:var(--p)" data-go="w04"><span style="color:var(--p)">▶</span><div style="flex:1"><b>第 3 章 求根公式</b><div class="mut">当前章节</div></div><span class="chip">继续</span></div>
+          <div class="rowline" style="opacity:.6"><span>🔒</span><div style="flex:1"><b>第 4 章 应用与建模</b><div class="mut">前置：判别式掌握 ≥80</div></div></div>
+        </div>
+        <div>
+          <div class="card"><b>本课前置要求</b>
+            <div class="mt"><span class="chipnode" data-go="w07">等式性质 ✓</span><span class="chipnode" data-go="w07">因式分解 ✓</span></div>
+            <p class="mut mt">未达标前置显示红色并给「去图谱补先修」→</p>
+            <button class="btn sm ghost mt" data-go="w06">打开知识图谱</button>
+          </div>
+          <div class="card mt"><b>课程统计</b>
+            <div class="grid3 mt" style="gap:8px;text-align:center">
+              <div><b style="font-size:22px">5</b><div class="mut">课时完成</div></div>
+              <div><b style="font-size:22px">2h18m</b><div class="mut">投入时长</div></div>
+              <div><b style="font-size:22px">83%</b><div class="mut">随堂正确率</div></div>
+            </div>
+          </div>
+          <div class="card mt"><b>六路径速切</b>
+            <div class="mt" style="display:flex;gap:8px;flex-wrap:wrap">
+              <span class="chip" data-go="w03">▤ 课程</span><span class="chip g" data-go="w06">◈ 图谱</span><span class="chip g" data-go="w11">◎ 测评</span>
+              <span class="chip g" data-go="w16">▟ 阶梯</span><span class="chip g">❏ 专题</span><span class="chip g" data-go="w16">♜ 闯关</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W04 课时页 -->
+    <div class="scr" id="w04">
+      <div class="mut">路径 / 系统课程 / 第 3 章 / <b style="color:var(--ink)">3.2 求根公式的来历</b></div>
+      <div class="grid2 mt" style="grid-template-columns:1.9fr 1fr">
+        <div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center"><b>课时进度 62%</b><span class="mut">心跳计时 05:12 · 草稿已存</span></div>
+            <div class="bar"><i style="width:62%"></i></div>
+            <p class="mt" style="font-size:15.5px;line-height:1.95">把 <span class="math">ax²+bx+c=0 (a≠0)</span> 配成完全平方——是两千年前巴比伦人就会的操作。我们要回答的不是"怎么背"，而是：<b>为什么可以除以 a？为什么最后要 ±？</b></p>
+            <div class="card mt" style="text-align:center;background:#F8FAFC;padding:28px"><span class="math" style="font-size:30px">x = ( −b ± √(b²−4ac) ) / 2a</span></div>
+            <div class="card mt" style="border-style:dashed"><b>🎬 视频（外链）· 断点 02:14</b><div class="mut mt">播放器占位 · 心跳续播</div></div>
+            <div class="mt" style="display:flex;justify-content:space-between">
+              <button class="btn gray sm">← 上一课时</button>
+              <button class="btn sm" onclick="wto('完成课时 · +10 · 掌握度↑（完成条件弹层）')">标记完成</button>
+              <button class="btn ghost sm" data-go="w05">课时例题进深钻 →</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="position:sticky;top:14px">
+            <b>随堂练 · 逐题即时反馈</b>
+            <p class="mut mt">方程 <span class="math">2x²−4x−6=0</span> 的根是？</p>
+            <div class="opt qz" data-r="0" style="margin-top:10px"><span class="k">A</span><span class="math">x=3</span></div>
+            <div class="opt qz" data-r="1"><span class="k">B</span><span class="math">x=3 或 x=−1</span></div>
+            <div class="opt qz" data-r="0"><span class="k">C</span><span class="math">x=6</span></div>
+            <div class="card mt qexp" style="display:none;border-color:var(--ok);background:#F0FDF4;font-size:13.5px">
+              ✓ 正确！解析在题下展开（16 §5：不弹层防打断）。<br><span class="mut">依据：求根公式适用 a≠0；动机：先判别式 16+48=64 完全平方 → 优先因式分解。</span>
+            </div>
+            <div class="sect">本课知识点</div>
+            <div><span class="chipnode" data-go="w07">判别式</span><span class="chipnode" data-go="w14">求根公式</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W05 深钻页 WD3 -->
+    <div class="scr" id="w05">
+      <div style="display:flex;align-items:center;gap:14px">
+        <span style="cursor:pointer;font-size:18px" data-go="w10">‹</span>
+        <div><b style="font-size:17px">深钻 #1024</b><span class="mut" style="margin-left:10px">解 <span class="math">x²−5x+6=0</span> 并说明每步依据</span></div>
+        <span class="tag p2t" style="margin-left:auto">quality: curated</span>
+      </div>
+      <div class="dtabs" id="ddT">
+        <span class="dtab on" data-d="0">通读</span><span class="dtab" data-d="1">预测</span><span class="dtab" data-d="2">顺逆</span><span class="dtab" data-d="3">多解</span><span class="dtab" data-d="4">AI</span>
+      </div>
+
+      <div class="dm" data-d="0">
+        <div class="dd">
+          <div class="chain">
+            <div class="st sel" data-s="0"><div class="kk">S1 · 工具选择</div><div class="tx">尝试因式分解：找两数积 6、和 −5</div></div>
+            <div class="st sub" data-s="1"><div class="dep"></div><div class="kk">S2 · 等价变形</div><div class="tx">分解为 <span class="math">(x−2)(x−3)=0</span></div></div>
+            <div class="st sub" data-s="2"><div class="dep"></div><div class="kk">S3 · 论证</div><div class="tx">零因子律：积为 0 → <span class="math">x=2 或 x=3</span></div></div>
+            <div class="st" data-s="3"><div class="kk">S4 · 回代检验</div><div class="tx">代回原方程验证两根（跳过=漏根风险）</div></div>
+            <div class="card mut" style="font-size:13px">点步卡 → 右栏三层联动（WD3）；依赖虚线示意 S2←S1</div>
+          </div>
+          <div class="rail" id="railBox">
+            <h4>▸ 依据 WARRANT</h4><div class="box" id="rWar">十字相乘法适用（首项系数为 1）。<div><span class="chipnode" data-go="w07">知识点：因式分解·符号规则</span></div></div>
+            <h4>▸ 为什么想到 MOTIVE</h4><div class="box" id="rMot">常数 6=2×3 且 2+3=5——信号明显，先试最快的工具。</div>
+            <h4 style="color:#B91C1C">▸ 岔路 OFF_RAMP</h4><div class="box err" id="rOff">因数组不合（如和对不上）才转求根公式；别一上来就套公式。</div>
+            <button class="btn sm ghost mt" style="width:100%" onclick="aiOpen('#1024 · S1 上下文')">在此步追问 AI</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dm" data-d="1" style="display:none">
+        <div class="grid2">
+          <div class="card"><b>已知 <span class="math">(x−2)(x−3)=0</span>，下一步？</b>
+            <div class="opt pd" data-ok="0" style="margin-top:12px"><span class="k">A</span>两边同除以 (x−2)</div>
+            <div class="opt pd" data-ok="1"><span class="k">B</span>零因子律 → x=2 或 3</div>
+            <div class="opt pd" data-ok="0"><span class="k">C</span>展开重算</div>
+          </div>
+          <div class="card" id="pdCm" style="border-style:dashed"><b>点评区</b><p class="mut mt">提交后显示双分支点评（E2：对=强化动机 / 错="你会这么想因为…但…"）</p></div>
+        </div>
+      </div>
+
+      <div class="dm" data-d="2" style="display:none">
+        <div class="grid2">
+          <div class="card" style="border-top:4px solid var(--p)"><b>综合法（由因导果）</b>
+            <div class="chain mt"><div class="st" style="cursor:default"><div class="kk">S1</div><div class="tx">条件 <span class="math">x²−5x+6=0</span></div></div>
+            <div class="st sub" style="cursor:default"><div class="kk">S2 同色</div><div class="tx">十字相乘 → (x−2)(x−3)=0</div></div>
+            <div class="st sub" style="cursor:default"><div class="kk">S3 同色</div><div class="tx">零因子 → 两根</div></div></div>
+          </div>
+          <div class="card" style="border-top:4px solid var(--violet)"><b>分析法（执果索因）</b>
+            <div class="chain mt"><div class="st" style="cursor:default"><div class="kk" style="color:var(--violet)">要 x=?</div><div class="tx">需要降次到一次方程</div></div>
+            <div class="st sub" style="cursor:default"><div class="kk" style="color:var(--violet)">降次需要</div><div class="tx">左边分解为两个一次因式</div></div>
+            <div class="st sub" style="cursor:default"><div class="kk" style="color:var(--violet)">分解需要</div><div class="tx">找到积 6 和 −5 的整数对 → (−2,−3)</div></div></div>
+          </div>
+        </div>
+        <p class="mut">WD3：双画布并排、同色步对齐；点任一步两栏联动高亮（原型静态对齐示意）。</p>
+      </div>
+
+      <div class="dm" data-d="3" style="display:none">
+        <div style="display:flex;gap:10px;margin-bottom:12px"><span class="chip">解法A 因式分解</span><span class="chip g">解法B 求根公式</span><span class="chip g">解法C 图像交点</span><span class="chip g">解法D 韦达逆用</span></div>
+        <div class="card"><b>解法对比表</b>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:10px">
+            <tr style="text-align:left;color:var(--ink3);font-size:12.5px"><th style="padding:6px">解法</th><th>步数</th><th>技巧性</th><th>计算量</th><th>适用</th></tr>
+            <tr style="border-top:1px solid var(--line)"><td style="padding:8px 6px"><b>A 因式分解</b></td><td>3</td><td>中</td><td>小</td><td>判别式为完全平方</td></tr>
+            <tr style="border-top:1px solid var(--line)"><td style="padding:8px 6px"><b>B 求根公式</b></td><td>4</td><td>低(通法)</td><td>中</td><td>恒可用</td></tr>
+            <tr style="border-top:1px solid var(--line)"><td style="padding:8px 6px"><b>C 图像交点</b></td><td>5</td><td>高(数形)</td><td>中</td><td>需估根/理解意义</td></tr>
+          </table>
+          <div class="card mt" style="background:var(--p50);border-color:var(--p100)"><b>本题通法总结</b><p class="mut mt">首项系数为 1 且判别式完全平方 → 优先因式分解；否则求根公式保底。</p></div>
+        </div>
+      </div>
+
+      <div class="dm" data-d="4" style="display:none">
+        <div class="card" style="max-width:640px"><b>AI 苏格拉底（嵌入深钻，带 stepSeq 上下文）</b><p class="mut mt">点击右下角气泡或下方按钮，在右侧面板对话（WD6）。</p>
+          <button class="btn mt" onclick="aiOpen('#1024 · 通读态上下文')">打开 AI 面板</button></div>
+      </div>
+    </div>
+
+    <!-- W06 图谱 WD5 -->
+    <div class="scr" id="w06">
+      <div class="gwrap">
+        <div class="gtop">
+          <input placeholder="搜索知识点（定位飞入+高亮脉冲）">
+          <span class="chip">领域：代数 ▾</span><span class="chip g">视图：分层 ▾</span>
+          <span style="margin-left:auto;font-size:12.5px;color:var(--ink3)">图例：</span>
+          <span style="display:inline-flex;gap:5px;align-items:center;font-size:12.5px"><i style="width:12px;height:12px;border-radius:50%;background:#22C55E"></i>掌握≥80</span>
+          <span style="display:inline-flex;gap:5px;align-items:center;font-size:12.5px"><i style="width:12px;height:12px;border-radius:50%;background:#F59E0B"></i>薄弱</span>
+          <span style="display:inline-flex;gap:5px;align-items:center;font-size:12.5px"><i style="width:12px;height:12px;border-radius:50%;background:#EF4444"></i>前置未过</span>
+          <span style="display:inline-flex;gap:5px;align-items:center;font-size:12.5px"><i style="width:12px;height:12px;border-radius:50%;background:#CBD5E1"></i>未学</span>
+        </div>
+        <div class="gcanvas" id="gc">
+          <div class="gedge" style="left:130px;top:105px;width:150px;transform:rotate(18deg)"></div>
+          <div class="gedge" style="left:130px;top:115px;width:170px;transform:rotate(44deg)"></div>
+          <div class="gedge" style="left:400px;top:160px;width:140px;transform:rotate(-16deg)"></div>
+          <div class="gedge" style="left:405px;top:195px;width:160px;transform:rotate(24deg)"></div>
+          <div class="gedge" style="left:405px;top:215px;width:220px;transform:rotate(52deg)"></div>
+          <div class="gedge" style="left:660px;top:150px;width:150px;transform:rotate(26deg)"></div>
+          <div class="gedge" style="left:665px;top:300px;width:140px;transform:rotate(-30deg)"></div>
+          <div class="gnode" data-gn="0" style="left:60px;top:70px;background:#22C55E">等式的<br>性质</div>
+          <div class="gnode" data-gn="1" style="left:60px;top:180px;background:#22C55E">整式运算</div>
+          <div class="gnode" data-gn="2" style="left:340px;top:130px;background:#F59E0B">因式<br>分解</div>
+          <div class="gnode" data-gn="3" style="left:340px;top:250px;background:#EF4444">判别式<br>与根分布</div>
+          <div class="gnode" data-gn="4" style="left:610px;top:110px;background:#22C55E">求根<br>公式</div>
+          <div class="gnode" data-gn="5" style="left:610px;top:330px;background:#CBD5E1">韦达<br>定理</div>
+          <div class="gnode" data-gn="6" style="left:840px;top:200px;background:#CBD5E1">根的<br>分布</div>
+          <div class="gnode" data-gn="7" style="left:840px;top:60px;background:#CBD5E1">函数<br>与零点</div>
+          <!-- 抽屉 -->
+          <div class="gdrawer" id="gdr">
+            <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px" id="gdn">因式分解</b><span style="cursor:pointer;color:var(--ink3)" onclick="gClose()">✕</span></div>
+            <div style="display:flex;gap:14px;align-items:center;margin-top:12px">
+              <div class="ring" style="--v:.61;width:58px;height:58px"><span id="gdv">61</span></div>
+              <div class="mut">掌握度 · 薄弱区间<br>近 7 天练 3 次</div>
+            </div>
+            <div style="display:flex;gap:7px;margin-top:14px" id="gdt">
+              <span class="chip" data-gt="0">起源</span><span class="chip g" data-gt="1">现实</span><span class="chip g" data-gt="2">抽象阶梯</span><span class="chip g" data-gt="3">代表题</span>
+            </div>
+            <div class="card mt gtp" data-gt="0" style="font-size:13.5px"><b>被面积问题逼出来的技巧</b><p class="mut mt">古埃及人分地、巴比伦人凑数，都在"把面积拆回长宽"——因式分解是这门手艺的代数版。</p></div>
+            <div class="card mt gtp" data-gt="1" style="font-size:13.5px;display:none"><b>现实三例</b><p class="mut mt">裁地剩余面积 · 利息模型拆解 · 拱桥跨径</p></div>
+            <div class="card mt gtp" data-gt="2" style="font-size:13.5px;display:none"><b>抽象阶梯</b><p class="mut mt">拆面积 → 和积互逆 → <span class="math">(a+b)² 展开与回收</span></p></div>
+            <div class="card mt gtp" data-gt="3" style="font-size:13.5px;display:none"><b>代表题</b><p class="mut mt">#1024 入门 · #1102 十字相乘 · #1310 逆向构造</p></div>
+            <div style="margin-top:12px;font-size:12.5px;color:var(--ink3)">前置：等式性质 ✓ ｜ 后继：判别式 🔒</div>
+            <button class="btn sm mt" style="width:100%" data-go="w19?">从此处开始练（锁态=3311）</button>
+            <button class="btn sm ghost mt" style="width:100%" data-go="w14">关联公式：求根公式</button>
+          </div>
+        </div>
+        <div style="padding:10px 16px;font-size:12.5px;color:var(--ink3);border-top:1px solid var(--line)">滚轮缩放 · 拖拽平移 · 框选子树 · 搜索定位（WD5）｜ 点击节点开右侧四卡抽屉</div>
+      </div>
+    </div>
+
+    <!-- W07 节点详情独立页（同构） -->
+    <div class="scr" id="w07">
+      <div style="display:flex;gap:14px;align-items:center">
+        <span style="cursor:pointer;font-size:18px" data-go="w06">‹</span>
+        <h1 style="font-size:24px">知识点 · 因式分解</h1>
+        <span class="tag p4">薄弱 40-79</span>
+        <span class="chip" style="margin-left:auto" data-go="w06">在图谱中定位</span>
+      </div>
+      <div class="grid3 mt">
+        <div class="card" style="grid-column:span 2">
+          <div class="grid2">
+            <div><b>起源</b><p class="mut mt">被面积问题逼出来的技巧：古埃及分地 → 巴比伦凑数 → 代数化。</p></div>
+            <div><b>现实原型</b><p class="mut mt">裁地剩余 · 利息拆解 · 拱桥跨径。</p></div>
+            <div><b>抽象阶梯</b><p class="mut mt">REAL 拆面积 → MODEL 和积互逆 → SYMBOL <span class="math">(a±b)²</span>。</p></div>
+            <div><b>代表题</b><p class="mut mt">#1024 / #1102 / #1310 → [去练习]</p></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="text-align:center"><div class="ring" style="--v:.61;margin:0 auto"><span>61</span></div><p class="mut mt">掌握度 · 本周 −3（衰减提示）</p>
+            <div class="mt" style="text-align:left"><b style="font-size:13.5px">历史 7 次：</b><div class="bar"><i style="width:61%"></i></div></div></div>
+          <div class="card mt"><b>关联网页</b>
+            <div class="mt" style="display:flex;gap:8px;flex-wrap:wrap"><span class="chipnode" data-go="w14">求根公式</span><span class="chipnode" data-go="w04">课时 3.2</span><span class="chipnode" data-go="w05">深钻 #1024</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W08 作答页 WD4 -->
+    <div class="scr" id="w08">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="cursor:pointer;font-size:18px" data-go="w02">‹</span>
+        <b style="font-size:17px">每日一练 · 5 题（练习态）</b>
+        <span class="chip">进度 2 / 5</span>
+        <span style="color:#EF4444;font-weight:700">⏱ 04:58</span>
+        <span class="mut" style="margin-left:auto">快捷键：1-4 选项 · Enter 提交 · ←→ 切题 · F 标记 · Ctrl+K 搜索</span>
+      </div>
+      <div class="exam mt">
+        <div>
+          <div class="card">
+            <div style="display:flex;justify-content:space-between"><b>第 2 题 · 填空（10 分）</b><span class="chip g">知识点：因式分解</span></div>
+            <p class="mt" style="font-size:16px">配方解 <span class="math">x²−6x+5=0</span>，较大根为 ______</p>
+            <input class="fillin mt" id="fillW" placeholder="用工具条或键盘输入（数学字体）">
+            <div class="mbar">
+              <button data-ins="²">x²</button><button data-ins="√()">√</button><button data-ins="/">分</button><button data-ins="±">±</button><button data-ins="π">π</button><button data-ins="≤">≤</button><button data-ins="∞">∞</button>
+            </div>
+          </div>
+          <div class="opt jz" data-r="0"><span class="k">A</span><span class="math">x = 5（仅此根）</span></div>
+          <div class="opt jz" data-r="1"><span class="k">B</span><span class="math">较大根 x = 5</span></div>
+          <div class="opt jz" data-r="0"><span class="k">C</span><span class="math">x = 6</span></div>
+          <div class="card jexp" style="display:none;border-color:var(--ok);background:#F0FDF4;font-size:14px">✓ <b>正确</b> —— 解析展开在题下（练习态不弹层）。错题自动入本 + 断链推断（09 L3）。</div>
+          <div class="mt" style="display:flex;gap:10px">
+            <button class="btn gray sm" onclick="wto('上一题 ←')">← 上一题</button>
+            <button class="btn sm" id="subW">提交本题 (Enter)</button>
+            <button class="btn ghost sm" data-go="w05">本题深钻</button>
+          </div>
+        </div>
+        <!-- 右栏答题卡 WD4 -->
+        <div>
+          <div class="card" style="position:sticky;top:14px">
+            <div style="display:flex;justify-content:space-between"><b>答题卡</b><span class="mut">已答 1 · 未答 4</span></div>
+            <div class="agrid mt">
+              <div class="acell done">1</div><div class="acell cur">2</div><div class="acell flag">3⚑</div><div class="acell">4</div><div class="acell">5</div>
+            </div>
+            <div class="bar mt"><i style="width:20%"></i></div>
+            <div class="sect" style="margin:14px 0 8px">标记列表</div>
+            <div class="mut">⚑ 第 3 题（根的分布 · 想不出来）</div>
+            <div class="sect" style="margin:14px 0 8px">本卷信息</div>
+            <div class="mut">练习 mode · 逐题判分 ｜ 草稿每题即存</div>
+            <button class="btn sm mt" style="width:100%" data-go="w09">交卷（确认弹窗）→</button>
+            <p class="mut mt" style="font-size:12px">≤1023px 本栏 → 底部抽屉（同 15-S20）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W09 报告 -->
+    <div class="scr" id="w09">
+      <div style="display:flex;gap:14px;align-items:center">
+        <span style="cursor:pointer;font-size:18px" data-go="w08">‹</span><h1>成绩报告</h1>
+        <span class="chip g">每日一练 · 2026-09-15</span>
+        <div style="margin-left:auto;display:flex;gap:10px"><button class="btn sm ghost" data-go="w05">深钻错题</button><button class="btn sm gray" onclick="wto('分享海报已生成')">分享海报</button></div>
+      </div>
+      <div class="grid4 mt">
+        <div class="card" style="text-align:center"><div style="font-size:44px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">82</div><div class="mut">得分 /100</div></div>
+        <div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800">83%</div><div class="mut">正确率</div></div>
+        <div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800">11:24</div><div class="mut">用时</div></div>
+        <div class="card" style="text-align:center"><div style="font-size:30px;font-weight:800">2</div><div class="mut">错题已入本</div></div>
+      </div>
+      <div class="grid2 mt">
+        <div class="card"><b>知识点分布（点条形跳图谱）</b>
+          <div class="mt"><span class="mut">因式分解 90%</span><div class="bar"><i style="width:90%"></i></div></div>
+          <div class="mt"><span class="mut">判别式 62%</span><div class="bar"><i style="width:62%"></i></div></div>
+          <div class="mt"><span class="mut">根的分布 45%</span><div class="bar"><i style="width:45%"></i></div></div>
+        </div>
+        <div class="card"><b>推理能力画像（step_type 雷达）</b>
+          <div class="radarph mt"><span>读条件 · 选工具 · 等价变形 · 论证 · 回代</span></div>
+        </div>
+      </div>
+      <div class="grid2 mt">
+        <div class="card" style="border-left:4px solid var(--bad)"><b>错题清单</b>
+          <div class="rowline mt" data-go="w10" style="margin-top:10px"><b>#1024</b><span class="tag bad">断在 S2 · 缺依据</span><span style="margin-left:auto">详情 ›</span></div>
+          <div class="rowline"><b>#1102</b><span class="tag p4">不会</span><span style="margin-left:auto;color:var(--ink3)">›</span></div>
+        </div>
+        <div class="card"><b>AI 归因（无 Key=规则文案）</b><p class="mut mt">「根的分布」错题集中：建议回补前置 <b style="color:var(--p)">不等式性质</b> → 一键跳图谱。</p>
+          <button class="btn sm ghost mt" data-go="w06">去补先修</button></div>
+      </div>
+    </div>
+
+    <!-- W10 错题+断链 -->
+    <div class="scr" id="w10">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>错题本</h1>
+        <div style="display:flex;gap:8px"><span class="chip">全部 8</span><span class="chip g">到期 5</span><span class="chip g">未掌握 6</span><span class="chip g">按知识点</span></div>
+        <button class="btn sm" style="margin-left:auto" data-go="w08">一键重练 5</button>
+      </div>
+      <div class="grid2 mt">
+        <div>
+          <div class="card" style="border-left:4px solid var(--bad)">
+            <div style="display:flex;justify-content:space-between"><b>#1024 因式分解</b><span class="tag bad">断在 S2 · 缺依据</span></div>
+            <p class="mut mt">错 2 次 · 昨天 · 点击展开断链详情</p>
+            <button class="btn sm ghost mt" data-go="w05">看推理 →</button>
+          </div>
+          <div class="card" style="border-left:4px solid var(--warn)"><div style="display:flex;justify-content:space-between"><b>#1102 十字相乘</b><span class="tag p4">到期今天</span></div><p class="mut mt">错 1 次 · SRS 明日复习</p></div>
+          <div class="card" style="border-left:4px solid var(--warn)"><div style="display:flex;justify-content:space-between"><b>#1310 根的分布</b><span class="tag p4">前置缺</span></div><p class="mut mt">断点建议：不等式性质</p></div>
+        </div>
+        <div>
+          <div class="card"><b>断链详情 · #1024（K-04）</b>
+            <div class="chain mt">
+              <div class="st" style="cursor:default;border-color:var(--ok)"><div class="kk" style="color:var(--ok)">S1 ✓</div><div class="tx">移项整理</div></div>
+              <div class="st sub" style="border-style:dashed;border-color:var(--bad)"><div class="kk" style="color:#B91C1C">S2 ✗ 断点</div><div class="tx">你写成 <span class="math">(x+2)(x+3)=0</span></div>
+                <div class="mut mt">缺什么：十字相乘符号规则（和为 −5 需两个负因数）</div></div>
+              <div class="st sub" style="opacity:.5;cursor:default"><div class="kk">S3 —</div><div class="tx">零因子律（未到达）</div></div>
+            </div>
+            <div class="sect">补哪里</div>
+            <div class="rowline" data-go="w07"><div style="flex:1"><b>知识点：因式分解·符号规则</b><div class="mut">warrant 指向的图谱节点</div></div><span>去补 ›</span></div>
+            <div class="rowline" data-go="w08"><div style="flex:1"><b>动机训练 ×2</b><div class="mut">「看到和为负该想到什么」</div></div><span>开练 ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W11 测评 -->
+    <div class="scr" id="w11">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>入学测评</h1><span class="chip">第 4/5 题 · 当前档：高考基础</span></div>
+      <div class="grid2 mt" style="grid-template-columns:1.6fr 1fr">
+        <div class="card">
+          <div style="height:7px;border-radius:4px;background:linear-gradient(90deg,var(--p) 70%,#E5E7EB 70%)"></div>
+          <p class="mut mt">连对升档 / 错 2 降档 · 中途退出可续答（D3）</p>
+          <div class="card mt" style="background:#F8FAFC">若 <span class="math">a>b</span>，则恒成立的是</div>
+          <div class="opt"><span class="k">A</span><span class="math">ac>bc（任意c）</span></div>
+          <div class="opt"><span class="k">B</span><span class="math">−a<−b</span></div>
+          <div class="opt"><span class="k">C</span><span class="math">a²>b²</span></div>
+          <div class="opt"><span class="k">D</span><span class="math">a−c>b−c</span></div>
+          <button class="btn sm" onclick="wto('答题完成 → 报告与计划确认')">下一题（答完出报告）</button>
+        </div>
+        <div class="card"><b>定级预览（答完生成）</b>
+          <div class="radarph mt"><span>代数 · 几何 · 概念 · 运算 · 建模</span></div>
+          <p class="mut mt">报告 → [生成计划]（AI/规则回落）→ W12 计划确认</p>
+          <button class="btn sm ghost mt" data-go="w12">直接看计划页 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- W12 计划 -->
+    <div class="scr" id="w12">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>学习计划</h1>
+        <span class="chip">本周完成率 71%</span><span class="chip g">动态调档：进行中</span>
+        <button class="btn sm gray" style="margin-left:auto" onclick="wto('调整计划：时长滑杆/增删改任务')">调整计划</button>
+      </div>
+      <div class="grid2 mt" style="grid-template-columns:1.6fr 1fr">
+        <div class="card"><b>2026 年 9 月</b>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;margin-top:12px;font-size:13px">
+            <span class="mut">一</span><span class="mut">二</span><span class="mut">三</span><span class="mut">四</span><span class="mut">五</span><span class="mut">六</span><span class="mut">日</span>
+            <span style="background:#ECFDF5;border-radius:8px;padding:8px 0;color:#047857;font-weight:700">1</span><span style="background:#ECFDF5;border-radius:8px;padding:8px 0;color:#047857;font-weight:700">2</span><span style="border:2px solid var(--p);border-radius:8px;padding:8px 0;color:var(--p);font-weight:800">3</span><span style="background:#ECFDF5;border-radius:8px;padding:8px 0;color:#047857;font-weight:700">4</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">5</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">6</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">7</span>
+            <span style="background:#ECFDF5;border-radius:8px;padding:8px 0;color:#047857;font-weight:700">8</span><span style="border:2px solid var(--p);border-radius:8px;padding:8px 0;color:var(--p);font-weight:800">9</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">10</span><span style="background:#ECFDF5;border-radius:8px;padding:8px 0;color:#047857;font-weight:700">11</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">12</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">13</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">14</span>
+            <span style="border:2.5px solid var(--p);border-radius:8px;padding:8px 0;color:var(--p);font-weight:800">15</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">16</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">17</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">18</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">19</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">20</span><span style="border:1px solid var(--line);border-radius:8px;padding:8px 0">21</span>
+          </div>
+        </div>
+        <div class="card"><b>今日任务（跨路径聚合）</b>
+          <label class="rowline mt" style="cursor:pointer"><input type="checkbox" checked><div style="flex:1"><b>判别式课时 ×1</b><div class="mut">P1 系统课程</div></div></label>
+          <label class="rowline" style="cursor:pointer"><input type="checkbox"><div style="flex:1"><b>每日一练 5 题</b><div class="mut">P4 阶梯 · 18:00 提醒</div></div></label>
+          <label class="rowline" style="cursor:pointer"><input type="checkbox"><div style="flex:1"><b>错题重练 3 题</b><div class="mut">复习（SRS）</div></div></label>
+          <p class="mut mt">连3天达标→下周量+1 ｜ 连3天未完成→插先修复测（L5）</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- W13 统计 -->
+    <div class="scr" id="w13">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>学习统计</h1>
+        <button class="btn sm gray" style="margin-left:auto" data-go="w17">导出 CSV（数据导出流程）</button></div>
+      <div class="grid4 mt">
+        <div class="card"><div class="mut">本周时长</div><b style="font-size:26px">3h 42m</b></div>
+        <div class="card"><div class="mut">做题量</div><b style="font-size:26px">186</b></div>
+        <div class="card"><div class="mut">正确率</div><b style="font-size:26px">83%</b></div>
+        <div class="card"><div class="mut">连签</div><b style="font-size:26px">12 天 🔥</b></div>
+      </div>
+      <div class="grid2 mt">
+        <div class="card"><b>正确率趋势（折线）</b><div class="ph mt"></div></div>
+        <div class="card"><b>推理能力画像（step_type 雷达）</b><div class="radarph mt"><span>弱项：回代检验 · 选工具</span></div></div>
+      </div>
+      <div class="grid2 mt">
+        <div class="card"><b>知识点掌握雷达</b><div class="radarph mt"><span>代数强 · 几何弱</span></div></div>
+        <div class="card"><b>错因分布</b><div class="ph mt"></div><p class="mut mt">缺依据 46% · 变形错误 31% · 漏检验 23%（断链口径）</p></div>
+      </div>
+    </div>
+
+    <!-- W14 公式馆 -->
+    <div class="scr" id="w14">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>公式馆</h1>
+        <input placeholder="搜公式/别名…" style="height:36px;border:1px solid var(--line);border-radius:9px;padding:0 14px;width:260px;outline:none">
+        <div style="display:flex;gap:8px"><span class="chip">代数</span><span class="chip g">几何·三角</span><span class="chip g">分析</span></div>
+      </div>
+      <div class="grid2 mt">
+        <div>
+          <div class="card" style="border-left:4px solid var(--p)">
+            <div style="display:flex;justify-content:space-between"><b style="font-size:17px">勾股定理</b><span class="tag p2t">✓ 严格证明</span></div>
+            <div class="math mt" style="font-size:30px;text-align:center;padding:18px;background:#F8FAFC;border-radius:10px">a² + b² = c²</div>
+            <div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:9px;padding:9px 12px;font-size:13.5px;color:#B91C1C;font-weight:700">⚠ 成立条件：仅直角三角形（∠C=90°）· 边长为正实数</div>
+            <div style="display:flex;gap:9px;margin-top:12px"><button class="btn sm ghost" onclick="wto('✓ 已复制 a²+b²=c²')">⧉ 复制</button><button class="btn sm gray" data-go="w07">关联词条</button><button class="btn sm gray" data-go="w05">推导深钻 →</button></div>
+            <div class="sect">常见错误变形（红笔）</div>
+            <div style="background:#FEF2F2;border:1px dashed #FECACA;border-radius:9px;padding:9px 12px"><span class="math" style="color:#B91C1C;text-decoration:line-through">a²+b²=c² 任意三角形成立</span><div class="mut mt">缺 −2ab·cosC 修正项</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="cursor:pointer"><div style="display:flex;justify-content:space-between"><b>求根公式</b><span class="tag p2t">✓ 推导确立</span></div>
+            <div class="math mt" style="font-size:22px">x = (−b ± √(b²−4ac)) / 2a</div><p class="mut mt">⚠ a≠0 · 实数解需判别式 ≥0</p></div>
+          <div class="card" style="cursor:pointer"><div style="display:flex;justify-content:space-between"><b>均值不等式</b><span class="tag p2t">✓ 严格证明</span></div>
+            <div class="math mt" style="font-size:22px">(a+b)/2 ≥ √(ab)</div><p class="mut mt">⚠ a,b&gt;0 · 取等 a=b</p></div>
+          <div class="card" style="opacity:.8"><div style="display:flex;justify-content:space-between"><b>黎曼猜想（ζ 函数）</b><span class="tag bad">未证实 · F3</span></div>
+            <p class="mut mt">proof_status=4 红紫徽标，不可作定理引用</p></div>
+          <div class="card" style="border-style:dashed"><b>小练试做（题面公开）</b><p class="mut mt">直角边 3、4 → 斜边？ [提交需登录 = 转化位]</p>
+            <button class="btn sm mt" onclick="wto('作答需登录（13 §4.4 转化位）')">提交答案</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W15 社区 -->
+    <div class="scr" id="w15">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>社区</h1>
+        <div style="display:flex;gap:8px"><span class="chip">最新</span><span class="chip g">精华</span><span class="chip g">话题·三角学</span></div>
+        <button class="btn sm" style="margin-left:auto" onclick="wto('发帖页：富文本+公式面板+关联选择器（W15 发帖态）')">✎ 发帖</button>
+      </div>
+      <div class="grid2 mt" style="grid-template-columns:1.8fr 1fr">
+        <div>
+          <div class="card"><div style="display:flex;gap:10px;align-items:center"><span class="av" style="width:34px;height:34px;background:#DBEAFE;color:#2F6BFF">B</span><b>小B</b><span class="mut">2 小时前</span><span class="chip g" style="margin-left:auto">关联题目 #1024</span></div>
+            <p class="mt">这步为什么要除以 sinC？我总在这里卡住…</p><p class="mut mt">💬 6 回复 · 👍 12</p></div>
+          <div class="card"><div style="display:flex;gap:10px;align-items:center"><span class="av" style="width:34px;height:34px;background:#FCE7F3;color:#BE185D">C</span><b>小C</b><span class="tag p2t" style="margin-left:auto">✓ 已采纳</span></div>
+            <p class="mt">均值不等式取等条件的三个检查位，总结给你…</p><p class="mut mt">💬 12 · 👍 40</p></div>
+        </div>
+        <div class="card" style="align-self:start"><b>热门话题</b>
+          <div class="mt" style="display:flex;gap:8px;flex-wrap:wrap"><span class="chipnode">#判别式</span><span class="chipnode">#解三角形</span><span class="chipnode">#均值不等式</span></div>
+          <div class="sect">我的状态</div>
+          <div class="mut">· 我的帖 3（1 审核中）<br>· 收藏回答 8<br>· 未读回复 🔴 2</div>
+          <button class="btn sm mt" onclick="wto('帖详情：原题卡+回复列表+采纳✓（原型静态示意）')">看帖详情示例</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- W16 排行/挑战 -->
+    <div class="scr" id="w16">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>排行榜 / 挑战赛</h1>
+        <div style="display:flex;gap:8px"><span class="chip">周榜</span><span class="chip g">总榜</span><span class="chip g">赛事</span></div>
+      </div>
+      <div class="grid2 mt">
+        <div class="card">
+          <div class="rowline" style="background:#FFFBEB;border-color:#FDE68A"><b style="color:#B45309;width:24px">1</b><span class="av" style="background:#FDE68A;color:#92400E">甲</span><div style="flex:1"><b>甲同学</b><div class="mut">黄金 I · 2,410</div></div></div>
+          <div class="rowline"><b style="color:#94A3B8;width:24px">2</b><span class="av" style="background:#E5E7EB;color:#475569">乙</span><div style="flex:1"><b>乙同学</b><div class="mut">白银 I · 2,120</div></div></div>
+          <div class="rowline"><b style="color:#B45309;width:24px">3</b><span class="av" style="background:#FED7AA;color:#9A3412">丙</span><div style="flex:1"><b>丙同学</b><div class="mut">白银 II · 1,980</div></div></div>
+          <div class="rowline" style="border-color:var(--p);position:sticky;bottom:0"><b style="color:var(--p);width:24px">8</b><span class="av">A</span><div style="flex:1"><b>我</b><div class="mut">白银 II · 1,240 · 距第7名 60</div></div></div>
+        </div>
+        <div>
+          <div class="card" style="border-left:4px solid var(--p6o)"><b>九月阶梯挑战 · 3 天后开赛</b><p class="mut mt">限时 48h · Top10 +100 分 · 参与 +10</p>
+            <button class="btn sm mt" onclick="wto('已报名（开赛提醒）')">报名参赛</button></div>
+          <div class="card mt"><b>闯关地图入口（P6）</b><p class="mut mt">第 3 关求根公式当前 · Boss 模拟卷待解锁</p>
+            <button class="btn sm ghost mt" onclick="wto('闯关地图为移动强项页型；Web 端同数据纵列布局')">打开关卡地图</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W17 个人中心 -->
+    <div class="scr" id="w17">
+      <h1>个人中心</h1>
+      <div class="grid2 mt" style="grid-template-columns:260px 1fr">
+        <div class="card" style="align-self:start">
+          <div style="text-align:center"><span class="av" style="width:72px;height:72px;font-size:28px;margin:0 auto">A</span>
+            <h3 class="mt">同学A</h3><p class="mut">白银 II · 1,240 分 · 连签 12</p></div>
+          <div class="mt" style="display:flex;flex-direction:column;gap:8px">
+            <span class="chip" style="justify-content:center">资料与账号安全</span>
+            <span class="chip g" style="justify-content:center">笔记 (12) / 收藏 (29)</span>
+            <span class="chip g" style="justify-content:center" data-go="w13">学习统计</span>
+            <span class="chip g" style="justify-content:center" onclick="wto('通知中心：四类 Tab')">通知中心</span>
+          </div>
+        </div>
+        <div>
+          <div class="card"><b>设置 · 账号与合规</b>
+            <div class="rowline mt"><div style="flex:1"><b>用户协议 / 隐私政策</b><div class="mut">v1.1 · 端内与官网 /legal 双端可查</div></div><span style="color:var(--ink3)">›</span></div>
+            <div class="rowline"><div style="flex:1"><b>数据导出（U-06）</b><div class="mut">JSON+CSV · 站内信 7 天链接</div></div><button class="btn sm ghost" id="expW">申请导出</button></div>
+            <div class="rowline" style="border-color:#FECACA"><div style="flex:1"><b style="color:#B91C1C">注销账号（U-07）</b><div class="mut">二次验证 → 7 天冷静期 → 匿名化</div></div>
+              <button class="btn sm danger" onclick="document.getElementById('cancelBox').style.display='block';wto('已演示：冷静期倒计时 + 撤销入口')">去注销</button></div>
+          </div>
+          <div class="card mt"><b>消息设置</b>
+            <div class="rowline mt" style="cursor:default"><span style="flex:1">每日一练提醒（18:00）</span><input type="checkbox" checked style="accent-color:#22C55E"></div>
+            <div class="rowline" style="cursor:default"><span style="flex:1">社区回复通知</span><input type="checkbox" checked style="accent-color:#22C55E"></div>
+          </div>
+          <!-- 注销冷静态（W17 子态） -->
+          <div class="card mt" id="cancelBox" style="display:none;border-color:var(--p)"><b>注销冷静期进行中</b>
+            <div style="text-align:center;margin:10px 0"><b style="font-size:30px;color:var(--p)">6天23h</b><p class="mut">到期匿名化 · 社区显示「已注销用户」</p></div>
+            <button class="btn sm" style="width:100%" onclick="wto('✓ 已撤销注销')" id="undoW">撤销注销（登录即撤销）</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W18 全屏搜索 -->
+    <div class="scr" id="w18">
+      <div style="display:flex;gap:14px;align-items:center"><span style="cursor:pointer;font-size:18px" data-go="w02">‹</span><h1>全站搜索</h1><span class="chip g">Ctrl+K 任意页唤起</span></div>
+      <div class="card mt" style="max-width:760px">
+        <input value="勾股" style="width:100%;height:46px;border:1.5px solid var(--p);border-radius:11px;padding:0 16px;font-size:16px;outline:none">
+        <div class="sect">公式</div>
+        <div class="rowline" data-go="w14"><div style="flex:1"><b>勾股定理</b><div class="mut">a²+b²=c² · ⚠ 仅直角三角形</div></div><span class="tag p2t">公式</span></div>
+        <div class="sect">知识点</div>
+        <div class="rowline" data-go="w07"><div style="flex:1"><b>直角三角形性质</b><div class="mut">掌握 88 · 关联公式 3</div></div><span class="tag p1">知识点</span></div>
+        <div class="sect">题目</div>
+        <div class="rowline" data-go="w08"><div style="flex:1"><b>#1087 双直角勾股逆用</b><div class="mut">L2 · 你未做过</div></div><span class="tag p4">题目</span></div>
+        <div class="sect">文章</div>
+        <div class="rowline"><div style="flex:1"><b>勾股定理的 300 种证法在证什么</b><div class="mut">博客 · 概念起源</div></div><span class="tag p3t">文章</span></div>
+      </div>
+    </div>
+
+    <!-- AI 面板 WD6 -->
+    <div id="aibub" onclick="aiToggle()">π</div>
+    <div id="aipanel">
+      <div class="ctxbar"><span id="aiCtx">AI 导师 · 全局（无题目上下文）</span><span style="cursor:pointer" onclick="aiToggle()">✕</span></div>
+      <div style="padding:14px 16px 0;display:flex;justify-content:space-between;align-items:center">
+        <b>AI 导师 · <span id="aiModeT">苏格拉底模式</span></b>
+        <span class="chip g" id="aiModeBtn" style="cursor:pointer">切换直接讲解</span>
+      </div>
+      <div class="aistream" id="aiSt">
+        <div class="bub ai">你好，我默认不直接给答案——把你卡住的那一步告诉我。</div>
+      </div>
+      <div style="padding:0 14px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="chip" style="cursor:pointer" onclick="aiSend('为什么不能两边同除 (x−2)？')">为什么不能同除 (x−2)？</span>
+        <span class="chip g" style="cursor:pointer" onclick="aiSend('给我出两道同类题')">出两道同类题</span>
+      </div>
+      <div class="aiin"><input id="aiInW" placeholder="追问…（Enter 发送）"><button class="btn sm" onclick="aiSend()">发送</button></div>
+    </div>
+
+    <!-- 搜索浮层（Ctrl+K） -->
+    <div id="searchov" onclick="if(e.target===this)sClose()">
+      <div class="sbox">
+        <input placeholder="搜索：词条 / 公式 / 路径 / 帖子…" id="sIn">
+        <div class="sres">
+          <div class="sgrp">公式</div>
+          <div class="sitem" data-go="w14">ƒ 勾股定理 <span class="mut" style="margin-left:auto">⚠ 仅直角</span></div>
+          <div class="sgrp">知识点</div>
+          <div class="sitem" data-go="w07">§ 因式分解 <span class="mut" style="margin-left:auto">掌握 61</span></div>
+          <div class="sgrp">路径</div>
+          <div class="sitem" data-go="w03">▶ 系统课程 <span class="mut" style="margin-left:auto">进行中 64%</span></div>
+          <div class="sgrp">试试</div>
+          <div class="sitem"><span class="chip g">正弦起源</span><span class="chip g">判别式</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="wto"></div>
+  </div>
+</div>
+<p class="hint">🖥 1280×800 桌面视口 · 🎯 核心链：<b>登录→首页→课时(右栏随堂练)→作答(WD4 右答题卡+判分+交卷)→报告→错题断链→深钻(WD3 三区/五玩/双画布)→图谱(WD5 画布+四卡抽屉)→AI气泡右滑面板→公式→设置注销</b>；<b>Ctrl+K</b> 任意处唤起搜索（W18 同层）。其余屏走左目录。</p>
+</div>
+</div>
+
+<script>
+const TITLES={w01:'/login',w02:'/',w03:'/paths/course/1',w04:'/learn/1/5',w05:'/deepdive/1024',w06:'/graph',w07:'/graph/node/12',w08:'/paper/9001',w09:'/report/attempt/9001',w10:'/wrongbook',w11:'/assessment/1',w12:'/plans',w13:'/report',w14:'/formulas',w15:'/community',w16:'/rank',w17:'/me/settings',w18:'/search'};
+function go(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  const el=document.getElementById(id);if(!el)return;
+  el.classList.add('on');
+  document.getElementById('shellNav').style.display=id==='w01'?'none':'block';
+  document.getElementById('winUrl').textContent='https://learn.mathorigin.cn'+(TITLES[id]||'');
+  document.getElementById('aibub').style.display=id==='w01'?'none':'grid';
+  document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on',a.dataset.go===id));
+  aiToggle(false);
+}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-go]');
+  if(el&&el.dataset.go&&!el.dataset.go.includes('?')){e.preventDefault();go(el.dataset.go)}});
+go('w01');
+let wt;function wto(m){const t=document.getElementById('wto');t.textContent=m;t.classList.add('on');clearTimeout(wt);wt=setTimeout(()=>t.classList.remove('on'),2200)}
+window.wto=wto;
+
+/* 登录 */
+document.getElementById('smsW').onclick=function(){
+  if(!document.getElementById('agCk').checked){this.classList.add('shake');wto('请先同意协议');setTimeout(()=>this.classList.remove('shake'),320);return}
+  wto('登录成功 → W02');go('w02');
+};
+
+/* 课时随堂练 */
+document.querySelectorAll('.qz').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('.qz').forEach(x=>{if(x.dataset.r==='1')x.classList.add('right')});
+  if(o.dataset.r!=='1')o.classList.add('wrong');else{wto('✓ 正确（微动效 pop）');document.querySelector('.qexp').style.display='block'}
+});
+
+/* 深钻 */
+document.querySelectorAll('#ddT .dtab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#ddT .dtab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+  document.querySelectorAll('#w05 .dm').forEach(d=>d.style.display=d.dataset.d===t.dataset.d?'block':'none');
+});
+const RAILS=[
+ ['十字相乘法适用（首项系数为 1）。|知识点：因式分解·符号规则','常数 6=2×3 且 2+3=5——信号明显，先试最快的工具。','因数组不合（和对不上）才转求根公式；别一上来就套公式。'],
+ ['乘法分配律逆用（等价变形）。|知识点：整式乘法','S1 已锁定 2 与 3，符号取负来自"和为负"。','写成 (x+2)(x+3) 是符号错——负号来源没想清楚。'],
+ ['整环中无零因子（论证规则）。|知识点：零因子律','目标是解出 x，降次到一次即可完成。','两边同除 (x−2) 会丢根——除变量式前必须讨论为零情况。'],
+ ['代回原方程两边相等（检验）。|知识点：方程解检验','解必须自洽，回代是最后一道防线。','跳过回代：分式方程增根、变形丢根都靠它拦。']
+];
+document.querySelectorAll('#w05 .chain .st[data-s]').forEach(st=>st.onclick=()=>{
+  document.querySelectorAll('#w05 .chain .st').forEach(x=>x.classList.remove('sel'));st.classList.add('sel');
+  const r=RAILS[+st.dataset.s];
+  document.getElementById('rWar').innerHTML=r[0].replace('|','<div>');
+  document.getElementById('rMot').textContent=r[1];
+  document.getElementById('rOff').textContent=r[2];
+});
+document.querySelectorAll('#w05 .pd').forEach(o=>o.onclick=()=>{
+  if(document.querySelector('#w05 .pd.right'))return;
+  document.querySelectorAll('#w05 .pd').forEach(x=>{if(x.dataset.ok==='1')x.classList.add('right')});
+  const cm=document.getElementById('pdCm');
+  if(o.dataset.ok==='1'){cm.style.borderColor='var(--ok)';cm.style.background='#F0FDF4';cm.innerHTML='<b>✓ 完全正确</b><p class="mut mt">点评（对）：零因子律正是此步依据；动机=目标降次。</p>'}
+  else{cm.style.borderColor='var(--warn)';cm.style.background='#FFFBEB';cm.innerHTML='<b>点评（错）</b><p class="mut mt">「你会这么想：除掉更快」——<b>但 (x−2) 可能为 0，同除丢根</b>；除变量式前必须讨论。</p>'}
+});
+
+/* 图谱抽屉 */
+const GN=[['等式的性质',96,''],['整式运算',92,''],['因式分解',61,''],['判别式与根分布',30,''],['求根公式',88,''],['韦达定理',0,''],['根的分布',0,''],['函数与零点',0,'']];
+function gClose(){document.getElementById('gdr').classList.remove('on')}
+document.querySelectorAll('.gnode').forEach(n=>n.onclick=()=>{
+  const d=GN[+n.dataset.gn];
+  document.getElementById('gdr').classList.add('on');
+  document.getElementById('gdn').textContent=d[0];
+  document.getElementById('gdv').textContent=d[1];
+});
+document.querySelectorAll('#gdt .chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#gdt .chip').forEach(x=>{x.classList.add('g')});c.classList.remove('g');
+  document.querySelectorAll('.gtp').forEach(p=>p.style.display=p.dataset.gt===c.dataset.gt?'block':'none');
+});
+document.querySelector('[data-gn="2"]').click(); // 默认打开因式分解演示
+
+/* 作答 */
+document.querySelectorAll('.jz').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('.jz').forEach(x=>{if(x.dataset.r==='1')x.classList.add('right')});
+  if(o.dataset.r!=='1')o.classList.add('wrong');else{wto('✓ 正确');document.querySelector('.jexp').style.display='block'}
+});
+document.querySelectorAll('.mbar button[data-ins]').forEach(b=>b.onclick=()=>{
+  const f=document.getElementById('fillW');f.value+=b.dataset.ins;f.focus();
+});
+document.getElementById('subW').onclick=()=>{
+  const v=document.getElementById('fillW').value;
+  if(!v){wto('填空为空 · 试试工具条');return}
+  wto(v.includes('5')?'✓ 填空判分正确（归一化比较）':'✗ 再看看：先配方再开方');
+};
+
+/* AI 面板 */
+let aiOn=false;
+function aiToggle(force){aiOn=force===undefined?!aiOn:force;document.getElementById('aipanel').classList.toggle('on',aiOn)}
+function aiOpen(ctx){aiOn=false;aiToggle();document.getElementById('aiCtx').textContent='上下文：'+ctx}
+window.aiOpen=aiOpen;window.aiToggle=aiToggle;
+function aiSend(pre){
+  const inp=document.getElementById('aiInW');
+  const q=pre||inp.value.trim();if(!q)return;inp.value='';
+  const st=document.getElementById('aiSt');
+  st.insertAdjacentHTML('beforeend','<div class="bub me"></div>');
+  st.lastElementChild.textContent=q;
+  st.insertAdjacentHTML('beforeend','<div class="bub ai"></div>');
+  const am=st.lastElementChild;
+  const txt=q.includes('出题')?'已生成两道同类题（AI 出题 → 标准作答流，−10 积分）：① x²−7x+12=0 ② 2x²−8x+6=0'
+    :q.includes('除')?'关键在除式的值：(x−2) 是变量式，可能为 0——同除会丢解。只有常数化简可以放心除。'
+    :'我们拆成三步：条件给什么、目标缺什么、桥梁选哪个。你想先看哪边？';
+  let i=0;(function tp(){am.textContent=txt.slice(0,++i);st.scrollTop=1e5;if(i<txt.length)setTimeout(tp,16)})()
+}
+window.aiSend=aiSend;
+document.getElementById('aiInW').addEventListener('keydown',e=>{if(e.key==='Enter')aiSend()});
+document.getElementById('aiModeBtn').onclick=function(){
+  const soc=document.getElementById('aiModeT').textContent.includes('苏格拉底');
+  document.getElementById('aiModeT').textContent=soc?'直接讲解模式':'苏格拉底模式';
+  this.textContent=soc?'切换苏格拉底':'切换直接讲解';
+  wto(soc?'已切直接讲解（E5 双模式）':'已切回苏格拉底（默认）');
+};
+
+/* 搜索 Ctrl+K */
+const sov=document.getElementById('searchov');
+function sOpen(){sov.classList.add('on')}
+function sClose(){sov.classList.remove('on')}
+window.sClose=sClose;
+document.getElementById('kKey').onclick=sOpen;
+addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();sov.classList.contains('on')?sClose():sOpen()}
+  if(e.key==='Escape')sClose();
+});
+
+/* 导出/注销演示 */
+const expW=document.getElementById('expW');
+expW.onclick=()=>{expW.textContent='打包中…';setTimeout(()=>{expW.textContent='✓ 7天链接已发站内信';wto('导出完成（02 §7 清理任务）')},800)};
+</script>
+</body>
+</html>
