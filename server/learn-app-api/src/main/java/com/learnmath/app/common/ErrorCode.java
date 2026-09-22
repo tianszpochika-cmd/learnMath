@@ -21,6 +21,7 @@ public enum ErrorCode {
     ACCOUNT_ANONYMIZED(2009, "账号已注销"),
     CONCURRENT_ATTEMPT_EXISTS(3007, "存在进行中的作答"),
     PLAN_REVISION_CONFLICT(3011, "计划已被修改，请查看差异后确认"),
+    REVISION_CONFLICT(3012, "内容版本冲突，请刷新后重试"),
 
     // 31xx AI
     AI_DISABLED(3100, "AI 未启用"),
