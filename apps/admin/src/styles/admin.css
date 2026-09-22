@@ -1,0 +1,42 @@
+/* AD1/AD2 管理端 tokens（17 §2：EP 主色覆盖 + 密度紧凑；不跟随官网衬线/暗色） */
+:root {
+  --brand: #2f6bff;
+  --brand-deep: #173db0;
+  --brand-soft: #eef4ff;
+  --grad: linear-gradient(135deg, #4f7bff, #8b5cf6);
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --ink: #1f2937;
+  --ink2: #6b7280;
+  --ink3: #9ca3af;
+  --line: #e5e7eb;
+  --bg-page: #f5f7fa;
+  --radius: 10px;
+
+  /* Element Plus 主色联动（AD1） */
+  --el-color-primary: #2f6bff;
+  --el-color-primary-light-3: #6b93ff;
+  --el-color-primary-light-5: #97b3ff;
+  --el-color-primary-light-7: #c3d4ff;
+  --el-color-primary-light-8: #d9e4ff;
+  --el-color-primary-light-9: #eef4ff;
+  --el-color-primary-dark-2: #2659d9;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--bg-page);
+  color: var(--ink);
+  font-family: -apple-system, "PingFang SC", "HarmonyOS Sans", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+}
+
+#app {
+  min-height: 100vh;
+}
