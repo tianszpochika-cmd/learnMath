@@ -807,27 +807,27 @@ footer a:hover{color:var(--c-primary)}
       <div class="gl-tabs" role="tablist">
         <div class="gl-tab on" data-gl="0">起源</div>
         <div class="gl-tab" data-gl="1">现实</div>
+        <div class="gl-tab" data-gl="3">能力地图</div>
         <div class="gl-tab" data-gl="2">抽象阶梯</div>
-        <div class="gl-tab" data-gl="3">代表题</div>
       </div>
       <div class="gl-panel on" data-gl="0">
         <h3>被现实逼出来的工具</h3>
-        <p>公元前 2 世纪，古希腊天文学家希帕克斯为了计算<strong>天体的角度与距离</strong>，造出了人类第一张弦表——圆弧对应的弦长表。约 800 年后，印度数学家把它"角度化"，阿拉伯世界接力译介，直到 16 世纪欧洲将它命名 sinus（湾曲）。<b>它不是天才的灵感，而是测量、天文与航海一口一口喂大的工具</b>——古埃及人用它量尼罗河泛滥后的土地，今天的你用它描述声、光与四季。</p>
-        <p style="font-size:13px;color:var(--ink4);margin-top:10px">＊ 出处提示：希帕克斯弦表 / 婆罗摩笈多《婆罗摩历算书》/ sinus 词源通行数学史表述（AI 起草，史实已核）</p>
+        <p>当长度难以直接测量时，可以先研究角度与边长比例。在相似直角三角形中，同一锐角的对边与斜边之比不变；正弦将这一比例表达为角度的函数。</p>
+        <p style="font-size:13px;color:var(--ink4);margin-top:10px">本页是教学动机示例；数学史的具体人物、年代与出处由内容审核后另行发布。</p>
       </div>
       <div class="gl-panel" data-gl="1">
         <h3>它长在自然里</h3>
         <div class="gl-facts">
-          <div class="gl-fact"><b>日晷与影长</b>影子长度随角度正弦变化——最古老的测量现场。</div>
-          <div class="gl-fact"><b>声与光</b>纯音的波形就是一条正弦线；傅里叶说任何复杂波都是正弦的叠加。</div>
-          <div class="gl-fact"><b>四季与心跳</b>一切周期现象：圆周运动的投影，就是 sin。</div>
+          <div class="gl-fact"><b>斜线与高度</b>斜线长度为r，与水平面夹角θ时，高度为r sinθ；影长与塔高则使用正切关系。</div>
+          <div class="gl-fact"><b>理想简谐振动</b>理想单频信号可以用正弦函数描述；复杂信号的分解需要相应条件。</div>
+          <div class="gl-fact"><b>圆周投影</b>匀速圆周运动在坐标轴上的投影呈正弦或余弦变化；并非每种周期现象都是单一正弦。</div>
         </div>
       </div>
       <div class="gl-panel" data-gl="2">
         <h3>从生活话到符号，三级台阶</h3>
         <div class="ladder">
           <div class="rung"><b>REAL · 现实</b>这个斜坡有多"陡"？影子有多长？</div>
-          <div class="rung"><b>MODEL · 模型</b>对边与邻边的比值——固定角度下它不变。</div>
+          <div class="rung"><b>MODEL · 模型</b>对边与斜边的比值——固定锐角下它不变。</div>
           <div class="rung"><b>SYMBOL · 符号</b>sin θ = 对边/斜边 → 单位圆定义 → 波形。</div>
         </div>
       </div>
@@ -855,7 +855,7 @@ footer a:hover{color:var(--c-primary)}
 
       <div class="cta-band" style="margin-top:34px;padding:38px 30px">
         <h3>读完了？去学习端把它的推理链玩一遍</h3>
-        <p style="color:var(--ink5);margin:10px 0 22px">from=glossary/sine 归因 · 注册后解锁五玩与练习</p>
+        <p style="color:var(--ink5);margin:10px 0 22px">保留当前词条与输入 · 注册后继续学习原目标</p>
         <button class="btn btn-primary btn-lg">打开学习端 · 继续学这个知识点</button>
       </div>
 
@@ -1267,5 +1267,6 @@ let tTimer;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
   clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('on'),2200)}
 </script>
+<script src="../shared/review-enhancements.js"></script>
 </body>
 </html>

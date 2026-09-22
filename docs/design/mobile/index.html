@@ -150,7 +150,8 @@ b.math{font-style:italic}
 .cal .d.hd{background:none;border:none;color:var(--ink3);font-size:11px}
 
 /* 深色点缀的启动/引导 */
-.dark{background:#0B1220;color:#E5E7EB;min-height:100%;display:flex;flex-direction:column}
+.dark{background:#0B1220;color:#E5E7EB;min-height:100%;flex-direction:column}
+.scr.dark.on{display:flex}
 .dark h1,.dark h2{color:#fff}
 
 /* 引导轮播 */
@@ -522,9 +523,9 @@ b.math{font-style:italic}
         <div class="card" style="text-align:center;padding:22px"><span class="math" style="font-size:26px">x = ( −b ± √(b²−4ac) ) / 2a</span></div>
         <div class="card" style="border-style:dashed"><b style="font-size:14px">🎬 视频（外链）：配方法 6 分钟</b><div class="muted mt8">播放器占位 · 断点续播 02:14</div></div>
         <div class="sect">随堂练 · 逐题即时反馈（D2 练习态）</div>
-        <p style="font-weight:600">方程 <span class="math">2x²−4x−6=0</span> 的一个根是？</p>
+        <p style="font-weight:600">方程 <span class="math">2x²−4x−6=0</span> 的全部实数根是？</p>
         <div class="opt quiz1" data-r="0" style="margin-top:10px"><span class="k">A</span><span class="math">x = 3</span></div>
-        <div class="opt quiz1" data-r="1"><span class="k">B</span><span class="math">x = −1</span></div>
+        <div class="opt quiz1" data-r="0"><span class="k">B</span><span class="math">x = −1</span></div>
         <div class="opt quiz1" data-r="1"><span class="k">C</span><span class="math">x = 3 或 x = −1</span></div>
         <div class="opt quiz1" data-r="0"><span class="k">D</span><span class="math">x = 6</span></div>
         <button class="btn block mt8" data-go="s14" onclick="mto('完成课时 · +10 积分 · 掌握度 ↑（L2 动效略）')">标记完成</button>
@@ -605,12 +606,12 @@ b.math{font-style:italic}
           <div><b style="font-size:18px">因式分解</b><div class="muted mt8">代数 · tier 2 · 薄弱区间</div></div>
         </div>
         <div style="display:flex;gap:7px;margin:14px 0 4px" id="fcTabs">
-          <span class="chip fc on" data-fc="0">起源</span><span class="chip gray fc" data-fc="1">现实</span><span class="chip gray fc" data-fc="2">抽象阶梯</span><span class="chip gray fc" data-fc="3">代表题</span>
+          <span class="chip fc on" data-fc="0">起源</span><span class="chip gray fc" data-fc="1">现实</span><span class="chip gray fc" data-fc="3">能力地图</span><span class="chip gray fc" data-fc="2">抽象阶梯</span>
         </div>
         <div class="card fcp" data-fc="0"><b>被面积问题逼出来的技巧</b><p class="muted mt8" style="line-height:1.8">古埃及人分地、巴比伦人凑数，都在反复做"把一块面积拆回长宽"。因式分解就是这门手艺的代数版：展开容易，拆回去才是功夫。</p></div>
         <div class="card fcp" data-fc="1" style="display:none"><b>现实三例</b><p class="muted mt8">① 裁一块方地，剩下的面积如何表达<br>② 利息与增长的二次模型拆解<br>③ 抛物线拱桥的跨径分解</p></div>
         <div class="card fcp" data-fc="2" style="display:none"><b>三级台阶</b><p class="muted mt8">REAL：拆面积 → MODEL：和与积的互逆 → SYMBOL：a²+2ab+b²=(a+b)²</p></div>
-        <div class="card fcp" data-fc="3" style="display:none"><b>代表题 3 道</b><p class="muted mt8">#1024 分解 x²−5x+6（入门）<br>#1102 十字相乘二次项系数≠1<br>#1310 结合判别式的逆向构造</p></div>
+        <div class="card fcp" data-fc="3" style="display:none"><b>能力地图</b><p class="muted mt8">解方程、拆解面积、求函数零点。</p><a href="../review/index.html">进入现实测量应用 →</a></div>
         <div class="hr"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip gray">前置：等式性质 ✓</span><span class="chip gray">后继：求根公式</span></div>
         <button class="btn block mt16" data-go="s19">从此处开始练（锁态时=3311 提示）</button>
@@ -925,7 +926,7 @@ b.math{font-style:italic}
         <div class="sect">推导摘要三步（完整五玩→深钻）</div>
         <div class="card"><b class="math" style="color:var(--p)">S1</b> 面积拼图：四三角形拼大正方形<div class="muted mt8">面积守恒是起点</div></div>
         <div class="card"><b class="math" style="color:var(--p)">S2</b> 代数整理：2ab 两边相消<div class="muted mt8">等价变形</div></div>
-        <div class="card" style="border-style:dashed" data-go="s15"><b>▸ S3 完整五玩</b><div class="muted mt8">顺逆/多解/预测 → 学员端深钻</div></div>
+        <div class="card" style="border-style:dashed"><b>S3：a²+b²=c²</b><div class="muted mt8">面积等式消去2ab。</div><a href="../review/index.html">展开勾股定理完整研习</a></div>
         <div class="sect">常见错误变形（红笔）</div>
         <div class="card" style="border-style:dashed;border-color:#FECACA"><span class="math" style="color:var(--bad);text-decoration:line-through">a²+b²=c² 对任意三角形成立</span><p class="muted mt8">缺 −2ab·cosC 修正项；C=90° 才退化</p></div>
         <button class="btn block" data-go="s19">试做第 1 题（题面公开）</button>
@@ -1223,7 +1224,7 @@ function sheet(open){asD.classList.toggle('on',open);asS.classList.toggle('on',o
 document.getElementById('openSheet').onclick=()=>sheet(true);
 document.getElementById('closeSheet').onclick=()=>sheet(false);
 document.getElementById('closeSheet2').onclick=()=>sheet(false);
-asD.onclick=()=>sheet(false);
+asD.onclick=()=>{}; // 答题卡蒙层不关闭，使用明确收起按钮
 document.querySelectorAll('#aGrid .acell').forEach(c=>c.onclick=()=>{sheet(false);mto('跳到第 '+c.textContent.replace('⚑','')+' 题')});
 
 /* 深钻模式 Tab */
@@ -1270,5 +1271,6 @@ const exp=document.getElementById('expBtn');
 if(exp)exp.onclick=()=>{exp.textContent='打包中…';exp.disabled=true;
   setTimeout(()=>{exp.style.display='none';document.getElementById('expDone').style.display='block';mto('导出完成 → 站内信已发')},900)};
 </script>
+<script src="../shared/review-enhancements.js"></script>
 </body>
 </html>

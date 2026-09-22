@@ -9,6 +9,7 @@
   },
   "packageManager": "pnpm@10.19.0",
   "scripts": {
+    "design:check": "node scripts/check-design-contracts.mjs",
     "dev": "turbo dev",
     "dev:all": "pnpm ports:check && turbo dev",
     "dev:web": "pnpm --filter @learnmath/web dev",

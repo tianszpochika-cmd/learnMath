@@ -4,7 +4,7 @@
 
 > **对外品牌：数源 MathOrigin**（工程/仓库名保持 learnMath；品牌常量见 docs/13 §2，域名待注册商实测）
 
-> **当前阶段：文档先行（M0）** —— 本机仅产出需求与设计文档；代码开发在开发机进行，`git pull` 获取全部文档。文档总入口：[docs/README.md](./docs/README.md)
+> **当前阶段：文档先行（M0）** —— 本机仅产出需求与设计文档；代码开发在开发机进行，`git pull` 获取全部文档。文档总入口：[docs/README.md](./docs/README.md)。2026-09-22设计修订：先读 [需求基线§16](./docs/01-需求文档.md) 与 [学习业务规则和验收矩阵](./docs/20-学习业务规则与验收矩阵.md)，[可交互闭环演示](./docs/design/review/index.html)用于复核状态，业务实现验收仍待开发机执行
 
 > **技术基线（S1）**：与 **cloudstudy（开发机已验证能跑）全量同步** —— Node 20.19.5 · pnpm 10.19.0 · Vue 3.5.41 · Vite 6.4.3(web/admin) · Nuxt 3.21 · Pinia 2 · uni-app dcloudio 定版 · Java 25 + Spring Boot 4.1.1 · Redis 7(compose)。原则：**确定能跑 > 理论最新**（ADR 见 docs/02 §9 #8）
 
