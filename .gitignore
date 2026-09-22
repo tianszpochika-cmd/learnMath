@@ -1,0 +1,44 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 构建产物
+dist/
+build/
+out/
+target/
+.nuxt/
+.output/
+.svelte-kit/
+*.tsbuildinfo
+
+# uniapp
+apps/uniapp/unpackage/
+apps/uniapp/dist/
+
+# 环境变量（保留 .env.example）
+.env
+.env.local
+.env.*.local
+
+# 日志
+*.log
+logs/
+npm-debug.log*
+
+# 编辑器 / IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.iml
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 测试 / 覆盖率
+coverage/
+*.lcov
+
+# 本地数据库数据
+docker-data/

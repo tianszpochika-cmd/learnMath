@@ -1,0 +1,23 @@
+{
+  "name": "learnmath",
+  "version": "0.1.0",
+  "private": true,
+  "description": "数学学习平台 — Web 学习端 + 管理端 + 官网 + uniapp 移动端",
+  "engines": {
+    "node": ">=24.11.0",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @learnmath/web dev",
+    "dev:admin": "pnpm --filter @learnmath/admin dev",
+    "dev:official": "pnpm --filter @learnmath/official dev",
+    "dev:uniapp:h5": "pnpm --filter @learnmath/uniapp dev:h5",
+    "build:web": "pnpm --filter @learnmath/web build",
+    "build:admin": "pnpm --filter @learnmath/admin build",
+    "build:official": "pnpm --filter @learnmath/official build",
+    "build:uniapp:h5": "pnpm --filter @learnmath/uniapp build:h5",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint"
+  },
+  "packageManager": "pnpm@10.34.5"
+}
