@@ -17,6 +17,7 @@ export interface LoginResult {
 }
 
 export interface AuthApi {
+  sendSmsCode(phone: string): Promise<void>;
   loginBySms(payload: LoginSmsPayload): Promise<LoginResult>;
   refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }>;
   logout(): Promise<void>;
@@ -24,6 +25,13 @@ export interface AuthApi {
 
 export function createAuthApi(client: HttpClient): AuthApi {
   return {
+    sendSmsCode: async (phone) => {
+      await client.request<void>({
+        method: "POST",
+        path: "/api/app/v1/auth/sms",
+        body: { phone },
+      });
+    },
     loginBySms: (payload) =>
       client.request<LoginResult>({
         method: "POST",
