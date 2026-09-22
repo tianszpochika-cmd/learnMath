@@ -1,5 +1,12 @@
 <script setup lang="ts">
-// WD1 骨架（16 §2）：顶部导航 + 内容区（无侧栏）
+import { useRouter } from "vue-router";
+import AiChatPanel from "./components/AiChatPanel.vue";
+
+// WD1 骨架（16 §2）：顶部导航 + 内容区（无侧栏）；AI 全局气泡（D5）挂在壳上
+const router = useRouter();
+function openSearch(): void {
+  void router.push("/search");
+}
 </script>
 
 <template>
@@ -13,7 +20,7 @@
         <RouterLink to="/formulas">公式馆</RouterLink>
       </nav>
       <div class="right">
-        <span class="kbd">🔍 Ctrl K</span>
+        <span class="kbd" @click="openSearch">🔍 Ctrl K</span>
         <span class="bell">🔔</span>
         <span class="avatar">A</span>
       </div>
@@ -21,6 +28,7 @@
     <main class="content">
       <RouterView />
     </main>
+    <AiChatPanel />
   </div>
 </template>
 
@@ -86,6 +94,11 @@
   border-radius: 7px;
   padding: 4px 10px;
   color: var(--ink3);
+  cursor: pointer;
+}
+.kbd:hover {
+  border-color: var(--brand);
+  color: var(--brand);
 }
 .bell {
   cursor: pointer;
