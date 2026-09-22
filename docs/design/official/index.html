@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数源 MathOrigin — 官网高保真原型（首页 / 路径页）</title>
+<meta name="description" content="learnMath 官网 UI 原型：数理理性风 × 蓝紫渐变 × 全衬线标题（docs/14 决策 U1-U4）">
+<style>
+/* ============ Design Tokens（docs/14 §2） ============ */
+:root{
+  --c-primary:#2F6BFF; --c-p600:#1E4FD6; --c-p700:#173DB0; --c-p50:#EEF4FF; --c-p100:#E0EBFF;
+  --c-violet:#8B5CF6; --c-gold:#FFB020;
+  --grad-action:linear-gradient(135deg,#4F7BFF 0%,#8B5CF6 100%);
+  --grad-text:linear-gradient(120deg,#4F7BFF,#8B5CF6);
+  --ink9:#0F172A; --ink7:#334155; --ink5:#64748B; --ink4:#94A3B8;
+  --bg:#F8FAFC; --card:#FFFFFF; --alt:#F1F5F9; --deep:#0B1220; --line:#E2E8F0;
+  --ok:#22C55E; --warn:#F59E0B; --bad:#EF4444;
+  --p1:#2F6BFF; --p2:#10B981; --p3:#8B5CF6; --p4:#F59E0B; --p5:#EC4899; --p6:#F97316;
+  --font-serif:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
+  --font-sans:system-ui,-apple-system,"PingFang SC","HarmonyOS Sans","Microsoft YaHei",sans-serif;
+  --container:1200px; --gutter:24px;
+  --r-card:16px; --r-btn:12px; --r-tag:8px;
+  --sh-card:0 1px 2px rgba(15,23,42,.06);
+  --sh-lift:0 12px 32px -8px rgba(79,123,255,.22);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --grid-tex:repeating-linear-gradient(0deg,rgba(47,107,255,.05) 0 1px,transparent 1px 32px),
+             repeating-linear-gradient(90deg,rgba(47,107,255,.05) 0 1px,transparent 1px 32px);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink7);font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,.serif{font-family:var(--font-serif);color:var(--ink9);letter-spacing:.01em}
+h1{font-size:clamp(40px,5.6vw,68px);line-height:1.18;font-weight:700}
+h2{font-size:clamp(28px,3.2vw,40px);line-height:1.3;font-weight:700}
+h3{font-size:22px;font-weight:600}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--gutter)}
+.grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px;border-radius:4px}
+.aria-hidden,.decor,.decor *{aria-hidden}
+
+/* ============ 按钮 ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);
+  font-weight:600;border-radius:var(--r-btn);cursor:pointer;border:none;transition:all .2s var(--ease);font-size:16px}
+.btn-lg{height:52px;padding:0 32px;font-size:17px}
+.btn-md{height:44px;padding:0 24px}
+.btn-primary{background:var(--grad-action);color:#fff;box-shadow:0 6px 20px -6px rgba(79,123,255,.5)}
+.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 10px 26px -6px rgba(79,123,255,.55)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-outline{background:transparent;color:var(--ink9);border:1.5px solid var(--ink4)}
+.btn-outline:hover{border-color:var(--c-primary);color:var(--c-primary)}
+.btn-ghost{background:transparent;color:var(--c-primary);padding:0;height:auto;font-weight:600}
+.btn-ghost:hover{color:var(--c-p700)}
+
+/* ============ 导航 ============ */
+.nav{position:sticky;top:0;z-index:50;height:64px;display:flex;align-items:center;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);transition:height .25s var(--ease)}
+.nav.shrink{height:56px}
+.nav .container{display:flex;align-items:center;gap:32px;width:100%}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--ink9);font-family:var(--font-serif)}
+.logo .mark{width:34px;height:34px;border-radius:9px;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-size:19px;font-style:italic}
+.nav-links{display:flex;gap:28px;margin-left:8px;flex:1}
+.nav-links a{font-size:15px;color:var(--ink7);position:relative;padding:6px 0}
+.nav-links a:hover{color:var(--c-primary)}
+.nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2.5px;border-radius:2px;background:var(--grad-action)}
+.nav-cta{display:flex;gap:12px;align-items:center}
+.nav-cta .login{font-size:15px;color:var(--ink7)} .nav-cta .login:hover{color:var(--c-primary)}
+.burger{display:none;font-size:22px;background:none;border:none;cursor:pointer;color:var(--ink9)}
+
+/* ============ Hero ============ */
+.hero{position:relative;min-height:88vh;display:flex;align-items:center;background-image:var(--grid-tex);overflow:hidden}
+.hero .container{display:grid;grid-template-columns:7fr 5fr;gap:48px;align-items:center;padding-top:64px;padding-bottom:64px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;letter-spacing:.08em;color:var(--c-p700);
+  background:var(--c-p50);border:1px solid var(--c-p100);padding:6px 14px;border-radius:99px;margin-bottom:24px;font-weight:600}
+.eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--grad-action)}
+.hero h1 .em{position:relative;white-space:nowrap}
+.hero h1 .em::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:12px;
+  background:var(--grad-text);opacity:.25;border-radius:3px;z-index:-1}
+.hero .sub{font-size:18px;color:var(--ink5);margin:20px 0 32px;max-width:520px}
+.hero-cta{display:flex;gap:16px;flex-wrap:wrap}
+.trust{margin-top:24px;font-size:13.5px;color:var(--ink4)}
+.trust b{color:var(--ink7);font-weight:600}
+.hero-stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
+  box-shadow:var(--sh-lift);padding:24px;aspect-ratio:4/3.4;overflow:hidden}
+.hero-stage .corner{position:absolute;font-size:120px;color:var(--c-primary);opacity:.05;font-family:var(--font-serif);font-style:italic;right:-14px;bottom:-30px}
+.stage-title{font-size:13px;color:var(--ink4);letter-spacing:.06em;margin-bottom:14px;display:flex;justify-content:space-between}
+.stage-title .now{color:var(--c-violet);font-weight:600}
+/* 推理链动图（13 §5.2 / 14 §5-1） */
+.chain{display:flex;flex-direction:column;gap:12px}
+.step{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#FBFCFE;position:relative;
+  opacity:.35;transform:translateY(6px);animation:stepLight 8s infinite var(--ease)}
+.step .st{font-family:var(--font-serif);font-weight:700;color:var(--ink9);font-size:15px}
+.step .st i{color:var(--c-primary);font-style:italic;margin-right:6px}
+.step .fx{font-family:var(--font-serif);font-style:italic;font-size:17px;color:var(--ink9);margin-top:4px}
+.tag{position:absolute;right:10px;top:-11px;font-size:11.5px;padding:2px 10px;border-radius:99px;font-weight:600;
+  background:var(--grad-action);color:#fff;opacity:0;transform:translateY(4px);animation:tagPop 8s infinite}
+.tag.motive{background:#fff;border:1.5px solid var(--c-violet);color:var(--c-violet);right:10px;top:auto;bottom:-11px}
+.step:nth-child(1){animation-delay:0s}.step:nth-child(1) .tag{animation-delay:.8s}
+.step:nth-child(2){animation-delay:1.4s}.step:nth-child(2) .tag{animation-delay:2.2s}
+.step:nth-child(3){animation-delay:2.8s}.step:nth-child(3) .tag{animation-delay:3.6s}
+.step:nth-child(4){animation-delay:4.2s}.step:nth-child(4) .tag{animation-delay:5s}
+@keyframes stepLight{0%,6%{opacity:.35;transform:translateY(6px)}12%,88%{opacity:1;transform:translateY(0);
+  border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(79,123,255,.12)}96%,100%{opacity:.35;transform:translateY(6px);box-shadow:none;border-color:var(--line)}}
+@keyframes tagPop{0%,8%{opacity:0;transform:translateY(4px)}14%,86%{opacity:1;transform:translateY(0)}94%,100%{opacity:0}}
+.stage-result{margin-top:14px;padding:10px 14px;border-radius:10px;background:#ECFDF5;border:1.5px solid #A7F3D0;
+  color:#047857;font-weight:700;font-family:var(--font-serif);font-size:16px;text-align:center;opacity:.4;animation:resGlow 8s infinite;animation-delay:5.6s}
+@keyframes resGlow{0%,4%{opacity:.4}10%,90%{opacity:1;box-shadow:0 4px 18px -6px rgba(34,197,94,.4)}98%,100%{opacity:.4}}
+.scroll-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:var(--ink4);font-size:12px;letter-spacing:.14em}
+.scroll-hint::after{content:"";display:block;width:1.5px;height:26px;background:linear-gradient(var(--c-primary),transparent);margin:6px auto 0}
+
+/* ============ 通用 Section ============ */
+section{padding:96px 0}
+.sec-alt{background:var(--alt)}
+.sec-head{text-align:center;max-width:720px;margin:0 auto 56px}
+.sec-eyebrow{display:inline-block;font-size:13.5px;letter-spacing:.1em;color:var(--c-p700);font-weight:700;margin-bottom:14px}
+.sec-eyebrow::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--grad-action);margin-right:8px;vertical-align:1px}
+.sec-head p{color:var(--ink5);margin-top:14px;font-size:16.5px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-card);
+  transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.card:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
+
+/* ============ 六路径 ============ */
+.paths-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.path-card{position:relative;overflow:hidden;padding:28px 24px 24px;cursor:pointer}
+.path-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--pc,var(--c-primary));transition:height .2s}
+.path-card:hover::before{height:6px;filter:brightness(1.15) drop-shadow(0 2px 6px var(--pc))}
+.path-card .icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+  background:color-mix(in srgb,var(--pc) 12%,#fff);color:var(--pc);margin-bottom:16px}
+.path-card h3{font-family:var(--font-serif)}
+.path-card .fit{display:inline-block;font-size:12.5px;background:var(--alt);color:var(--ink5);border-radius:99px;padding:3px 12px;margin:10px 0 8px}
+.path-card .desc{font-size:14.5px;color:var(--ink5);line-height:1.7}
+.path-card .go{margin-top:14px;font-size:14px;font-weight:600;color:var(--pc);display:flex;align-items:center;gap:6px}
+.path-card .go::after{content:"→";transition:transform .2s}
+.path-card:hover .go::after{transform:translateX(5px)}
+
+/* ============ 三内核 ============ */
+.demo-card{overflow:hidden}
+.demo-vis{aspect-ratio:16/10;background-image:var(--grid-tex),linear-gradient(160deg,#F8FAFC,#EEF3FF);
+  display:grid;place-items:center;position:relative;border-bottom:1px solid var(--line)}
+.demo-vis .big{font-family:var(--font-serif);font-style:italic;font-size:64px;color:var(--c-primary);opacity:.5}
+.demo-vis .mini{position:absolute;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;
+  font-family:var(--font-serif);font-size:14px;box-shadow:var(--sh-card);animation:float 4s ease-in-out infinite}
+.demo-vis .mini.m1{top:18%;left:10%}
+.demo-vis .mini.m2{bottom:18%;right:10%;animation-delay:1.2s;border-color:var(--c-violet);color:var(--c-violet)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.demo-body{padding:22px 24px 26px}
+.demo-body h3{margin-bottom:8px}
+.demo-body p{font-size:14.5px;color:var(--ink5);min-height:72px}
+.demo-body .btn-ghost{font-size:15px}
+
+/* ============ 数据背书 ============ */
+.stats{background:var(--deep);color:#94A3B8;padding:80px 0}
+.stats .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat-num{font-size:clamp(40px,5vw,64px);font-weight:800;font-variant-numeric:tabular-nums;
+  background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+.stat-label{font-size:15px;color:#94A3B8;margin-top:8px}
+.stats .note{text-align:center;font-size:13px;color:#64748B;margin-top:36px}
+.stats .note b{color:var(--c-gold);font-weight:600}
+
+/* ============ AI ============ */
+.ai-grid{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:center}
+.chatcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-lift);padding:22px}
+.chat-line{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+.bubble{background:var(--alt);border-radius:12px;padding:10px 14px;font-size:14.5px;max-width:85%}
+.chat-line.me{flex-direction:row-reverse}
+.chat-line.me .bubble{background:var(--c-p50);color:var(--ink9)}
+.typing::after{content:"▌";color:var(--c-violet);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.ai-list{list-style:none;margin-top:24px}
+.ai-list li{display:flex;gap:12px;margin-bottom:14px;font-size:16px;color:var(--ink7)}
+.ai-list li::before{content:"✓";color:var(--ok);font-weight:800;flex:none}
+
+/* ============ 方法论 ============ */
+.method{background-image:var(--grid-tex);text-align:center}
+.method .quote{font-size:clamp(26px,3.4vw,42px);line-height:1.5;max-width:900px;margin:0 auto;font-weight:700}
+.method .quote .grad-text{font-style:italic}
+.method-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:56px;text-align:left}
+.method-col{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:28px 26px;box-shadow:var(--sh-card)}
+.method-col .no{font-family:var(--font-serif);font-style:italic;color:var(--c-violet);font-size:15px;font-weight:700;letter-spacing:.06em}
+.method-col h3{margin:10px 0 8px}
+.method-col p{font-size:14.5px;color:var(--ink5)}
+
+/* ============ 评价 ============ */
+.quote-card{padding:28px 26px;position:relative}
+.quote-card::before{content:"“";position:absolute;top:8px;left:18px;font-size:64px;font-family:var(--font-serif);color:var(--c-p100);line-height:1}
+.quote-card p{position:relative;font-family:var(--font-serif);font-size:16.5px;color:var(--ink7);min-height:88px}
+.quote-card .who{margin-top:16px;font-size:13.5px;color:var(--ink4)}
+
+/* ============ 下载 ============ */
+.dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.dl-card{padding:32px 28px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.qr{width:132px;height:132px;border-radius:12px;border:1.5px solid var(--line);display:grid;place-items:center;
+  color:var(--ink4);font-size:13px;background:repeating-conic-gradient(var(--alt) 0 25%,#fff 0 50%) 0 0/18px 18px}
+.soon{font-size:12px;background:var(--c-p50);color:var(--c-p700);border-radius:99px;padding:3px 12px;font-weight:600}
+
+/* ============ 博客 ============ */
+.blog-cover{aspect-ratio:16/9;border-bottom:1px solid var(--line);display:grid;place-items:center;
+  font-family:var(--font-serif);font-style:italic;font-size:44px;color:var(--c-primary);background-image:var(--grid-tex),linear-gradient(140deg,#fff,#EEF3FF)}
+.blog-body{padding:20px 22px 24px}
+.blog-body .meta{font-size:12.5px;color:var(--ink4);letter-spacing:.04em}
+.blog-body h3{font-size:18px;margin:8px 0 6px}
+.blog-body p{font-size:14px;color:var(--ink5)}
+
+/* ============ CTA band ============ */
+.cta-band{background:linear-gradient(135deg,rgba(79,123,255,.08),rgba(139,92,246,.08));border-radius:24px;
+  padding:56px 40px;text-align:center;border:1px solid var(--c-p100)}
+
+/* ============ Footer ============ */
+footer{background:var(--deep);color:#94A3B8;padding:64px 0 28px;font-size:14.5px}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.2fr;gap:32px}
+.foot-brand .logo{color:#fff}
+.foot-brand p{margin-top:14px;font-size:14px;color:#64748B;max-width:260px}
+footer h4{color:#E2E8F0;font-size:14.5px;margin-bottom:16px;font-family:var(--font-sans);font-weight:600;letter-spacing:.04em}
+footer li{list-style:none;margin-bottom:10px}
+footer a:hover{color:#fff}
+.foot-bottom{border-top:1px solid #1E293B;margin-top:44px;padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:#64748B}
+.foot-qr{width:88px;height:88px;border-radius:8px;background:repeating-conic-gradient(#1E293B 0 25%,#0F172A 0 50%) 0 0/14px 14px;display:grid;place-items:center;font-size:11px;color:#64748B;text-align:center}
+
+/* ============ 路径页模板 ============ */
+.view{display:none}.view.active{display:block}
+.pathhero{position:relative;padding:88px 0 56px;background:var(--deep);color:#CBD5E1;overflow:hidden;border-left:6px solid var(--pc,var(--c-primary))}
+.pathhero::after{content:attr(data-icon);position:absolute;right:6%;top:50%;transform:translateY(-50%);font-size:230px;opacity:.07;font-family:var(--font-serif)}
+.pathhero .container{position:relative;z-index:1}
+.crumb{font-size:13.5px;color:#64748B;margin-bottom:18px}.crumb a:hover{color:#fff}
+.pathhero h1{color:#fff}
+.pathhero .tagline{font-size:18px;margin:16px 0 30px;max-width:640px;color:#94A3B8}
+.readcol{max-width:720px;margin:0 auto}
+.readcol .drop::first-letter{font-family:var(--font-serif);font-size:54px;float:left;line-height:1;padding:6px 12px 2px 0;color:var(--c-primary);font-weight:700}
+.fit-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.fit-card{padding:28px}
+.fit-card h3{font-size:19px;margin-bottom:14px}
+.fit-card.yes h3{color:var(--c-p700)}.fit-card.no h3{color:#B91C1C}
+.fit-card li{list-style:none;font-size:15px;color:var(--ink7);margin-bottom:10px}
+.fit-card.yes li::before{content:"✓ ";color:var(--ok);font-weight:800}
+.fit-card.no li::before{content:"✕ ";color:var(--bad);font-weight:800}
+.steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
+.steps3::before{content:"";position:absolute;top:26px;left:12%;right:12%;height:2px;background:var(--grad-action);opacity:.35}
+.step3{text-align:center;position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:32px 22px}
+.step3 .n{width:44px;height:44px;border-radius:50%;background:var(--grad-action);color:#fff;display:grid;place-items:center;
+  font-family:var(--font-serif);font-weight:700;font-size:19px;margin:0 auto 16px;position:relative;z-index:1;box-shadow:0 0 0 6px var(--bg)}
+.step3 h3{font-size:18px;margin-bottom:8px}.step3 p{font-size:14.5px;color:var(--ink5)}
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.shot{aspect-ratio:4/3;border-radius:12px;border:1.5px dashed var(--ink4);display:grid;place-items:center;color:var(--ink4);font-size:14px;background-image:var(--grid-tex)}
+.faq{max-width:820px;margin:0 auto}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.faq summary{cursor:pointer;padding:18px 22px;font-weight:600;color:var(--ink9);font-family:var(--font-serif);font-size:17px;
+  list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary::after{content:"+";font-size:22px;color:var(--c-primary);transition:transform .25s var(--ease)}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{padding:0 22px 18px;color:var(--ink5);font-size:15px}
+.pathcta{border-radius:24px;padding:56px 40px;text-align:center;background:color-mix(in srgb,var(--pc) 8%,#fff);border:1.5px solid color-mix(in srgb,var(--pc) 30%,#fff)}
+
+/* ============ 入场动画 ============ */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.reveal.on{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
+
+/* ============ 响应式 ============ */
+@media (max-width:1023px){
+  .hero .container{grid-template-columns:1fr;gap:36px}
+  .paths-grid,.grid3,.method-cols,.steps3,.gallery{grid-template-columns:repeat(2,1fr)}
+  .steps3::before{display:none}
+  .ai-grid{grid-template-columns:1fr}
+  .stats .grid4{grid-template-columns:repeat(2,1fr);gap:36px}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .fit-grid{grid-template-columns:1fr}
+  .nav-links{display:none}.burger{display:block;margin-left:auto}
+  section{padding:72px 0}
+}
+@media (max-width:767px){
+  .paths-grid,.grid3,.method-cols,.steps3,.gallery,.dl-grid{grid-template-columns:1fr}
+  .hero{min-height:auto}
+  .foot-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= 导航 ================= -->
+<nav class="nav" id="nav" aria-label="主导航">
+  <div class="container">
+    <a class="logo" href="#" data-view="home"><span class="mark">π</span>数源 MathOrigin</a>
+    <div class="nav-links">
+      <a href="#" data-view="path" class="active">路径</a>
+      <a href="#cores">功能</a>
+      <a href="#download">下载</a>
+      <a href="#blog">博客</a>
+      <a href="#method">关于</a>
+    </div>
+    <div class="nav-cta">
+      <a class="login" href="#">登录</a>
+      <button class="btn btn-primary btn-md">免费开始</button>
+      <button class="burger" aria-label="菜单" onclick="alert('原型：移动端全屏抽屉菜单')">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= 视图 1：首页 ================= -->
+<main id="view-home" class="view active">
+
+  <!-- ① Hero -->
+  <header class="hero">
+    <div class="container">
+      <div>
+        <span class="eyebrow">推理式数学学习 · 启蒙 → 深研</span>
+        <h1>每一步，<br>都讲清楚<span class="em">为什么</span></h1>
+        <p class="sub">同一知识体系，六条到达路径。盯着一道题，看透整体推理逻辑——每步凭什么合法、为什么想到、还能怎样推。</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg">免费开始学习</button>
+          <button class="btn btn-outline btn-lg">下载 App</button>
+        </div>
+        <p class="trust">上线集 <b>3,000+</b> 精选题 · <b>600+</b> 公式全解 · <b>6</b> 条学习路径 · 持续扩充</p>
+      </div>
+      <div class="hero-stage" aria-hidden="true">
+        <div class="corner">∑</div>
+        <div class="stage-title"><span>深钻 · 推理链</span><span class="now">正在点亮第 k 步…</span></div>
+        <div class="chain">
+          <div class="step"><span class="st"><i>S1</i>把不可达点画成三角形</span><span class="tag">依据 · 数学建模</span></div>
+          <div class="step"><span class="st"><i>S2</i>选正弦定理（角+边信号匹配）</span><span class="tag motive">为什么想到 · 看信号</span></div>
+          <div class="step"><span class="st"><i>S3</i>同除 sinC，隔离目标 c</span><span class="tag">依据 · 等价变形</span></div>
+          <div class="step"><span class="st"><i>S4</i>回代：河宽 ≈ 85 m（带单位）</span><span class="tag motive">回到现实 · 量级校验</span></div>
+        </div>
+        <div class="stage-result">✓ 判分通过 · 断链点已记录</div>
+      </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">SCROLL</div>
+  </header>
+
+  <!-- ② 六路径 -->
+  <section id="paths" class="sec-alt">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="sec-eyebrow">SIX PATHS · 六条路径</div>
+        <h2>同一个目标，六种走法</h2>
+        <p>按课程循序渐进，或在图谱自由探索；刷题晋级、专题深钻、闯关打榜——选你喜欢的方式到达同一个知识点。</p>
+      </div>
+      <div class="paths-grid">
+        <a class="card path-card reveal" style="--pc:var(--p1)" href="#" data-view="path">
+          <div class="icon">▤</div><h3>系统课程</h3>
+          <span class="fit">适合：喜欢按部就班的你</span>
+          <p class="desc">章节化循序渐进，课时完成即随堂检验，进度环一路点亮。</p>
+          <span class="go">开始这条路径</span>
+        </a>
+        <a class="card path-card reveal" style="--pc:var(--p2)" href="#">
+          <div class="icon">◈</div><h3>知识图谱</h3>
+          <span class="fit">适合：想看清全貌的你</span>
+          <p class="desc">知识点 DAG 自由漫游，颜色即掌握度，前置关系一目了然。</p>
+          <span class="go">开始这条路径</span>
+        </a>
+        <a class="card path-card reveal" style="--pc:var(--p3)" href="#">
+          <div class="icon">◎</div><h3>测评计划</h3>
+          <span class="fit">适合：想要定制路线的你</span>
+          <p class="desc">三分钟定级定位，生成每周计划，连续达标自动加速。</p>
+          <span class="go">开始这条路径</span>
+        </a>
+        <a class="card path-card reveal" style="--pc:var(--p4)" href="#">
+          <div class="icon">▟</div><h3>阶梯刷题</h3>
+          <span class="fit">适合：以战代练的你</span>
+          <p class="desc">L1→L5 逐级解锁，80% 正确率晋级，每日一练对抗遗忘。</p>
+          <span class="go">开始这条路径</span>
+        </a>
+        <a class="card path-card reveal" style="--pc:var(--p5)" href="#">
+          <div class="icon">❏</div><h3>专题研习</h3>
+          <span class="fit">适合：想深钻一块的你</span>
+          <p class="desc">数论、证明方法…主题式单元，从导读走到小论文。</p>
+          <span class="go">开始这条路径</span>
+        </a>
+        <a class="card path-card reveal" style="--pc:var(--p6)" href="#">
+          <div class="icon">♜</div><h3>闯关挑战</h3>
+          <span class="fit">适合：好胜心驱动的你</span>
+          <p class="desc">关卡地图、Boss 战、星级与段位，每周榜单见真章。</p>
+          <span class="go">开始这条路径</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 三内核 -->
+  <section id="cores">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="sec-eyebrow">THREE CORES · 学习引擎</div>
+        <h2>把"看懂了"变成"我也能想到"</h2>
+        <p>三套内核，让数学回到它本来的样子：可追溯的推理，可感知的世界。</p>
+      </div>
+      <div class="grid3">
+        <div class="card demo-card reveal">
+          <div class="demo-vis"><span class="big">∵</span><span class="mini m1">凭什么合法？</span><span class="mini m2">为什么想到 →</span></div>
+          <div class="demo-body"><h3>推理链 · 一题五玩</h3>
+            <p>每步四要素：内容、依据、动机、岔路。顺推逆推对照、一题多解、预测下一步。</p>
+            <a class="btn btn-ghost" href="#">了解深钻 →</a></div>
+        </div>
+        <div class="card demo-card reveal">
+          <div class="demo-vis"><span class="big">§</span><span class="mini m1">起源：被现实逼出来</span><span class="mini m2">抽象阶梯 ×3 ↓</span></div>
+          <div class="demo-body"><h3>概念四卡 · 先故事后定义</h3>
+            <p>起源、现实原型、能力地图、抽象阶梯——为什么发明它，先于它怎么写。</p>
+            <a class="btn btn-ghost" href="#">看看怎么讲 →</a></div>
+        </div>
+        <div class="card demo-card reveal">
+          <div class="demo-vis"><span class="big">f(x)</span><span class="mini m1">点击公式 →</span><span class="mini m2">何时不能用？⚠</span></div>
+          <div class="demo-body"><h3>公式馆 · 全站可点</h3>
+            <p>起源、推导链、成立条件红条、家族关系——从"背公式"到"懂公式"。</p>
+            <a class="btn btn-ghost" href="#">逛公式馆 →</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 数据背书 -->
+  <section class="stats" aria-label="平台数据">
+    <div class="container">
+      <div class="grid4">
+        <div class="reveal"><div class="stat-num" data-target="3000" data-suffix="+">0</div><div class="stat-label">精选题目（含推理链）</div></div>
+        <div class="reveal"><div class="stat-num" data-target="600" data-suffix="+">0</div><div class="stat-label">公式全解（起源·推导·条件）</div></div>
+        <div class="reveal"><div class="stat-num" data-target="4" data-suffix="">0</div><div class="stat-label">大学习领域</div></div>
+        <div class="reveal"><div class="stat-num" data-target="6" data-suffix="">0</div><div class="stat-label">条学习路径</div></div>
+      </div>
+      <p class="note">上线集口径 · <b>持续扩充中</b> —— 从接触数字到深研数学，不做学段边界</p>
+    </div>
+  </section>
+
+  <!-- ⑤ AI 导师 -->
+  <section id="ai">
+    <div class="container ai-grid">
+      <div class="chatcard reveal" aria-hidden="true">
+        <div class="chat-line"><div class="avatar">π</div><div class="bubble">这一步为什么要除以 sinC？你先想想：除之前要保证什么？</div></div>
+        <div class="chat-line me"><div class="bubble">…sinC 不能是 0？</div></div>
+        <div class="chat-line"><div class="avatar">π</div><div class="bubble typing">对。那 C 是三角形内角，它能取到 0 吗</div></div>
+      </div>
+      <div class="reveal">
+        <div class="sec-eyebrow">AI TUTOR · 苏格拉底式导师</div>
+        <h2>不直接给答案的 AI</h2>
+        <ul class="ai-list">
+          <li>默认沿推理链提问引导，嫌慢一键切「直接讲解」</li>
+          <li>紧跟你正在做的题，上下文始终在场</li>
+          <li>还能按薄弱点出题、生成学习计划、每周诊断</li>
+        </ul>
+        <p style="margin-top:8px;font-size:13.5px;color:var(--ink4)">＊ 功能可按需配置，核心学习闭环不依赖 AI</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 方法论 -->
+  <section id="method" class="method sec-alt" style="background-color:var(--bg)">
+    <div class="container">
+      <p class="quote reveal serif">数学不是符号操演——<br>是<span class="grad-text">可追溯的推理</span>，与<span class="grad-text">可感知的世界</span>。</p>
+      <div class="method-cols">
+        <div class="method-col reveal"><span class="no">§1 why</span><h3>为什么这样推</h3><p>每一步给出依据与动机：凭什么合法、为什么想到。耦合的逻辑，一层层拆开。</p></div>
+        <div class="method-col reveal"><span class="no">§2 how</span><h3>还能怎样推</h3><p>同一道题的多条推理链对照：通法与技巧各在何处，比较里长出真理解。</p></div>
+        <div class="method-col reveal"><span class="no">§3 where</span><h3>它从哪里来</h3><p>三角函数为什么诞生、对数为谁而发明——概念回到它被逼出来的现场。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑦ 学员说 -->
+  <section id="voices">
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">VOICES · 产品理念</div><h2>我们相信的学习</h2></div>
+      <div class="grid3">
+        <div class="card quote-card reveal"><p>把一道题盯穿，胜过刷一百道题的皮。推理链让我第一次知道"答案是怎么被想到的"。</p><div class="who">—— 内测学习者 · 方法论金句</div></div>
+        <div class="card quote-card reveal"><p>先讲它为什么被发明，再给我定义——三角函数终于不再是硬背的表格。</p><div class="who">—— 概念四卡 · 设计初衷</div></div>
+        <div class="card quote-card reveal"><p>解完数字要回到现实：河宽 85 米，而不是 85。回代这一步，才是建模的完成。</p><div class="who">—— 应用五步 · 第⑤步</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑧ 下载中心 -->
+  <section id="download" class="sec-alt">
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">GET STARTED · 立即开始</div><h2>三端随选，学在何处都一样</h2></div>
+      <div class="dl-grid">
+        <div class="card dl-card reveal"><h3>网页版 · 即开即学</h3><p style="font-size:14.5px;color:var(--ink5)">大屏深钻与图谱，浏览器直接体验</p><button class="btn btn-primary btn-lg">H5 立即体验</button></div>
+        <div class="card dl-card reveal"><h3>微信小程序</h3><div class="qr" aria-hidden="true">小程序码<br>占位</div><span class="soon">扫码即用</span></div>
+        <div class="card dl-card reveal"><h3>App / 更多端</h3><div class="qr" aria-hidden="true">支付宝 / 抖音<br>码占位</div><span class="soon">iOS · Android 即将上线</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑨ 博客精选 -->
+  <section id="blog">
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">BLOG · 数学与世界</div><h2>最近在写</h2>
+        <p>概念的起源、公式的故事、方法的门道——每周 1-2 篇。</p></div>
+      <div class="grid3">
+        <a class="card reveal" href="#"><div class="blog-cover">sin</div><div class="blog-body"><span class="meta">概念起源 · 2026-09</span><h3>三角函数为什么存在？</h3><p>从古希腊弦表到尼罗河测量：它不是天才的灵感，是被现实逼出来的工具。</p></div></a>
+        <a class="card reveal" href="#"><div class="blog-cover">e<sup>iπ</sup></div><div class="blog-body"><span class="meta">公式故事 · 2026-09</span><h3>欧拉恒等式是怎么来的</h3><p>五个常数为何能挤进一个等式——跟着推导链走一遍指数与旋转的合流。</p></div></a>
+        <a class="card reveal" href="#"><div class="blog-cover">Δ</div><div class="blog-body"><span class="meta">解题方法 · 2026-09</span><h3>应用题怎么找等量关系</h3><p>把生活话翻译成方程的五步：读题标注、设元、列模、求解、回代。</p></div></a>
+      </div>
+      <div style="text-align:center;margin-top:40px"><button class="btn btn-outline btn-md">查看全部文章</button></div>
+    </div>
+  </section>
+
+  <!-- CTA band -->
+  <section style="padding-top:0">
+    <div class="container">
+      <div class="cta-band reveal">
+        <h2>从一道题的「为什么」开始</h2>
+        <p style="color:var(--ink5);margin:14px 0 28px">注册即用 · 六路径全开放 · 无需绑卡</p>
+        <button class="btn btn-primary btn-lg">免费开始学习</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= 视图 2：路径页模板 ================= -->
+<main id="view-path" class="view">
+  <header class="pathhero" style="--pc:var(--p1)" data-icon="▤">
+    <div class="container">
+      <div class="crumb"><a href="#" data-view="home">首页</a> / 路径 / 系统课程</div>
+      <h1>系统课程路径</h1>
+      <p class="tagline">按部就班的走法：章节化课程 + 随堂检验，适合喜欢"一课一课来"的学习节奏。</p>
+      <button class="btn btn-primary btn-lg">开始这条路径</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="container readcol">
+      <div class="sec-eyebrow">WHY · 为什么需要</div>
+      <h2 style="margin-bottom:20px">零散刷题的人，缺一张"地图"</h2>
+      <p class="drop" style="color:var(--ink7)">很多学习者不是不努力，而是不知道自己站在知识地图的哪里：前面的前置没补，后面的例题硬啃，错题反复错在同一个位置。系统课程路径把知识展开成有顺序的路——每一课时都标好了前置与去处，随堂练即时检验，进度环替你记住走到了哪。它不要求你有很强的自适应能力，只要求你愿意一步一步来。</p>
+      <p style="margin-top:16px;color:var(--ink5)">路径内所有作答都会回写<strong>掌握度</strong>：你在课程里学的，会在图谱、阶梯与错题本里同步显现。</p>
+    </div>
+  </section>
+
+  <section class="sec-alt" style="padding-top:64px;padding-bottom:64px">
+    <div class="container fit-grid">
+      <div class="card fit-card yes"><h3>适合这样的你 ✓</h3><ul>
+        <li>喜欢有明确顺序、按部就班</li><li>基础有断层，需要系统补齐</li>
+        <li>希望每学一点就有即时检验</li><li>备考节奏稳定、按计划推进</li></ul></div>
+      <div class="card fit-card no"><h3>可能不适合 ✕</h3><ul>
+        <li>只想快速攻一个知识点（→ 图谱路径）</li><li>喜欢以刷代学（→ 阶梯刷题）</li>
+        <li>想按自己的兴趣跳着学（→ 专题研习）</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">HOW · 怎么走</div><h2>三步开始</h2></div>
+      <div class="steps3">
+        <div class="step3 reveal"><div class="n serif">1</div><h3>选课入学</h3><p>从推荐课程进入，首课自带定位测评起点，30 秒进入第一课时。</p></div>
+        <div class="step3 reveal"><div class="n serif">2</div><h3>学练循环</h3><p>课时阅读 + 心跳计时，随堂练逐题即时反馈，错题自动入本。</p></div>
+        <div class="step3 reveal"><div class="n serif">3</div><h3>点亮进度</h3><p>完成条件达成即解锁下一课时，进度环与掌握度同步成长。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec-alt">
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">PREVIEW · 真实界面</div><h2>路径里长什么样</h2></div>
+      <div class="gallery">
+        <div class="shot reveal">课时页（左内容 · 右随堂练）</div>
+        <div class="shot reveal">逐题反馈（依据 + 解析）</div>
+        <div class="shot reveal">课程进度环 + 掌握度</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">FAQ · 常见问题</div><h2>你可能想问</h2></div>
+      <div class="faq">
+        <details open><summary>和其他五条路径冲突吗？</summary><p>不冲突。所有路径共享同一套掌握度与错题本，你完全可以课程为主、图谱为辅穿插使用。</p></details>
+        <details><summary>课程内容从哪来？覆盖什么范围？</summary><p>由平台按知识图谱持续编写：从接触数字到深研数学不做学段边界，按域滚动扩充（内容口径见产品内容计划）。</p></details>
+        <details><summary>没测评能直接开始吗？</summary><p>可以。测评是推荐项，跳过会按默认起点给计划，首次练习后自动校准。</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="container">
+      <div class="pathcta reveal" style="--pc:var(--p1)">
+        <h2>准备好一步一步走了吗？</h2>
+        <p style="color:var(--ink5);margin:12px 0 26px">注册后从第一课时开始 · 进度全端同步</p>
+        <button class="btn btn-primary btn-lg">开始这条路径 · 免费</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec-alt" style="padding-top:56px;padding-bottom:56px">
+    <div class="container">
+      <div class="sec-head reveal"><div class="sec-eyebrow">RELATED · 相关阅读</div><h2>接着读</h2></div>
+      <div class="grid3" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:0 auto">
+        <a class="card reveal" href="#"><div class="blog-cover" style="aspect-ratio:2/1">?</div><div class="blog-body"><span class="meta">学习方法</span><h3>线性学习 vs 图谱学习：你适合哪条路？</h3></div></a>
+        <a class="card reveal" href="#"><div class="blog-cover" style="aspect-ratio:2/1">↻</div><div class="blog-body"><span class="meta">记忆科学</span><h3>为什么每日一练比重读课本有效</h3></div></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= Footer ================= -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="logo" href="#"><span class="mark">π</span>数源 MathOrigin</a>
+        <p>数之源：概念的起源、推导的源头。可追溯的推理，可感知的世界。</p>
+      </div>
+      <div><h4>六条路径</h4><ul>
+        <li><a href="#" data-view="path">系统课程</a></li><li><a href="#">知识图谱</a></li>
+        <li><a href="#">测评计划</a></li><li><a href="#">阶梯刷题</a></li>
+        <li><a href="#">专题研习</a></li><li><a href="#">闯关挑战</a></li></ul></div>
+      <div><h4>产品</h4><ul>
+        <li><a href="#cores">推理链深钻</a></li><li><a href="#cores">概念四卡</a></li>
+        <li><a href="#cores">公式馆</a></li><li><a href="#ai">AI 导师</a></li></ul></div>
+      <div><h4>资源</h4><ul>
+        <li><a href="#blog">博客</a></li><li><a href="#download">下载中心</a></li>
+        <li><a href="#">学习方法论</a></li><li><a href="#">帮助中心</a></li></ul></div>
+      <div><h4>关注我们</h4>
+        <div class="foot-qr" aria-hidden="true">公众号<br>二维码占位</div></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 数源 MathOrigin · 学习 Math，从源开始</span>
+      <span><a href="#">隐私政策</a> · <a href="#">用户协议</a> · <a href="#">京ICP备XXXXXXXX号</a> · 友情链接（预留）</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* 导航滚动收缩 */
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>nav.classList.toggle('shrink',scrollY>20),{passive:true});
+
+/* 视图切换：首页 ⇄ 路径页模板（原型内演示） */
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('active',a.dataset.view===v||(v==='home'&&a.hash==='#cores'&&false)));
+  scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();showView(el.dataset.view)}));
+
+/* 入场 reveal */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3)*80+'ms';io.observe(el)});
+
+/* 数字滚动（tabular 防抖） */
+const ns=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return; ns.unobserve(e.target);
+  const el=e.target,t=+el.dataset.target,sfx=el.dataset.suffix||'',st=performance.now(),dur=1200;
+  (function f(n){const p=Math.min((n-st)/dur,1),v=Math.round(t*(1-Math.pow(1-p,3)));
+    el.textContent=v.toLocaleString('en-US')+sfx;p<1&&requestAnimationFrame(f)})(st);
+},{threshold:.5}));
+document.querySelectorAll('.stat-num').forEach(el=>ns.observe(el));
+</script>
+</body>
+</html>
