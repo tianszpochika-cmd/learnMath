@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数源 MathOrigin — 官网高保真原型（首页 / 路径页）</title>
-<meta name="description" content="learnMath 官网 UI 原型：数理理性风 × 蓝紫渐变 × 全衬线标题（docs/14 决策 U1-U4）">
+<title>数源 MathOrigin — 官网高保真原型 2.0（6 视图 · 暗色 · ⌘K · mega-menu）</title>
+<meta name="description" content="learnMath 官网 UI 原型 2.0：数理理性风 × 蓝紫渐变 × 全衬线标题 × 暗色双主题（docs/13 v2.0 + docs/14 v2.0 · 决策 U1-U4 / V1-V6）">
+<script>
+/* V3 防闪烁：head 同步主题 */
+(function(){try{var t=localStorage.getItem('lm-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
 <style>
 /* ============ Design Tokens（docs/14 §2） ============ */
 :root{
@@ -26,91 +30,119 @@
   --grid-tex:repeating-linear-gradient(0deg,rgba(47,107,255,.05) 0 1px,transparent 1px 32px),
              repeating-linear-gradient(90deg,rgba(47,107,255,.05) 0 1px,transparent 1px 32px);
 }
+/* V3 暗色（docs/14 §2.4） */
+:root[data-theme="dark"]{
+  --c-primary:#7DA3FF; --c-p600:#5B87FF; --c-p700:#9BB4FF; --c-p50:#16213F; --c-p100:#1D2C55;
+  --grad-action:linear-gradient(135deg,#5B87FF 0%,#9B6BFF 100%);
+  --grad-text:linear-gradient(120deg,#7DA3FF,#A78BFA);
+  --ink9:#F8FAFC; --ink7:#CBD5E1; --ink5:#94A3B8; --ink4:#64748B;
+  --bg:#0B1220; --card:#111827; --alt:#0F172A; --deep:#060B16; --line:#1E293B;
+  --p1:#7DA3FF; --p2:#34D399; --p3:#A78BFA; --p4:#FBBF24; --p5:#F472B6; --p6:#FB923C;
+  --sh-card:0 1px 2px rgba(0,0,0,.4);
+  --sh-lift:0 12px 32px -8px rgba(91,135,255,.35);
+  --grid-tex:repeating-linear-gradient(0deg,rgba(125,158,255,.04) 0 1px,transparent 1px 32px),
+             repeating-linear-gradient(90deg,rgba(125,158,255,.04) 0 1px,transparent 1px 32px);
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:var(--font-sans);background:var(--bg);color:var(--ink7);font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink7);font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 h1,h2,h3,h4,.serif{font-family:var(--font-serif);color:var(--ink9);letter-spacing:.01em}
 h1{font-size:clamp(40px,5.6vw,68px);line-height:1.18;font-weight:700}
 h2{font-size:clamp(28px,3.2vw,40px);line-height:1.3;font-weight:700}
 h3{font-size:22px;font-weight:600}
 a{color:inherit;text-decoration:none}
-img{max-width:100%}
+:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px;border-radius:4px}
 .container{max-width:var(--container);margin:0 auto;padding:0 var(--gutter)}
 .grad-text{background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent}
-:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px;border-radius:4px}
-.aria-hidden,.decor,.decor *{aria-hidden}
+/* 滚动进度条（14 §4.3） */
+#progress{position:fixed;top:0;left:0;height:3px;width:100%;z-index:99;background:var(--grad-action);transform:scaleX(0);transform-origin:0 50%}
 
 /* ============ 按钮 ============ */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);
-  font-weight:600;border-radius:var(--r-btn);cursor:pointer;border:none;transition:all .2s var(--ease);font-size:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-weight:600;border-radius:var(--r-btn);cursor:pointer;border:none;transition:all .2s var(--ease);font-size:16px}
 .btn-lg{height:52px;padding:0 32px;font-size:17px}
 .btn-md{height:44px;padding:0 24px}
 .btn-primary{background:var(--grad-action);color:#fff;box-shadow:0 6px 20px -6px rgba(79,123,255,.5)}
-.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 10px 26px -6px rgba(79,123,255,.55)}
+.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.08)}
 .btn-primary:active{transform:translateY(1px)}
 .btn-outline{background:transparent;color:var(--ink9);border:1.5px solid var(--ink4)}
 .btn-outline:hover{border-color:var(--c-primary);color:var(--c-primary)}
 .btn-ghost{background:transparent;color:var(--c-primary);padding:0;height:auto;font-weight:600}
-.btn-ghost:hover{color:var(--c-p700)}
 
-/* ============ 导航 ============ */
-.nav{position:sticky;top:0;z-index:50;height:64px;display:flex;align-items:center;
-  background:rgba(255,255,255,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--line);transition:height .25s var(--ease)}
+/* ============ 导航 + Mega（14 §4.1） ============ */
+.nav{position:sticky;top:0;z-index:50;height:64px;display:flex;align-items:center;background:color-mix(in srgb,var(--card) 85%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);transition:height .25s var(--ease)}
 .nav.shrink{height:56px}
-.nav .container{display:flex;align-items:center;gap:32px;width:100%}
+.nav .container{display:flex;align-items:center;gap:26px;width:100%}
 .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--ink9);font-family:var(--font-serif)}
 .logo .mark{width:34px;height:34px;border-radius:9px;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-size:19px;font-style:italic}
-.nav-links{display:flex;gap:28px;margin-left:8px;flex:1}
-.nav-links a{font-size:15px;color:var(--ink7);position:relative;padding:6px 0}
-.nav-links a:hover{color:var(--c-primary)}
-.nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2.5px;border-radius:2px;background:var(--grad-action)}
-.nav-cta{display:flex;gap:12px;align-items:center}
-.nav-cta .login{font-size:15px;color:var(--ink7)} .nav-cta .login:hover{color:var(--c-primary)}
+.nav-links{display:flex;gap:22px;margin-left:6px;flex:1;align-items:center}
+.nav-item{position:relative}
+.nav-item>a{font-size:15px;color:var(--ink7);padding:20px 2px;display:inline-block}
+.nav-item>a:hover{color:var(--c-primary)}
+.nav-item>a.has-mega::after{content:"▾";font-size:10px;margin-left:5px;opacity:.6}
+.mega{position:absolute;top:100%;left:-16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-lift);padding:20px 22px;display:none;grid-template-columns:repeat(2,minmax(150px,1fr));gap:6px 22px;min-width:380px;z-index:60}
+.nav-item:hover .mega,.nav-item:focus-within .mega{display:grid}
+.mega.wide{grid-template-columns:repeat(3,minmax(140px,1fr));min-width:520px}
+.mega h5{grid-column:1/-1;font-size:12px;letter-spacing:.1em;color:var(--ink4);font-weight:700;margin-bottom:4px}
+.mega a{font-size:14.5px;padding:7px 10px;border-radius:8px;display:flex;align-items:center;gap:8px;color:var(--ink7)}
+.mega a:hover{background:var(--alt);color:var(--c-primary)}
+.mega .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.mega .new{font-size:10.5px;background:var(--grad-action);color:#fff;border-radius:99px;padding:1px 7px;margin-left:auto}
+.nav-cta{display:flex;gap:10px;align-items:center}
+.nav-cta .login{font-size:15px;color:var(--ink7)}
+.kbd{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;border:1px solid var(--line);background:var(--alt);border-radius:7px;padding:5px 10px;cursor:pointer;color:var(--ink5)}
+.kbd:hover{border-color:var(--c-primary);color:var(--c-primary)}
+#themeBtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--alt);cursor:pointer;font-size:15px;transition:transform .3s var(--ease)}
+#themeBtn:hover{transform:rotate(20deg)}
 .burger{display:none;font-size:22px;background:none;border:none;cursor:pointer;color:var(--ink9)}
+
+/* ============ ⌘K（14 §4.2） ============ */
+#cmdk{position:fixed;inset:0;z-index:100;background:rgba(2,6,23,.55);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
+#cmdk.on{display:flex}
+.cmdk-box{width:min(640px,92vw);background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-lift);overflow:hidden;animation:pop .22s var(--ease)}
+@keyframes pop{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.cmdk-box input{width:100%;border:none;outline:none;font-size:17px;padding:18px 20px;background:transparent;color:var(--ink9);border-bottom:1px solid var(--line);font-family:var(--font-sans)}
+.cmdk-res{max-height:52vh;overflow:auto;padding:10px}
+.cmdk-grp{font-size:11.5px;letter-spacing:.1em;color:var(--ink4);font-weight:700;padding:10px 10px 4px}
+.cmdk-item{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:15px;color:var(--ink7)}
+.cmdk-item:hover{background:color-mix(in srgb,var(--c-primary) 9%,transparent);color:var(--ink9)}
+.cmdk-item .ic{width:26px;height:26px;border-radius:7px;background:var(--alt);display:grid;place-items:center;font-size:13px;flex:none}
+.cmdk-item .desc{font-size:12.5px;color:var(--ink4);margin-left:auto}
+.cmdk-empty{padding:22px;text-align:center;color:var(--ink5);font-size:14.5px}
+.chip{display:inline-block;background:var(--alt);border:1px solid var(--line);border-radius:99px;padding:4px 14px;font-size:13px;margin:4px;cursor:pointer}
+.chip:hover{border-color:var(--c-primary);color:var(--c-primary)}
 
 /* ============ Hero ============ */
 .hero{position:relative;min-height:88vh;display:flex;align-items:center;background-image:var(--grid-tex);overflow:hidden}
 .hero .container{display:grid;grid-template-columns:7fr 5fr;gap:48px;align-items:center;padding-top:64px;padding-bottom:64px}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;letter-spacing:.08em;color:var(--c-p700);
-  background:var(--c-p50);border:1px solid var(--c-p100);padding:6px 14px;border-radius:99px;margin-bottom:24px;font-weight:600}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;letter-spacing:.08em;color:var(--c-p700);background:var(--c-p50);border:1px solid var(--c-p100);padding:6px 14px;border-radius:99px;margin-bottom:24px;font-weight:600}
 .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--grad-action)}
 .hero h1 .em{position:relative;white-space:nowrap}
-.hero h1 .em::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:12px;
-  background:var(--grad-text);opacity:.25;border-radius:3px;z-index:-1}
+.hero h1 .em::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:12px;background:var(--grad-text);opacity:.25;border-radius:3px;z-index:-1}
 .hero .sub{font-size:18px;color:var(--ink5);margin:20px 0 32px;max-width:520px}
 .hero-cta{display:flex;gap:16px;flex-wrap:wrap}
 .trust{margin-top:24px;font-size:13.5px;color:var(--ink4)}
 .trust b{color:var(--ink7);font-weight:600}
-.hero-stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);
-  box-shadow:var(--sh-lift);padding:24px;aspect-ratio:4/3.4;overflow:hidden}
+.hero-stage{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-lift);padding:24px;aspect-ratio:4/3.4;overflow:hidden}
 .hero-stage .corner{position:absolute;font-size:120px;color:var(--c-primary);opacity:.05;font-family:var(--font-serif);font-style:italic;right:-14px;bottom:-30px}
 .stage-title{font-size:13px;color:var(--ink4);letter-spacing:.06em;margin-bottom:14px;display:flex;justify-content:space-between}
 .stage-title .now{color:var(--c-violet);font-weight:600}
-/* 推理链动图（13 §5.2 / 14 §5-1） */
 .chain{display:flex;flex-direction:column;gap:12px}
-.step{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:#FBFCFE;position:relative;
-  opacity:.35;transform:translateY(6px);animation:stepLight 8s infinite var(--ease)}
+.step{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--alt);position:relative;opacity:.35;transform:translateY(6px);animation:stepLight 8s infinite var(--ease)}
 .step .st{font-family:var(--font-serif);font-weight:700;color:var(--ink9);font-size:15px}
 .step .st i{color:var(--c-primary);font-style:italic;margin-right:6px}
-.step .fx{font-family:var(--font-serif);font-style:italic;font-size:17px;color:var(--ink9);margin-top:4px}
-.tag{position:absolute;right:10px;top:-11px;font-size:11.5px;padding:2px 10px;border-radius:99px;font-weight:600;
-  background:var(--grad-action);color:#fff;opacity:0;transform:translateY(4px);animation:tagPop 8s infinite}
-.tag.motive{background:#fff;border:1.5px solid var(--c-violet);color:var(--c-violet);right:10px;top:auto;bottom:-11px}
+.tag{position:absolute;right:10px;top:-11px;font-size:11.5px;padding:2px 10px;border-radius:99px;font-weight:600;background:var(--grad-action);color:#fff;opacity:0;transform:translateY(4px);animation:tagPop 8s infinite}
+.tag.motive{background:var(--card);border:1.5px solid var(--c-violet);color:var(--c-violet);top:auto;bottom:-11px}
 .step:nth-child(1){animation-delay:0s}.step:nth-child(1) .tag{animation-delay:.8s}
 .step:nth-child(2){animation-delay:1.4s}.step:nth-child(2) .tag{animation-delay:2.2s}
 .step:nth-child(3){animation-delay:2.8s}.step:nth-child(3) .tag{animation-delay:3.6s}
 .step:nth-child(4){animation-delay:4.2s}.step:nth-child(4) .tag{animation-delay:5s}
-@keyframes stepLight{0%,6%{opacity:.35;transform:translateY(6px)}12%,88%{opacity:1;transform:translateY(0);
-  border-color:var(--c-primary);box-shadow:0 0 0 3px rgba(79,123,255,.12)}96%,100%{opacity:.35;transform:translateY(6px);box-shadow:none;border-color:var(--line)}}
+@keyframes stepLight{0%,6%{opacity:.35;transform:translateY(6px)}12%,88%{opacity:1;transform:translateY(0);border-color:var(--c-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--c-primary) 18%,transparent)}96%,100%{opacity:.35;transform:translateY(6px);box-shadow:none;border-color:var(--line)}}
 @keyframes tagPop{0%,8%{opacity:0;transform:translateY(4px)}14%,86%{opacity:1;transform:translateY(0)}94%,100%{opacity:0}}
-.stage-result{margin-top:14px;padding:10px 14px;border-radius:10px;background:#ECFDF5;border:1.5px solid #A7F3D0;
-  color:#047857;font-weight:700;font-family:var(--font-serif);font-size:16px;text-align:center;opacity:.4;animation:resGlow 8s infinite;animation-delay:5.6s}
-@keyframes resGlow{0%,4%{opacity:.4}10%,90%{opacity:1;box-shadow:0 4px 18px -6px rgba(34,197,94,.4)}98%,100%{opacity:.4}}
+.stage-result{margin-top:14px;padding:10px 14px;border-radius:10px;background:color-mix(in srgb,var(--ok) 10%,var(--card));border:1.5px solid color-mix(in srgb,var(--ok) 40%,var(--card));color:var(--ok);font-weight:700;font-family:var(--font-serif);font-size:16px;text-align:center;opacity:.4;animation:resGlow 8s infinite;animation-delay:5.6s}
+@keyframes resGlow{0%,4%{opacity:.4}10%,90%{opacity:1}98%,100%{opacity:.4}}
 .scroll-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:var(--ink4);font-size:12px;letter-spacing:.14em}
-.scroll-hint::after{content:"";display:block;width:1.5px;height:26px;background:linear-gradient(var(--c-primary),transparent);margin:6px auto 0}
 
-/* ============ 通用 Section ============ */
+/* ============ Sections ============ */
 section{padding:96px 0}
 .sec-alt{background:var(--alt)}
 .sec-head{text-align:center;max-width:720px;margin:0 auto 56px}
@@ -118,191 +150,345 @@ section{padding:96px 0}
 .sec-eyebrow::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--grad-action);margin-right:8px;vertical-align:1px}
 .sec-head p{color:var(--ink5);margin-top:14px;font-size:16.5px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-card);
-  transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-card);transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
 .card:hover{transform:translateY(-4px);box-shadow:var(--sh-lift)}
 
-/* ============ 六路径 ============ */
+/* 六路径 */
 .paths-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .path-card{position:relative;overflow:hidden;padding:28px 24px 24px;cursor:pointer}
 .path-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--pc,var(--c-primary));transition:height .2s}
-.path-card:hover::before{height:6px;filter:brightness(1.15) drop-shadow(0 2px 6px var(--pc))}
-.path-card .icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;
-  background:color-mix(in srgb,var(--pc) 12%,#fff);color:var(--pc);margin-bottom:16px}
-.path-card h3{font-family:var(--font-serif)}
+.path-card:hover::before{height:6px}
+.path-card .icon{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:color-mix(in srgb,var(--pc) 12%,var(--card));color:var(--pc);margin-bottom:16px}
 .path-card .fit{display:inline-block;font-size:12.5px;background:var(--alt);color:var(--ink5);border-radius:99px;padding:3px 12px;margin:10px 0 8px}
 .path-card .desc{font-size:14.5px;color:var(--ink5);line-height:1.7}
 .path-card .go{margin-top:14px;font-size:14px;font-weight:600;color:var(--pc);display:flex;align-items:center;gap:6px}
 .path-card .go::after{content:"→";transition:transform .2s}
 .path-card:hover .go::after{transform:translateX(5px)}
 
-/* ============ 三内核 ============ */
+/* 三内核 */
 .demo-card{overflow:hidden}
-.demo-vis{aspect-ratio:16/10;background-image:var(--grid-tex),linear-gradient(160deg,#F8FAFC,#EEF3FF);
-  display:grid;place-items:center;position:relative;border-bottom:1px solid var(--line)}
+.demo-vis{aspect-ratio:16/10;background-image:var(--grid-tex),linear-gradient(160deg,var(--bg),var(--c-p50));display:grid;place-items:center;position:relative;border-bottom:1px solid var(--line)}
 .demo-vis .big{font-family:var(--font-serif);font-style:italic;font-size:64px;color:var(--c-primary);opacity:.5}
-.demo-vis .mini{position:absolute;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;
-  font-family:var(--font-serif);font-size:14px;box-shadow:var(--sh-card);animation:float 4s ease-in-out infinite}
+.demo-vis .mini{position:absolute;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font-family:var(--font-serif);font-size:14px;box-shadow:var(--sh-card);animation:float 4s ease-in-out infinite}
 .demo-vis .mini.m1{top:18%;left:10%}
 .demo-vis .mini.m2{bottom:18%;right:10%;animation-delay:1.2s;border-color:var(--c-violet);color:var(--c-violet)}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 .demo-body{padding:22px 24px 26px}
 .demo-body h3{margin-bottom:8px}
 .demo-body p{font-size:14.5px;color:var(--ink5);min-height:72px}
-.demo-body .btn-ghost{font-size:15px}
 
-/* ============ 数据背书 ============ */
-.stats{background:var(--deep);color:#94A3B8;padding:80px 0}
+/* 数据背书 */
+.stats{background:var(--deep);color:var(--ink4);padding:80px 0}
 .stats .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
-.stat-num{font-size:clamp(40px,5vw,64px);font-weight:800;font-variant-numeric:tabular-nums;
-  background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
-.stat-label{font-size:15px;color:#94A3B8;margin-top:8px}
-.stats .note{text-align:center;font-size:13px;color:#64748B;margin-top:36px}
+.stat-num{font-size:clamp(40px,5vw,64px);font-weight:800;font-variant-numeric:tabular-nums;background:var(--grad-text);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+.stat-label{font-size:15px;color:var(--ink4);margin-top:8px}
+.stats .note{text-align:center;font-size:13px;color:var(--ink5);margin-top:36px}
 .stats .note b{color:var(--c-gold);font-weight:600}
+.stats .rss{color:var(--c-primary);margin-left:10px}
 
-/* ============ AI ============ */
-.ai-grid{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:center}
-.chatcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh-lift);padding:22px}
-.chat-line{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start}
-.avatar{width:30px;height:30px;border-radius:50%;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
-.bubble{background:var(--alt);border-radius:12px;padding:10px 14px;font-size:14.5px;max-width:85%}
-.chat-line.me{flex-direction:row-reverse}
-.chat-line.me .bubble{background:var(--c-p50);color:var(--ink9)}
-.typing::after{content:"▌";color:var(--c-violet);animation:blink 1s steps(2) infinite}
-@keyframes blink{50%{opacity:0}}
-.ai-list{list-style:none;margin-top:24px}
-.ai-list li{display:flex;gap:12px;margin-bottom:14px;font-size:16px;color:var(--ink7)}
-.ai-list li::before{content:"✓";color:var(--ok);font-weight:800;flex:none}
+/* 每日一题卡（V5 · 14 §5-4） */
+.daily{background:var(--alt);border:1.5px solid var(--line);border-radius:20px;padding:30px 32px;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center}
+.daily .d-eyebrow{font-size:13px;letter-spacing:.08em;color:var(--c-p700);font-weight:700}
+.daily h3{font-size:22px;margin:8px 0 16px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:640px}
+.opt{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-size:15px;cursor:pointer;text-align:left;transition:all .15s var(--ease);font-family:var(--font-serif)}
+.opt:hover{border-color:var(--c-primary)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,var(--card));color:var(--ok);font-weight:700}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--card));color:var(--bad)}
+.daily details{margin-top:14px;max-width:640px}
+.daily summary{cursor:pointer;color:var(--c-primary);font-weight:600;font-size:14.5px}
+.daily details p{font-size:14.5px;color:var(--ink5);margin-top:8px}
+.daily .chain-mini{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chain-mini span{font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-family:var(--font-serif)}
+.cd{text-align:center;flex:none}
+.cd-ring{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--c-gold) calc(var(--p,.75)*360deg),var(--line) 0);position:relative}
+.cd-ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--card)}
+.cd-txt{position:relative;font-variant-numeric:tabular-nums;font-weight:800;color:var(--ink9);font-size:15px;line-height:1.2}
+.cd-txt small{display:block;font-size:10.5px;color:var(--ink4);font-weight:600}
 
-/* ============ 方法论 ============ */
+/* 测验卡（V2 · 14 §5-5） */
+.quiz{max-width:820px;margin:0 auto;background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:34px 36px;box-shadow:var(--sh-card)}
+.quiz .q-steps{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+.q-dot{width:34px;height:6px;border-radius:99px;background:var(--line)}
+.q-dot.on{background:var(--grad-action)}
+.quiz h3{text-align:center;font-size:22px;min-height:60px}
+.q-opts{display:grid;gap:12px;margin-top:14px}
+.q-opt{border:1.5px solid var(--line);border-radius:12px;padding:14px 18px;font-size:16px;cursor:pointer;text-align:left;background:var(--alt);transition:all .15s var(--ease)}
+.q-opt:hover{border-color:var(--c-primary);transform:translateX(4px)}
+.q-result{text-align:center}
+.q-result .tier{display:inline-block;font-family:var(--font-serif);font-size:26px;font-weight:700;padding:6px 22px;border-radius:12px;color:#fff;background:var(--pc,var(--c-primary));margin:10px 0}
+.q-result p{color:var(--ink5);margin-bottom:18px}
+
+/* 精选词条/公式 */
+.pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.pick{padding:20px 22px;cursor:pointer;position:relative}
+.pick .kind{font-size:11.5px;letter-spacing:.08em;font-weight:700;color:var(--c-violet)}
+.pick .kind.fx{color:var(--c-primary)}
+.pick h4{font-family:var(--font-serif);font-size:18px;margin:6px 0}
+.pick p{font-size:13.5px;color:var(--ink5);line-height:1.6}
+.pick .go{margin-top:10px;font-size:13px;color:var(--c-primary);font-weight:600}
+.pick.cont{border-color:var(--c-violet);background:color-mix(in srgb,var(--c-violet) 6%,var(--card))}
+
+/* 方法论 */
 .method{background-image:var(--grid-tex);text-align:center}
 .method .quote{font-size:clamp(26px,3.4vw,42px);line-height:1.5;max-width:900px;margin:0 auto;font-weight:700}
-.method .quote .grad-text{font-style:italic}
 .method-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:56px;text-align:left}
 .method-col{background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:28px 26px;box-shadow:var(--sh-card)}
 .method-col .no{font-family:var(--font-serif);font-style:italic;color:var(--c-violet);font-size:15px;font-weight:700;letter-spacing:.06em}
 .method-col h3{margin:10px 0 8px}
 .method-col p{font-size:14.5px;color:var(--ink5)}
 
-/* ============ 评价 ============ */
+/* 评价 / 下载 / 博客 */
 .quote-card{padding:28px 26px;position:relative}
 .quote-card::before{content:"“";position:absolute;top:8px;left:18px;font-size:64px;font-family:var(--font-serif);color:var(--c-p100);line-height:1}
 .quote-card p{position:relative;font-family:var(--font-serif);font-size:16.5px;color:var(--ink7);min-height:88px}
 .quote-card .who{margin-top:16px;font-size:13.5px;color:var(--ink4)}
-
-/* ============ 下载 ============ */
-.dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .dl-card{padding:32px 28px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
-.qr{width:132px;height:132px;border-radius:12px;border:1.5px solid var(--line);display:grid;place-items:center;
-  color:var(--ink4);font-size:13px;background:repeating-conic-gradient(var(--alt) 0 25%,#fff 0 50%) 0 0/18px 18px}
+.qr{width:132px;height:132px;border-radius:12px;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--ink4);font-size:13px;background:repeating-conic-gradient(var(--alt) 0 25%,var(--card) 0 50%) 0 0/18px 18px}
 .soon{font-size:12px;background:var(--c-p50);color:var(--c-p700);border-radius:99px;padding:3px 12px;font-weight:600}
-
-/* ============ 博客 ============ */
-.blog-cover{aspect-ratio:16/9;border-bottom:1px solid var(--line);display:grid;place-items:center;
-  font-family:var(--font-serif);font-style:italic;font-size:44px;color:var(--c-primary);background-image:var(--grid-tex),linear-gradient(140deg,#fff,#EEF3FF)}
+.blog-cover{aspect-ratio:16/9;border-bottom:1px solid var(--line);display:grid;place-items:center;font-family:var(--font-serif);font-style:italic;font-size:44px;color:var(--c-primary);background-image:var(--grid-tex),linear-gradient(140deg,var(--card),var(--c-p50))}
 .blog-body{padding:20px 22px 24px}
 .blog-body .meta{font-size:12.5px;color:var(--ink4);letter-spacing:.04em}
 .blog-body h3{font-size:18px;margin:8px 0 6px}
 .blog-body p{font-size:14px;color:var(--ink5)}
+.cta-band{background:linear-gradient(135deg,color-mix(in srgb,#4F7BFF 8%,var(--card)),color-mix(in srgb,#8B5CF6 8%,var(--card)));border-radius:24px;padding:56px 40px;text-align:center;border:1px solid var(--c-p100)}
 
-/* ============ CTA band ============ */
-.cta-band{background:linear-gradient(135deg,rgba(79,123,255,.08),rgba(139,92,246,.08));border-radius:24px;
-  padding:56px 40px;text-align:center;border:1px solid var(--c-p100)}
+/* Newsletter（V4） */
+.nl{background:var(--card);border:1.5px solid transparent;background-image:linear-gradient(var(--card),var(--card)),var(--grad-action);background-origin:border-box;background-clip:padding-box,border-box;border-radius:20px;padding:34px 38px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+.nl h3{font-size:22px}
+.nl p{font-size:14.5px;color:var(--ink5);margin-top:6px}
+.nl form{display:flex;gap:10px;align-items:center}
+.nl input{height:48px;border:1.5px solid var(--line);border-radius:12px;padding:0 16px;font-size:15px;width:260px;background:var(--bg);color:var(--ink9);outline:none;font-family:var(--font-sans)}
+.nl input:focus{border-color:var(--c-primary)}
+.nl .ok{color:var(--ok);font-weight:700;display:none}
 
-/* ============ Footer ============ */
-footer{background:var(--deep);color:#94A3B8;padding:64px 0 28px;font-size:14.5px}
-.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.2fr;gap:32px}
-.foot-brand .logo{color:#fff}
-.foot-brand p{margin-top:14px;font-size:14px;color:#64748B;max-width:260px}
-footer h4{color:#E2E8F0;font-size:14.5px;margin-bottom:16px;font-family:var(--font-sans);font-weight:600;letter-spacing:.04em}
+/* Footer */
+footer{background:var(--deep);color:var(--ink4);padding:64px 0 28px;font-size:14.5px}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1.2fr;gap:32px}
+.foot-brand .logo{color:var(--ink9)}
+.foot-brand p{margin-top:14px;font-size:14px;color:var(--ink5);max-width:260px}
+.foot-brand .rss{display:inline-block;margin-top:12px;font-size:13px;color:var(--c-primary)}
+footer h4{color:var(--ink7);font-size:14.5px;margin-bottom:16px;font-family:var(--font-sans);font-weight:600;letter-spacing:.04em}
 footer li{list-style:none;margin-bottom:10px}
-footer a:hover{color:#fff}
-.foot-bottom{border-top:1px solid #1E293B;margin-top:44px;padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:#64748B}
-.foot-qr{width:88px;height:88px;border-radius:8px;background:repeating-conic-gradient(#1E293B 0 25%,#0F172A 0 50%) 0 0/14px 14px;display:grid;place-items:center;font-size:11px;color:#64748B;text-align:center}
+footer a:hover{color:var(--c-primary)}
+.foot-bottom{border-top:1px solid var(--line);margin-top:44px;padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--ink5)}
+.foot-qr{width:88px;height:88px;border-radius:8px;background:repeating-conic-gradient(var(--alt) 0 25%,var(--bg) 0 50%) 0 0/14px 14px;display:grid;place-items:center;font-size:11px;color:var(--ink5);text-align:center}
+.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.status-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);animation:blink2 2.4s infinite}
+@keyframes blink2{50%{opacity:.4}}
 
-/* ============ 路径页模板 ============ */
+/* ============ 视图 ============ */
 .view{display:none}.view.active{display:block}
-.pathhero{position:relative;padding:88px 0 56px;background:var(--deep);color:#CBD5E1;overflow:hidden;border-left:6px solid var(--pc,var(--c-primary))}
+
+/* 路径页 */
+.pathhero{position:relative;padding:88px 0 56px;background:var(--deep);color:var(--ink4);overflow:hidden;border-left:6px solid var(--pc,var(--c-primary))}
 .pathhero::after{content:attr(data-icon);position:absolute;right:6%;top:50%;transform:translateY(-50%);font-size:230px;opacity:.07;font-family:var(--font-serif)}
 .pathhero .container{position:relative;z-index:1}
-.crumb{font-size:13.5px;color:#64748B;margin-bottom:18px}.crumb a:hover{color:#fff}
-.pathhero h1{color:#fff}
-.pathhero .tagline{font-size:18px;margin:16px 0 30px;max-width:640px;color:#94A3B8}
+.crumb{font-size:13.5px;color:var(--ink5);margin-bottom:18px}
+.crumb a:hover{color:var(--c-primary)}
+.pathhero h1{color:var(--ink9)}
+:root[data-theme="dark"] .pathhero h1{color:#fff}
+.pathhero .tagline{font-size:18px;margin:16px 0 30px;max-width:640px;color:var(--ink4)}
 .readcol{max-width:720px;margin:0 auto}
 .readcol .drop::first-letter{font-family:var(--font-serif);font-size:54px;float:left;line-height:1;padding:6px 12px 2px 0;color:var(--c-primary);font-weight:700}
 .fit-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .fit-card{padding:28px}
-.fit-card h3{font-size:19px;margin-bottom:14px}
-.fit-card.yes h3{color:var(--c-p700)}.fit-card.no h3{color:#B91C1C}
 .fit-card li{list-style:none;font-size:15px;color:var(--ink7);margin-bottom:10px}
 .fit-card.yes li::before{content:"✓ ";color:var(--ok);font-weight:800}
 .fit-card.no li::before{content:"✕ ";color:var(--bad);font-weight:800}
 .steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
 .steps3::before{content:"";position:absolute;top:26px;left:12%;right:12%;height:2px;background:var(--grad-action);opacity:.35}
 .step3{text-align:center;position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:32px 22px}
-.step3 .n{width:44px;height:44px;border-radius:50%;background:var(--grad-action);color:#fff;display:grid;place-items:center;
-  font-family:var(--font-serif);font-weight:700;font-size:19px;margin:0 auto 16px;position:relative;z-index:1;box-shadow:0 0 0 6px var(--bg)}
-.step3 h3{font-size:18px;margin-bottom:8px}.step3 p{font-size:14.5px;color:var(--ink5)}
+.step3 .n{width:44px;height:44px;border-radius:50%;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-family:var(--font-serif);font-weight:700;font-size:19px;margin:0 auto 16px;position:relative;z-index:1;box-shadow:0 0 0 6px var(--bg)}
+.step3 h3{font-size:18px;margin-bottom:8px}
+.step3 p{font-size:14.5px;color:var(--ink5)}
 .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .shot{aspect-ratio:4/3;border-radius:12px;border:1.5px dashed var(--ink4);display:grid;place-items:center;color:var(--ink4);font-size:14px;background-image:var(--grid-tex)}
 .faq{max-width:820px;margin:0 auto}
 .faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
-.faq summary{cursor:pointer;padding:18px 22px;font-weight:600;color:var(--ink9);font-family:var(--font-serif);font-size:17px;
-  list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary{cursor:pointer;padding:18px 22px;font-weight:600;color:var(--ink9);font-family:var(--font-serif);font-size:17px;list-style:none;display:flex;justify-content:space-between}
 .faq summary::after{content:"+";font-size:22px;color:var(--c-primary);transition:transform .25s var(--ease)}
 .faq details[open] summary::after{transform:rotate(45deg)}
 .faq details p{padding:0 22px 18px;color:var(--ink5);font-size:15px}
-.pathcta{border-radius:24px;padding:56px 40px;text-align:center;background:color-mix(in srgb,var(--pc) 8%,#fff);border:1.5px solid color-mix(in srgb,var(--pc) 30%,#fff)}
+.pathcta{border-radius:24px;padding:56px 40px;text-align:center;background:color-mix(in srgb,var(--pc) 8%,var(--card));border:1.5px solid color-mix(in srgb,var(--pc) 30%,var(--card))}
 
-/* ============ 入场动画 ============ */
+/* 词条页（14 §7.1） */
+.gl-head{padding:72px 0 34px;background-image:var(--grid-tex)}
+.gl-badges{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.gl-badge{font-size:12px;font-weight:700;border-radius:99px;padding:3px 14px;background:color-mix(in srgb,var(--p2) 14%,var(--card));color:var(--p2)}
+.gl-share{font-size:13px;border:1px solid var(--line);border-radius:99px;padding:3px 14px;cursor:pointer;background:var(--card);color:var(--ink5)}
+.gl-tabs{display:flex;gap:6px;margin:26px 0 0;border-bottom:2px solid var(--line)}
+.gl-tab{padding:12px 22px;font-size:15.5px;font-weight:600;cursor:pointer;color:var(--ink5);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:var(--font-serif)}
+.gl-tab.on{color:var(--ink9);border-image:none;border-color:transparent;border-bottom-color:var(--c-primary)}
+.gl-panel{display:none;padding:30px 0 6px;min-height:220px}
+.gl-panel.on{display:block;animation:fade .3s var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.gl-panel h3{margin-bottom:12px}
+.gl-panel p{max-width:760px;color:var(--ink7)}
+.gl-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.gl-fact{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;font-size:14.5px}
+.gl-fact b{font-family:var(--font-serif);display:block;margin-bottom:6px;color:var(--ink9)}
+.ladder{display:flex;margin-top:16px}
+.ladder .rung{flex:1;background:var(--card);border:1.5px solid var(--line);padding:16px 18px;position:relative;font-size:14.5px}
+.ladder .rung:first-child{border-radius:12px 0 0 12px}
+.ladder .rung:last-child{border-radius:0 12px 12px 0}
+.ladder .rung b{display:block;font-size:12px;color:var(--c-violet);letter-spacing:.06em;margin-bottom:6px}
+.ladder .rung::after{content:"→";position:absolute;right:-11px;top:50%;transform:translateY(-50%);color:var(--c-primary);font-weight:800;z-index:1;background:var(--bg);padding:2px}
+.ladder .rung:last-child::after{display:none}
+.relchips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.relay{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:18px 0;margin-top:34px;position:relative}
+.relay::before{content:"";position:absolute;left:0;top:-1.5px;height:3px;width:var(--rp,.35);background:var(--grad-action);border-radius:2px}
+.relay .side{font-size:14px;color:var(--ink5);cursor:pointer}
+.relay .side b{font-family:var(--font-serif);color:var(--ink9);font-size:16px;display:block}
+.relay .side:hover b{color:var(--c-primary)}
+.relay .side.next{text-align:right}
+.relay .mid{text-align:center;font-family:var(--font-serif);font-weight:700;color:var(--ink9)}
+
+/* 公式页（14 §7.2） */
+.fx-head{padding:72px 0 30px;background-image:var(--grid-tex)}
+.fx-big{font-family:var(--font-serif);font-style:italic;font-size:clamp(38px,6vw,72px);color:var(--ink9);text-align:center;padding:44px 20px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;position:relative;overflow:hidden}
+.fx-big .cornerfx{position:absolute;font-size:150px;opacity:.05;right:-10px;top:-40px;color:var(--c-primary)}
+.fx-cond{margin-top:16px;background:color-mix(in srgb,var(--bad) 9%,var(--card));border:1.5px solid color-mix(in srgb,var(--bad) 45%,var(--card));border-radius:12px;padding:14px 18px;font-weight:700;color:var(--bad);font-family:var(--font-serif);font-size:17px;animation:pulseOnce 1.2s var(--ease)}
+@keyframes pulseOnce{0%{transform:scale(.98);opacity:.4}60%{transform:scale(1.01)}100%{transform:scale(1);opacity:1}}
+.fx-cond small{display:block;font-family:var(--font-sans);font-weight:400;color:var(--ink5);font-size:13px;margin-top:4px}
+.fx-tools{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.mini-btn{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 16px;font-size:14px;cursor:pointer;color:var(--ink7)}
+.mini-btn:hover{border-color:var(--c-primary);color:var(--c-primary)}
+.fx-proof{font-size:13px;border-radius:99px;padding:3px 12px;font-weight:700}
+.fx-proof.p1{background:#ECFDF5;color:#047857}
+.fx-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+.fx-step{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:20px}
+.fx-step .s{font-family:var(--font-serif);font-style:italic;color:var(--c-primary);font-weight:800}
+.fx-step h4{font-family:var(--font-serif);font-size:16.5px;margin:6px 0}
+.fx-step p{font-size:13.5px;color:var(--ink5)}
+.fx-fam,.fx-err{margin-top:26px}
+.fx-fam a{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 16px;font-size:14px;margin:4px 6px;background:var(--card);cursor:pointer}
+.fx-fam a:hover{border-color:var(--c-primary);color:var(--c-primary)}
+.errform{background:color-mix(in srgb,var(--bad) 7%,var(--card));border:1px dashed color-mix(in srgb,var(--bad) 45%,var(--card));border-radius:12px;padding:14px 18px;margin-top:10px;font-size:15px}
+.errform del{color:var(--bad);font-family:var(--font-serif);font-style:italic}
+.errform p{font-size:13.5px;color:var(--ink5);margin-top:4px}
+.fx-lock{margin-top:30px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:26px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.fx-lock .lk{font-size:26px;filter:grayscale(.4)}
+.fx-lock .grow{flex:1;min-width:240px}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink9);color:var(--bg);padding:10px 22px;border-radius:99px;font-size:14.5px;opacity:0;pointer-events:none;transition:all .3s var(--ease);z-index:120}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+/* 年表（14 §7.4） */
+.tl-wrap{padding:72px 0}
+.tl-scroll{display:flex;gap:34px;overflow-x:auto;padding:56px 8px 30px;cursor:grab;position:relative;scrollbar-width:thin}
+.tl-scroll::before{content:"";position:absolute;left:0;right:0;top:86px;height:3px;background:var(--grad-action);opacity:.4}
+.tl-scroll.drag{cursor:grabbing}
+.tl-node{flex:none;width:190px;position:relative;text-align:center}
+.tl-node .yr{position:absolute;top:-42px;left:50%;transform:translateX(-50%);font-family:var(--font-serif);font-style:italic;font-weight:800;color:var(--c-primary);font-size:15px;white-space:nowrap}
+.tl-node .dia{width:20px;height:20px;border-radius:50%;background:var(--card);border:4px solid var(--c-primary);margin:76px auto 0;position:relative;z-index:1;transition:transform .2s}
+.tl-node:hover .dia{transform:scale(1.4)}
+.tl-card{margin-top:34px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:16px;font-size:13.5px;color:var(--ink5);cursor:pointer;transition:all .2s var(--ease)}
+.tl-node:hover .tl-card{border-color:var(--c-primary);transform:translateY(-4px);box-shadow:var(--sh-lift)}
+.tl-card b{font-family:var(--font-serif);color:var(--ink9);display:block;font-size:15px;margin-bottom:4px}
+.tl-detail{max-width:760px;margin:30px auto 0;background:var(--card);border:1.5px solid var(--c-p100);border-radius:16px;padding:26px;display:none}
+.tl-detail.on{display:block;animation:fade .3s var(--ease)}
+
+/* 工具页（14 §7.5） */
+.tools-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start}
+.plot-box{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:24px}
+.plot-in{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 6px}
+.plot-in label{font-family:var(--font-serif);font-style:italic;font-size:20px;color:var(--c-primary);align-self:center}
+.plot-in input{flex:1;min-width:180px;height:44px;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:16px;font-family:var(--font-serif);background:var(--bg);color:var(--ink9);outline:none}
+.plot-in input:focus{border-color:var(--c-primary)}
+.plot-in input.bad{border-color:var(--bad);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#plot{width:100%;aspect-ratio:16/10;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:block}
+.cheat details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.cheat summary{padding:15px 18px;font-family:var(--font-serif);font-weight:700;cursor:pointer;display:flex;justify-content:space-between}
+.cheat summary::after{content:"+";color:var(--c-primary)}
+.cheat details[open] summary::after{content:"−"}
+.cheat ul{padding:0 18px 16px}
+.cheat li{list-style:none;display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14.5px;cursor:pointer}
+.cheat li:last-child{border:none}
+.cheat li i{font-family:var(--font-serif);font-style:italic;color:var(--c-primary);font-weight:700}
+.cheat li:hover{color:var(--c-primary)}
+
+/* 入场 */
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .reveal.on{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){
-  *{animation:none!important;transition:none!important}
-  .reveal{opacity:1;transform:none}
-}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 
-/* ============ 响应式 ============ */
+/* 响应式 */
 @media (max-width:1023px){
   .hero .container{grid-template-columns:1fr;gap:36px}
-  .paths-grid,.grid3,.method-cols,.steps3,.gallery{grid-template-columns:repeat(2,1fr)}
+  .paths-grid,.grid3,.method-cols,.steps3,.gallery,.pick-grid,.fx-steps,.gl-facts{grid-template-columns:repeat(2,1fr)}
   .steps3::before{display:none}
-  .ai-grid{grid-template-columns:1fr}
   .stats .grid4{grid-template-columns:repeat(2,1fr);gap:36px}
   .foot-grid{grid-template-columns:1fr 1fr}
   .fit-grid{grid-template-columns:1fr}
   .nav-links{display:none}.burger{display:block;margin-left:auto}
   section{padding:72px 0}
+  .tools-grid{grid-template-columns:1fr}
+  .daily,.nl{grid-template-columns:1fr}
+  .ladder{flex-direction:column}.ladder .rung{border-radius:0!important}.ladder .rung::after{content:"↓";right:auto;left:50%;top:auto;bottom:-14px;transform:translateX(-50%)}
 }
 @media (max-width:767px){
-  .paths-grid,.grid3,.method-cols,.steps3,.gallery,.dl-grid{grid-template-columns:1fr}
+  .paths-grid,.grid3,.method-cols,.steps3,.gallery,.pick-grid,.dl-grid,.fx-steps,.gl-facts{grid-template-columns:1fr}
   .hero{min-height:auto}
   .foot-grid{grid-template-columns:1fr}
+  .opts{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
+<div id="progress" aria-hidden="true"></div>
 
 <!-- ================= 导航 ================= -->
 <nav class="nav" id="nav" aria-label="主导航">
   <div class="container">
     <a class="logo" href="#" data-view="home"><span class="mark">π</span>数源 MathOrigin</a>
     <div class="nav-links">
-      <a href="#" data-view="path" class="active">路径</a>
-      <a href="#cores">功能</a>
-      <a href="#download">下载</a>
+      <div class="nav-item">
+        <a href="#" class="has-mega">产品</a>
+        <div class="mega wide">
+          <h5>六条路径</h5>
+          <a href="#" data-view="path"><span class="dot" style="background:var(--p1)"></span>系统课程</a>
+          <a href="#"><span class="dot" style="background:var(--p2)"></span>知识图谱</a>
+          <a href="#"><span class="dot" style="background:var(--p3)"></span>测评计划</a>
+          <a href="#"><span class="dot" style="background:var(--p4)"></span>阶梯刷题</a>
+          <a href="#"><span class="dot" style="background:var(--p5)"></span>专题研习</a>
+          <a href="#"><span class="dot" style="background:var(--p6)"></span>闯关挑战</a>
+          <h5>学习引擎</h5>
+          <a href="#cores">推理链深钻</a><a href="#cores">概念四卡</a><a href="#" data-view="formula">公式馆</a><a href="#ai">AI 导师</a>
+          <h5>更多</h5>
+          <a href="#">价格</a><a href="#">更新日志</a><a href="#">路线图</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="has-mega">资源</a>
+        <div class="mega wide">
+          <h5>免费公开内容 <span class="new">2.0</span></h5>
+          <a href="#" data-view="glossary">词条百科</a>
+          <a href="#" data-view="formula">公式馆</a>
+          <a href="#daily">每日一题</a>
+          <a href="#" data-view="timeline">数学年表</a>
+          <a href="#" data-view="tools">学习工具</a>
+          <a href="#blog">博客</a>
+          <h5>帮助</h5>
+          <a href="#">FAQ</a><a href="#">帮助中心</a><a href="#">学习案例</a><a href="#">服务状态</a>
+        </div>
+      </div>
       <a href="#blog">博客</a>
+      <a href="#download">下载</a>
       <a href="#method">关于</a>
     </div>
     <div class="nav-cta">
+      <button class="kbd" id="kBtn" aria-label="搜索">🔍 ⌘K</button>
+      <button id="themeBtn" aria-label="切换主题">🌙</button>
       <a class="login" href="#">登录</a>
       <button class="btn btn-primary btn-md">免费开始</button>
-      <button class="burger" aria-label="菜单" onclick="alert('原型：移动端全屏抽屉菜单')">☰</button>
+      <button class="burger" aria-label="菜单" onclick="alert('原型：移动端全屏抽屉（mega 分组大字版）')">☰</button>
     </div>
   </div>
 </nav>
 
-<!-- ================= 视图 1：首页 ================= -->
+<!-- ================= 视图 1：首页（12 模块） ================= -->
 <main id="view-home" class="view active">
 
   <!-- ① Hero -->
@@ -316,7 +502,7 @@ footer a:hover{color:#fff}
           <button class="btn btn-primary btn-lg">免费开始学习</button>
           <button class="btn btn-outline btn-lg">下载 App</button>
         </div>
-        <p class="trust">上线集 <b>3,000+</b> 精选题 · <b>600+</b> 公式全解 · <b>6</b> 条学习路径 · 持续扩充</p>
+        <p class="trust">上线集 <b>3,000+</b> 精选题 · <b>600+</b> 公式全解 · <b>100+</b> 词条百科 · <b>6</b> 条学习路径</p>
       </div>
       <div class="hero-stage" aria-hidden="true">
         <div class="corner">∑</div>
@@ -342,42 +528,12 @@ footer a:hover{color:#fff}
         <p>按课程循序渐进，或在图谱自由探索；刷题晋级、专题深钻、闯关打榜——选你喜欢的方式到达同一个知识点。</p>
       </div>
       <div class="paths-grid">
-        <a class="card path-card reveal" style="--pc:var(--p1)" href="#" data-view="path">
-          <div class="icon">▤</div><h3>系统课程</h3>
-          <span class="fit">适合：喜欢按部就班的你</span>
-          <p class="desc">章节化循序渐进，课时完成即随堂检验，进度环一路点亮。</p>
-          <span class="go">开始这条路径</span>
-        </a>
-        <a class="card path-card reveal" style="--pc:var(--p2)" href="#">
-          <div class="icon">◈</div><h3>知识图谱</h3>
-          <span class="fit">适合：想看清全貌的你</span>
-          <p class="desc">知识点 DAG 自由漫游，颜色即掌握度，前置关系一目了然。</p>
-          <span class="go">开始这条路径</span>
-        </a>
-        <a class="card path-card reveal" style="--pc:var(--p3)" href="#">
-          <div class="icon">◎</div><h3>测评计划</h3>
-          <span class="fit">适合：想要定制路线的你</span>
-          <p class="desc">三分钟定级定位，生成每周计划，连续达标自动加速。</p>
-          <span class="go">开始这条路径</span>
-        </a>
-        <a class="card path-card reveal" style="--pc:var(--p4)" href="#">
-          <div class="icon">▟</div><h3>阶梯刷题</h3>
-          <span class="fit">适合：以战代练的你</span>
-          <p class="desc">L1→L5 逐级解锁，80% 正确率晋级，每日一练对抗遗忘。</p>
-          <span class="go">开始这条路径</span>
-        </a>
-        <a class="card path-card reveal" style="--pc:var(--p5)" href="#">
-          <div class="icon">❏</div><h3>专题研习</h3>
-          <span class="fit">适合：想深钻一块的你</span>
-          <p class="desc">数论、证明方法…主题式单元，从导读走到小论文。</p>
-          <span class="go">开始这条路径</span>
-        </a>
-        <a class="card path-card reveal" style="--pc:var(--p6)" href="#">
-          <div class="icon">♜</div><h3>闯关挑战</h3>
-          <span class="fit">适合：好胜心驱动的你</span>
-          <p class="desc">关卡地图、Boss 战、星级与段位，每周榜单见真章。</p>
-          <span class="go">开始这条路径</span>
-        </a>
+        <a class="card path-card reveal" style="--pc:var(--p1)" href="#" data-view="path"><div class="icon">▤</div><h3>系统课程</h3><span class="fit">适合：喜欢按部就班的你</span><p class="desc">章节化循序渐进，课时完成即随堂检验，进度环一路点亮。</p><span class="go">开始这条路径</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p2)" href="#"><div class="icon">◈</div><h3>知识图谱</h3><span class="fit">适合：想看清全貌的你</span><p class="desc">知识点 DAG 自由漫游，颜色即掌握度，前置关系一目了然。</p><span class="go">开始这条路径</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p3)" href="#"><div class="icon">◎</div><h3>测评计划</h3><span class="fit">适合：想要定制路线的你</span><p class="desc">三分钟定级定位，生成每周计划，连续达标自动加速。</p><span class="go">开始这条路径</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p4)" href="#"><div class="icon">▟</div><h3>阶梯刷题</h3><span class="fit">适合：以战代练的你</span><p class="desc">L1→L5 逐级解锁，80% 正确率晋级，每日一练对抗遗忘。</p><span class="go">开始这条路径</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p5)" href="#"><div class="icon">❏</div><h3>专题研习</h3><span class="fit">适合：想深钻一块的你</span><p class="desc">数论、证明方法…主题式单元，从导读走到小论文。</p><span class="go">开始这条路径</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p6)" href="#"><div class="icon">♜</div><h3>闯关挑战</h3><span class="fit">适合：好胜心驱动的你</span><p class="desc">关卡地图、Boss 战、星级与段位，每周榜单见真章。</p><span class="go">开始这条路径</span></a>
       </div>
     </div>
   </section>
@@ -393,62 +549,117 @@ footer a:hover{color:#fff}
       <div class="grid3">
         <div class="card demo-card reveal">
           <div class="demo-vis"><span class="big">∵</span><span class="mini m1">凭什么合法？</span><span class="mini m2">为什么想到 →</span></div>
-          <div class="demo-body"><h3>推理链 · 一题五玩</h3>
-            <p>每步四要素：内容、依据、动机、岔路。顺推逆推对照、一题多解、预测下一步。</p>
-            <a class="btn btn-ghost" href="#">了解深钻 →</a></div>
+          <div class="demo-body"><h3>推理链 · 一题五玩</h3><p>每步四要素：内容、依据、动机、岔路。顺推逆推对照、一题多解、预测下一步。</p><a class="btn btn-ghost" href="#">了解深钻 →</a></div>
         </div>
         <div class="card demo-card reveal">
           <div class="demo-vis"><span class="big">§</span><span class="mini m1">起源：被现实逼出来</span><span class="mini m2">抽象阶梯 ×3 ↓</span></div>
-          <div class="demo-body"><h3>概念四卡 · 先故事后定义</h3>
-            <p>起源、现实原型、能力地图、抽象阶梯——为什么发明它，先于它怎么写。</p>
-            <a class="btn btn-ghost" href="#">看看怎么讲 →</a></div>
+          <div class="demo-body"><h3>概念四卡 · 先故事后定义</h3><p>起源、现实原型、能力地图、抽象阶梯——为什么发明它，先于它怎么写。</p><a class="btn btn-ghost" href="#" data-view="glossary">看公开词条 →</a></div>
         </div>
         <div class="card demo-card reveal">
           <div class="demo-vis"><span class="big">f(x)</span><span class="mini m1">点击公式 →</span><span class="mini m2">何时不能用？⚠</span></div>
-          <div class="demo-body"><h3>公式馆 · 全站可点</h3>
-            <p>起源、推导链、成立条件红条、家族关系——从"背公式"到"懂公式"。</p>
-            <a class="btn btn-ghost" href="#">逛公式馆 →</a></div>
+          <div class="demo-body"><h3>公式馆 · 全站可点</h3><p>起源、推导链、成立条件红条、家族关系——从"背公式"到"懂公式"。</p><a class="btn btn-ghost" href="#" data-view="formula">逛公式馆 →</a></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ④ 数据背书 -->
+  <!-- ④ 每日一题（V5 完全公开） -->
+  <section id="daily" style="padding-top:0">
+    <div class="container reveal">
+      <div class="daily">
+        <div>
+          <div class="d-eyebrow">DAILY · 每日一题 <span style="color:var(--ink4)">（解析完全公开 · 每日 00:00 换题）</span></div>
+          <h3>设 f(x) = x² − 2x + 1，则 f(x) 在 [0, 2] 上的最小值为？</h3>
+          <div class="opts" id="dailyOpts">
+            <button class="opt" data-a="1">A. 0</button>
+            <button class="opt" data-a="0">B. 1</button>
+            <button class="opt" data-a="0">C. 2</button>
+            <button class="opt" data-a="0">D. −1</button>
+          </div>
+          <details>
+            <summary>查看解析（公开）→</summary>
+            <p>配方得 f(x) = (x−1)²，顶点 x=1 ∈ [0,2]，故最小值 <b>0</b>。别忘了：闭区间最值 = 顶点值与端点值比较。</p>
+            <div class="chain-mini"><span>S1 配方成 (x−1)²</span><span>S2 定位顶点 x=1 ∈ 区间</span><span>S3 端点对照 f(0)=f(2)=1</span></div>
+          </details>
+          <p style="margin-top:12px;font-size:13.5px;color:var(--ink4)">解锁完整推理链<strong>五玩</strong>（预测下一步/顺逆对照/多解）→ 注册后在学习端继续</p>
+        </div>
+        <div class="cd">
+          <div class="cd-ring" id="cdRing"><div class="cd-txt"><span id="cdTxt">--:--:--</span><small>距明日新题</small></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤ 路径测验（V2） -->
+  <section class="sec-alt" id="quiz">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="sec-eyebrow">FIND YOUR PATH · 30 秒测一测</div>
+        <h2>你是哪种学习者？</h2>
+        <p>三个问题，找到最适合你的那条路径。</p>
+      </div>
+      <div class="quiz reveal" id="quizBox">
+        <div class="q-steps"><span class="q-dot on"></span><span class="q-dot"></span><span class="q-dot"></span></div>
+        <div id="quizBody"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 数据背书 -->
   <section class="stats" aria-label="平台数据">
     <div class="container">
       <div class="grid4">
         <div class="reveal"><div class="stat-num" data-target="3000" data-suffix="+">0</div><div class="stat-label">精选题目（含推理链）</div></div>
         <div class="reveal"><div class="stat-num" data-target="600" data-suffix="+">0</div><div class="stat-label">公式全解（起源·推导·条件）</div></div>
-        <div class="reveal"><div class="stat-num" data-target="4" data-suffix="">0</div><div class="stat-label">大学习领域</div></div>
+        <div class="reveal"><div class="stat-num" data-target="100" data-suffix="+">0</div><div class="stat-label">词条百科（四卡公开）</div></div>
         <div class="reveal"><div class="stat-num" data-target="6" data-suffix="">0</div><div class="stat-label">条学习路径</div></div>
       </div>
-      <p class="note">上线集口径 · <b>持续扩充中</b> —— 从接触数字到深研数学，不做学段边界</p>
+      <p class="note">上线集口径 · <b>持续扩充中</b><a class="rss" href="#">订阅 RSS →</a></p>
     </div>
   </section>
 
-  <!-- ⑤ AI 导师 -->
+  <!-- ⑦ AI 导师 -->
   <section id="ai">
-    <div class="container ai-grid">
-      <div class="chatcard reveal" aria-hidden="true">
-        <div class="chat-line"><div class="avatar">π</div><div class="bubble">这一步为什么要除以 sinC？你先想想：除之前要保证什么？</div></div>
-        <div class="chat-line me"><div class="bubble">…sinC 不能是 0？</div></div>
-        <div class="chat-line"><div class="avatar">π</div><div class="bubble typing">对。那 C 是三角形内角，它能取到 0 吗</div></div>
+    <div class="container" style="display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:center">
+      <div class="card reveal" style="padding:22px" aria-hidden="true">
+        <div style="display:flex;gap:10px;margin-bottom:14px;align-items:flex-start"><span class="mark" style="width:30px;height:30px;border-radius:9px;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-style:italic;flex:none">π</span><div style="background:var(--alt);border-radius:12px;padding:10px 14px;font-size:14.5px">这一步为什么要除以 sinC？你先想想：除之前要保证什么？</div></div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-direction:row-reverse"><div style="background:var(--c-p50);border-radius:12px;padding:10px 14px;font-size:14.5px;color:var(--ink9)">…sinC 不能是 0？</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start"><span class="mark" style="width:30px;height:30px;border-radius:9px;background:var(--grad-action);color:#fff;display:grid;place-items:center;font-style:italic;flex:none">π</span><div style="background:var(--alt);border-radius:12px;padding:10px 14px;font-size:14.5px">对。那 C 是三角形内角，它能取到 0 吗<span style="color:var(--c-violet)">▌</span></div></div>
       </div>
       <div class="reveal">
         <div class="sec-eyebrow">AI TUTOR · 苏格拉底式导师</div>
         <h2>不直接给答案的 AI</h2>
-        <ul class="ai-list">
-          <li>默认沿推理链提问引导，嫌慢一键切「直接讲解」</li>
-          <li>紧跟你正在做的题，上下文始终在场</li>
-          <li>还能按薄弱点出题、生成学习计划、每周诊断</li>
+        <ul style="list-style:none;margin-top:24px">
+          <li style="display:flex;gap:12px;margin-bottom:14px"><span style="color:var(--ok);font-weight:800">✓</span>默认沿推理链提问引导，嫌慢一键切「直接讲解」</li>
+          <li style="display:flex;gap:12px;margin-bottom:14px"><span style="color:var(--ok);font-weight:800">✓</span>紧跟你正在做的题，上下文始终在场</li>
+          <li style="display:flex;gap:12px;margin-bottom:14px"><span style="color:var(--ok);font-weight:800">✓</span>还能按薄弱点出题、生成学习计划、每周诊断</li>
         </ul>
         <p style="margin-top:8px;font-size:13.5px;color:var(--ink4)">＊ 功能可按需配置，核心学习闭环不依赖 AI</p>
       </div>
     </div>
   </section>
 
-  <!-- ⑥ 方法论 -->
-  <section id="method" class="method sec-alt" style="background-color:var(--bg)">
+  <!-- ⑧ 精选词条/公式（F-12 记忆回填） -->
+  <section class="sec-alt" id="picks">
+    <div class="container">
+      <div class="sec-head reveal">
+        <div class="sec-eyebrow">EXPLORE · 免费公开探索</div>
+        <h2>先读几张卡，再决定要不要注册</h2>
+        <p>词条、公式、每日题——学员端三内核的公开前厅，无需登录。</p>
+      </div>
+      <div class="pick-grid">
+        <div class="card pick cont reveal" id="contCard" data-view="glossary" style="display:none"><span class="kind">CONTINUE · 继续探索</span><h4 id="contTitle">正弦函数</h4><p>你上次读到这里——接龙下一站已备好。</p><span class="go">继续 →</span></div>
+        <div class="card pick reveal" data-view="glossary"><span class="kind">词条 · 概念起源</span><h4>正弦函数</h4><p>从古希腊弦表到尼罗河测量：它不是灵感，是被现实逼出来的工具。</p><span class="go">读词条 →</span></div>
+        <div class="card pick reveal" data-view="glossary"><span class="kind">词条 · 概念起源</span><h4>对数</h4><p>开普勒时代的天文学家，为了少乘几次长数而发明的"降维打击"。</p><span class="go">读词条 →</span></div>
+        <div class="card pick reveal" data-view="formula"><span class="kind fx">公式 · 条件红条</span><h4>勾股定理</h4><p>⚠ 仅直角三角形：a²+b²=c²。任意三角形请走余弦定理。</p><span class="go">看推导 →</span></div>
+        <div class="card pick reveal" data-view="formula"><span class="kind fx">公式 · 家族关系</span><h4>求根公式</h4><p>判别式为什么长那样？配方法的第三步给出答案。</p><span class="go">看推导 →</span></div>
+        <div class="card pick reveal" data-view="timeline"><span class="kind">年表 · 起源故事</span><h4>1665 · 牛顿</h4><p>鼠疫年代的乡下，微积分在隔离期长了出来。</p><span class="go">逛年表 →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑨ 方法论 -->
+  <section id="method" class="method">
     <div class="container">
       <p class="quote reveal serif">数学不是符号操演——<br>是<span class="grad-text">可追溯的推理</span>，与<span class="grad-text">可感知的世界</span>。</p>
       <div class="method-cols">
@@ -459,7 +670,7 @@ footer a:hover{color:#fff}
     </div>
   </section>
 
-  <!-- ⑦ 学员说 -->
+  <!-- ⑩ 学员说 -->
   <section id="voices">
     <div class="container">
       <div class="sec-head reveal"><div class="sec-eyebrow">VOICES · 产品理念</div><h2>我们相信的学习</h2></div>
@@ -471,7 +682,7 @@ footer a:hover{color:#fff}
     </div>
   </section>
 
-  <!-- ⑧ 下载中心 -->
+  <!-- ⑪ 下载中心 -->
   <section id="download" class="sec-alt">
     <div class="container">
       <div class="sec-head reveal"><div class="sec-eyebrow">GET STARTED · 立即开始</div><h2>三端随选，学在何处都一样</h2></div>
@@ -483,13 +694,20 @@ footer a:hover{color:#fff}
     </div>
   </section>
 
-  <!-- ⑨ 博客精选 -->
-  <section id="blog">
+  <!-- ⑫ Newsletter + 博客精选 -->
+  <section id="blog" style="padding-top:0">
     <div class="container">
-      <div class="sec-head reveal"><div class="sec-eyebrow">BLOG · 数学与世界</div><h2>最近在写</h2>
-        <p>概念的起源、公式的故事、方法的门道——每周 1-2 篇。</p></div>
+      <div class="nl reveal" style="margin-bottom:64px">
+        <div><h3>每周一封 · 数学与世界</h3><p>概念的起源、公式的故事、方法的门道——G6 内容管道同源周报，随时可退订。</p></div>
+        <form id="nlForm">
+          <input type="email" placeholder="you@example.com" required aria-label="邮箱">
+          <button class="btn btn-primary btn-md" type="submit">订阅</button>
+          <span class="ok" id="nlOk">✓ 已订阅</span>
+        </form>
+      </div>
+      <div class="sec-head reveal"><div class="sec-eyebrow">BLOG · 数学与世界</div><h2>最近在写</h2></div>
       <div class="grid3">
-        <a class="card reveal" href="#"><div class="blog-cover">sin</div><div class="blog-body"><span class="meta">概念起源 · 2026-09</span><h3>三角函数为什么存在？</h3><p>从古希腊弦表到尼罗河测量：它不是天才的灵感，是被现实逼出来的工具。</p></div></a>
+        <a class="card reveal" href="#"><div class="blog-cover">sin</div><div class="blog-body"><span class="meta">概念起源 · 2026-09</span><h3>三角函数为什么存在？</h3><p>从古希腊弦表到尼罗河测量：它不是灵感，是被现实逼出来的工具。</p></div></a>
         <a class="card reveal" href="#"><div class="blog-cover">e<sup>iπ</sup></div><div class="blog-body"><span class="meta">公式故事 · 2026-09</span><h3>欧拉恒等式是怎么来的</h3><p>五个常数为何能挤进一个等式——跟着推导链走一遍指数与旋转的合流。</p></div></a>
         <a class="card reveal" href="#"><div class="blog-cover">Δ</div><div class="blog-body"><span class="meta">解题方法 · 2026-09</span><h3>应用题怎么找等量关系</h3><p>把生活话翻译成方程的五步：读题标注、设元、列模、求解、回代。</p></div></a>
       </div>
@@ -497,7 +715,6 @@ footer a:hover{color:#fff}
     </div>
   </section>
 
-  <!-- CTA band -->
   <section style="padding-top:0">
     <div class="container">
       <div class="cta-band reveal">
@@ -509,7 +726,7 @@ footer a:hover{color:#fff}
   </section>
 </main>
 
-<!-- ================= 视图 2：路径页模板 ================= -->
+<!-- ================= 视图 2：路径页 ================= -->
 <main id="view-path" class="view">
   <header class="pathhero" style="--pc:var(--p1)" data-icon="▤">
     <div class="container">
@@ -519,27 +736,20 @@ footer a:hover{color:#fff}
       <button class="btn btn-primary btn-lg">开始这条路径</button>
     </div>
   </header>
-
   <section>
     <div class="container readcol">
       <div class="sec-eyebrow">WHY · 为什么需要</div>
       <h2 style="margin-bottom:20px">零散刷题的人，缺一张"地图"</h2>
-      <p class="drop" style="color:var(--ink7)">很多学习者不是不努力，而是不知道自己站在知识地图的哪里：前面的前置没补，后面的例题硬啃，错题反复错在同一个位置。系统课程路径把知识展开成有顺序的路——每一课时都标好了前置与去处，随堂练即时检验，进度环替你记住走到了哪。它不要求你有很强的自适应能力，只要求你愿意一步一步来。</p>
+      <p class="drop" style="color:var(--ink7)">很多学习者不是不努力，而是不知道自己站在知识地图的哪里：前面的前置没补，后面的例题硬啃，错题反复错在同一个位置。系统课程路径把知识展开成有顺序的路——每一课时都标好了前置与去处，随堂练即时检验，进度环替你记住走到了哪。</p>
       <p style="margin-top:16px;color:var(--ink5)">路径内所有作答都会回写<strong>掌握度</strong>：你在课程里学的，会在图谱、阶梯与错题本里同步显现。</p>
     </div>
   </section>
-
   <section class="sec-alt" style="padding-top:64px;padding-bottom:64px">
     <div class="container fit-grid">
-      <div class="card fit-card yes"><h3>适合这样的你 ✓</h3><ul>
-        <li>喜欢有明确顺序、按部就班</li><li>基础有断层，需要系统补齐</li>
-        <li>希望每学一点就有即时检验</li><li>备考节奏稳定、按计划推进</li></ul></div>
-      <div class="card fit-card no"><h3>可能不适合 ✕</h3><ul>
-        <li>只想快速攻一个知识点（→ 图谱路径）</li><li>喜欢以刷代学（→ 阶梯刷题）</li>
-        <li>想按自己的兴趣跳着学（→ 专题研习）</li></ul></div>
+      <div class="card fit-card yes"><h3>适合这样的你 ✓</h3><ul><li>喜欢有明确顺序、按部就班</li><li>基础有断层，需要系统补齐</li><li>希望每学一点就有即时检验</li><li>备考节奏稳定、按计划推进</li></ul></div>
+      <div class="card fit-card no"><h3>可能不适合 ✕</h3><ul><li>只想快速攻一个知识点（→ 图谱路径）</li><li>喜欢以刷代学（→ 阶梯刷题）</li><li>想按自己的兴趣跳着学（→ 专题研习）</li></ul></div>
     </div>
   </section>
-
   <section>
     <div class="container">
       <div class="sec-head reveal"><div class="sec-eyebrow">HOW · 怎么走</div><h2>三步开始</h2></div>
@@ -550,7 +760,6 @@ footer a:hover{color:#fff}
       </div>
     </div>
   </section>
-
   <section class="sec-alt">
     <div class="container">
       <div class="sec-head reveal"><div class="sec-eyebrow">PREVIEW · 真实界面</div><h2>路径里长什么样</h2></div>
@@ -561,18 +770,16 @@ footer a:hover{color:#fff}
       </div>
     </div>
   </section>
-
   <section>
     <div class="container">
       <div class="sec-head reveal"><div class="sec-eyebrow">FAQ · 常见问题</div><h2>你可能想问</h2></div>
       <div class="faq">
         <details open><summary>和其他五条路径冲突吗？</summary><p>不冲突。所有路径共享同一套掌握度与错题本，你完全可以课程为主、图谱为辅穿插使用。</p></details>
-        <details><summary>课程内容从哪来？覆盖什么范围？</summary><p>由平台按知识图谱持续编写：从接触数字到深研数学不做学段边界，按域滚动扩充（内容口径见产品内容计划）。</p></details>
+        <details><summary>课程内容从哪来？覆盖什么范围？</summary><p>由平台按知识图谱持续编写：从接触数字到深研数学不做学段边界，按域滚动扩充。</p></details>
         <details><summary>没测评能直接开始吗？</summary><p>可以。测评是推荐项，跳过会按默认起点给计划，首次练习后自动校准。</p></details>
       </div>
     </div>
   </section>
-
   <section style="padding-top:0">
     <div class="container">
       <div class="pathcta reveal" style="--pc:var(--p1)">
@@ -582,72 +789,483 @@ footer a:hover{color:#fff}
       </div>
     </div>
   </section>
+</main>
 
-  <section class="sec-alt" style="padding-top:56px;padding-bottom:56px">
+<!-- ================= 视图 3：词条页（14 §7.1） ================= -->
+<main id="view-glossary" class="view">
+  <header class="gl-head">
     <div class="container">
-      <div class="sec-head reveal"><div class="sec-eyebrow">RELATED · 相关阅读</div><h2>接着读</h2></div>
-      <div class="grid3" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:0 auto">
-        <a class="card reveal" href="#"><div class="blog-cover" style="aspect-ratio:2/1">?</div><div class="blog-body"><span class="meta">学习方法</span><h3>线性学习 vs 图谱学习：你适合哪条路？</h3></div></a>
-        <a class="card reveal" href="#"><div class="blog-cover" style="aspect-ratio:2/1">↻</div><div class="blog-body"><span class="meta">记忆科学</span><h3>为什么每日一练比重读课本有效</h3></div></a>
+      <div class="crumb"><a href="#" data-view="home">首页</a> / 词条 / 三角学</div>
+      <div class="gl-badges">
+        <span class="gl-badge">领域 · 三角学</span>
+        <span class="gl-badge" style="background:color-mix(in srgb,var(--p3) 14%,var(--card));color:var(--p3)">tier 1 基础</span>
+        <button class="gl-share" onclick="toast('已复制词条链接（分享卡见 14 §8 ShareCard）')">分享</button>
+      </div>
+      <h1>正弦函数（sine）</h1>
+      <p style="max-width:680px;color:var(--ink5);margin-top:10px">概念四卡的公开版：先看它从哪里来，再看它怎么写。</p>
+
+      <div class="gl-tabs" role="tablist">
+        <div class="gl-tab on" data-gl="0">起源</div>
+        <div class="gl-tab" data-gl="1">现实</div>
+        <div class="gl-tab" data-gl="2">抽象阶梯</div>
+        <div class="gl-tab" data-gl="3">代表题</div>
+      </div>
+      <div class="gl-panel on" data-gl="0">
+        <h3>被现实逼出来的工具</h3>
+        <p>公元前 2 世纪，古希腊天文学家希帕克斯为了计算<strong>天体的角度与距离</strong>，造出了人类第一张弦表——圆弧对应的弦长表。约 800 年后，印度数学家把它"角度化"，阿拉伯世界接力译介，直到 16 世纪欧洲将它命名 sinus（湾曲）。<b>它不是天才的灵感，而是测量、天文与航海一口一口喂大的工具</b>——古埃及人用它量尼罗河泛滥后的土地，今天的你用它描述声、光与四季。</p>
+        <p style="font-size:13px;color:var(--ink4);margin-top:10px">＊ 出处提示：希帕克斯弦表 / 婆罗摩笈多《婆罗摩历算书》/ sinus 词源通行数学史表述（AI 起草，史实已核）</p>
+      </div>
+      <div class="gl-panel" data-gl="1">
+        <h3>它长在自然里</h3>
+        <div class="gl-facts">
+          <div class="gl-fact"><b>日晷与影长</b>影子长度随角度正弦变化——最古老的测量现场。</div>
+          <div class="gl-fact"><b>声与光</b>纯音的波形就是一条正弦线；傅里叶说任何复杂波都是正弦的叠加。</div>
+          <div class="gl-fact"><b>四季与心跳</b>一切周期现象：圆周运动的投影，就是 sin。</div>
+        </div>
+      </div>
+      <div class="gl-panel" data-gl="2">
+        <h3>从生活话到符号，三级台阶</h3>
+        <div class="ladder">
+          <div class="rung"><b>REAL · 现实</b>这个斜坡有多"陡"？影子有多长？</div>
+          <div class="rung"><b>MODEL · 模型</b>对边与邻边的比值——固定角度下它不变。</div>
+          <div class="rung"><b>SYMBOL · 符号</b>sin θ = 对边/斜边 → 单位圆定义 → 波形。</div>
+        </div>
+      </div>
+      <div class="gl-panel" data-gl="3">
+        <h3>从这里开始练</h3>
+        <div class="gl-facts">
+          <div class="gl-fact"><b>影长测量</b>已知太阳仰角 30°，塔高 30m，影长？<br><span style="color:var(--c-primary);font-weight:700">试做 →（注册后进学习端）</span></div>
+          <div class="gl-fact"><b>信号叠加</b>为什么方波可以拆成一串正弦？（L4 阶梯题）</div>
+          <div class="gl-fact"><b>解三角形</b>已知两边一角，正弦定理何时有两解？</div>
+        </div>
+      </div>
+
+      <h4 style="margin-top:34px;font-family:var(--font-serif)">相关词条</h4>
+      <div class="relchips">
+        <span class="chip">余弦</span><span class="chip">正切</span>
+        <span class="chip">单位圆</span><span class="chip">傅里叶级数</span>
+        <span class="chip">勾股定理</span>
+      </div>
+
+      <div class="relay" style="--rp:.35">
+        <div class="side prev"><span>◀ 上一站</span><b>余弦 cosine</b></div>
+        <div class="mid">正弦</div>
+        <div class="side next"><span>下一站 ▶</span><b>正切 tangent</b></div>
+      </div>
+
+      <div class="cta-band" style="margin-top:34px;padding:38px 30px">
+        <h3>读完了？去学习端把它的推理链玩一遍</h3>
+        <p style="color:var(--ink5);margin:10px 0 22px">from=glossary/sine 归因 · 注册后解锁五玩与练习</p>
+        <button class="btn btn-primary btn-lg">打开学习端 · 继续学这个知识点</button>
+      </div>
+
+      <div class="grid3" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:34px auto 0">
+        <a class="card" href="#"><div class="blog-cover" style="aspect-ratio:2/1">sin</div><div class="blog-body"><span class="meta">相关文章</span><h3>三角函数为什么存在？</h3></div></a>
+        <a class="card" href="#"><div class="blog-cover" style="aspect-ratio:2/1">∑</div><div class="blog-body"><span class="meta">相关文章</span><h3>从弦表到傅里叶：正弦简史</h3></div></a>
+      </div>
+    </div>
+  </header>
+  <div style="height:60px"></div>
+</main>
+
+<!-- ================= 视图 4：公式页（14 §7.2） ================= -->
+<main id="view-formula" class="view">
+  <header class="fx-head">
+    <div class="container">
+      <div class="crumb"><a href="#" data-view="home">首页</a> / 公式馆 / 几何</div>
+      <div class="gl-badges">
+        <span class="gl-badge">几何 · tier 1 基础</span>
+        <span class="fx-proof p1">✓ 严格证明</span>
+        <button class="gl-share" onclick="toast('已复制公式页链接')">分享</button>
+      </div>
+      <h1>勾股定理</h1>
+      <p style="color:var(--ink5);margin:8px 0 22px">别名：毕达哥拉斯定理 · 商高定理 · 直角三角形三边关系</p>
+
+      <div class="fx-big" aria-label="公式">a² + b² = c²<span class="cornerfx">∬</span></div>
+      <div class="fx-cond">⚠ 成立条件：仅适用于直角三角形（∠C = 90°），a、b 为直角边，c 为斜边<small>边长必须为正实数；推广到任意三角形请用余弦定理 a²+b²−2ab·cosC = c²</small></div>
+      <div class="fx-tools">
+        <button class="mini-btn" id="copyFx">⧉ 复制公式</button>
+        <button class="mini-btn" data-view="glossary">关联词条 · 直角三角形</button>
+        <span style="font-size:13.5px;color:var(--ink4)">起源：古埃及丈地 → 毕达哥拉斯学派严格化 → 赵爽弦图（中国独立证明）</span>
+      </div>
+
+      <div class="fx-steps">
+        <div class="fx-step"><span class="s">S1 · teaser</span><h4>面积拼图</h4><p>四个全等直角三角形拼进大正方形——面积守恒是起点。</p></div>
+        <div class="fx-step"><span class="s">S2 · teaser</span><h4>代数整理</h4><p>2ab 项两边相消，留下 a²+b²=c² 的干净形式。</p></div>
+        <div class="fx-step" style="border-color:var(--c-violet)"><span class="s">S3 · teaser</span><h4>完整五玩 → 学员端</h4><p>顺逆对照、多解（面积法/相似法/向量法）、预测下一步——注册后深钻。</p></div>
+      </div>
+
+      <div class="fx-fam">
+        <h4 style="font-family:var(--font-serif);margin-bottom:8px">家族关系</h4>
+        <a data-view="formula">余弦定理（推广）</a><a data-view="glossary">射影定理（特例族）</a><a data-view="formula">求根公式（配方同源）</a><a>向量点积形式（等价）</a>
+      </div>
+
+      <div class="fx-err">
+        <h4 style="font-family:var(--font-serif);margin-bottom:8px">常见错误变形（红笔）</h4>
+        <div class="errform"><del>a² + b² = c² 对任意三角形成立</del><p>✘ 任意三角形缺了 −2ab·cosC 修正项；C=90° 时 cosC=0 才退化为勾股定理——这正是"推广"的方向。</p></div>
+      </div>
+
+      <div class="fx-lock">
+        <div class="lk">🔓</div>
+        <div class="grow"><b style="font-family:var(--font-serif);font-size:17px;color:var(--ink9)">试做第 1 题（题面公开）</b>
+          <p style="font-size:14px;color:var(--ink5)">直角三角形两直角边 3、4，斜边 = ？　A. 6　B. 5　C. 7　D. √7</p></div>
+        <button class="btn btn-primary btn-md" onclick="toast('作答需登录 —— 转化位设计（13 §4.4）')">提交答案 → 登录后判分</button>
+      </div>
+
+      <div class="grid3" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:34px auto 0">
+        <a class="card" href="#"><div class="blog-cover" style="aspect-ratio:2/1">⊥</div><div class="blog-body"><span class="meta">相关文章</span><h3>勾股定理的 300 种证法在证什么</h3></div></a>
+        <a class="card" href="#" data-view="timeline"><div class="blog-cover" style="aspect-ratio:2/1">300BC</div><div class="blog-body"><span class="meta">年表</span><h3>欧几里得《几何原本》第 1 卷命题 47</h3></div></a>
+      </div>
+    </div>
+  </header>
+  <div style="height:60px"></div>
+</main>
+
+<!-- ================= 视图 5：年表（14 §7.4） ================= -->
+<main id="view-timeline" class="view">
+  <header class="tl-wrap">
+    <div class="container">
+      <div class="crumb"><a href="#" data-view="home">首页</a> / 资源 / 数学年表</div>
+      <div class="sec-eyebrow">TIMELINE · 数学是怎么长出来的</div>
+      <h1 style="font-size:clamp(34px,4.5vw,54px)">一条时间线，看数学被什么逼出来</h1>
+      <p style="color:var(--ink5);max-width:640px;margin-top:8px">拖拽或滚动横向浏览；点节点看起源摘要（全部来自四卡/词条素材 · V1 全量）。</p>
+    </div>
+    <div class="container" style="max-width:none;padding-right:0">
+      <div class="tl-scroll" id="tlScroll">
+        <div class="tl-node" data-d="t0"><div class="yr">≈1800 BC</div><div class="dia"></div><div class="tl-card"><b>莱因德纸草书</b>古埃及分数运算——丈量土地的账本。</div></div>
+        <div class="tl-node" data-d="t1"><div class="yr">300 BC</div><div class="dia"></div><div class="tl-card"><b>欧几里得《几何原本》</b>数学第一次有了公理化证明。</div></div>
+        <div class="tl-node" data-d="t2"><div class="yr">240 BC</div><div class="dia"></div><div class="tl-card"><b>阿基米德</b>圆周率上下夹逼——穷竭法的曙光。</div></div>
+        <div class="tl-node" data-d="t3"><div class="yr">200 AD</div><div class="dia"></div><div class="tl-card"><b>刘徽《九章算术注》</b>割圆术与"析理以辞"的中国传统。</div></div>
+        <div class="tl-node" data-d="t4"><div class="yr">820 AD</div><div class="dia"></div><div class="tl-card"><b>花拉子密</b>《还原与对消》——代数(algebra)之名的起点。</div></div>
+        <div class="tl-node" data-d="t5"><div class="yr">1637</div><div class="dia"></div><div class="tl-card"><b>笛卡尔</b>坐标系：几何第一次说代数的话。</div></div>
+        <div class="tl-node" data-d="t6"><div class="yr">1665</div><div class="dia"></div><div class="tl-card"><b>牛顿 · 鼠疫乡居</b>微积分在隔离期长了出来。</div></div>
+        <div class="tl-node" data-d="t7"><div class="yr">1748</div><div class="dia"></div><div class="tl-card"><b>欧拉《分析学引论》</b>函数成为主角，e、i、π 同台。</div></div>
+        <div class="tl-node" data-d="t8"><div class="yr">1854</div><div class="dia"></div><div class="tl-card"><b>黎曼几何</b>空间可以弯——五十年后成为广义相对论的语言。</div></div>
+        <div class="tl-node" data-d="t9"><div class="yr">1931</div><div class="dia"></div><div class="tl-card"><b>哥德尔不完备定理</b>数学看见了自己的边界。</div></div>
+      </div>
+    </div>
+    <div class="container">
+      <div class="tl-detail" id="tlDetail">
+        <div class="sec-eyebrow">ORIGIN · 摘要</div>
+        <h3 id="tlDTitle">点上方任意节点</h3>
+        <p id="tlDText" style="color:var(--ink5);margin-top:8px">每个节点都有一张词条卡在等你——摘要只是开头。</p>
+        <p style="margin-top:14px"><a href="#" data-view="glossary" style="color:var(--c-primary);font-weight:700">深入词条 →</a></p>
+      </div>
+      <div class="cta-band" style="margin-top:40px">
+        <h2>想亲历这些推导，而不只是听说？</h2>
+        <p style="color:var(--ink5);margin:12px 0 26px">学习端里，每一段历史都能变成你手上的推理链</p>
+        <button class="btn btn-primary btn-lg">免费开始学习</button>
+      </div>
+    </div>
+  </header>
+</main>
+
+<!-- ================= 视图 6：工具页（14 §7.5 · V2） ================= -->
+<main id="view-tools" class="view">
+  <header style="padding:72px 0 30px;background-image:var(--grid-tex)">
+    <div class="container">
+      <div class="crumb"><a href="#" data-view="home">首页</a> / 资源 / 学习工具</div>
+      <div class="sec-eyebrow">TOOLS · 免费公开工具</div>
+      <h1 style="font-size:clamp(34px,4.5vw,54px)">函数画板 & 公式速查</h1>
+      <p style="color:var(--ink5);max-width:620px;margin-top:8px">纯浏览器工具，无需登录；每件工具下方都能一键进入学习端深入练习。</p>
+    </div>
+  </header>
+  <section style="padding-top:20px">
+    <div class="container tools-grid">
+      <div class="plot-box reveal">
+        <div class="sec-eyebrow">① 函数图像画板</div>
+        <div class="plot-in">
+          <label>y =</label>
+          <input id="expr" value="sin(x)" aria-label="表达式" spellcheck="false">
+          <button class="btn btn-primary btn-md" id="drawBtn">绘制</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px">
+          <span class="chip" data-p="sin(x)">sin(x)</span><span class="chip" data-p="x*x">x²</span>
+          <span class="chip" data-p="exp(x)/10">eˣ/10</span><span class="chip" data-p="1/x">1/x</span>
+          <span class="chip" data-p="sqrt(x)">√x</span><span class="chip" data-p="tan(x)">tan(x)</span>
+        </div>
+        <canvas id="plot" width="640" height="400"></canvas>
+        <p style="font-size:13px;color:var(--ink4);margin-top:10px">支持：x、+ − * / ^、sin cos tan sqrt exp log ln、括号　｜ 生产版含悬停读坐标（安全解析器，非 eval）</p>
+        <p style="margin-top:12px"><a href="#" style="color:var(--c-primary);font-weight:700">用这个函数去做题 →（学习端）</a></p>
+      </div>
+      <div class="cheat reveal">
+        <div class="sec-eyebrow">② 公式速查表</div>
+        <details open><summary>代数</summary><ul>
+          <li data-view="formula"><span>求根公式</span><i>x = (−b ± √(b²−4ac)) / 2a</i></li>
+          <li data-view="formula"><span>完全平方</span><i>(a±b)² = a² ± 2ab + b²</i></li>
+          <li data-view="formula"><span>均值不等式</span><i>(a+b)/2 ≥ √(ab)</i></li>
+        </ul></details>
+        <details><summary>几何 · 三角</summary><ul>
+          <li data-view="formula"><span>勾股定理 ⚠直角</span><i>a² + b² = c²</i></li>
+          <li data-view="formula"><span>正弦定理</span><i>a/sinA = 2R</i></li>
+          <li data-view="formula"><span>余弦定理</span><i>c² = a² + b² − 2ab·cosC</i></li>
+        </ul></details>
+        <details><summary>分析</summary><ul>
+          <li data-view="formula"><span>导数公式</span><i>(xⁿ)′ = n·xⁿ⁻¹</i></li>
+          <li data-view="formula"><span>泰勒展开(eˣ)</span><i>Σ xⁿ/n!</i></li>
+        </ul></details>
+        <p style="font-size:13.5px;color:var(--ink5);margin-top:12px">共 <b>600+</b> 条 · 按领域持续扩充（12 号公式管道供给）</p>
       </div>
     </div>
   </section>
 </main>
 
-<!-- ================= Footer ================= -->
+<!-- ================= Footer（14 §4.4 升级） ================= -->
 <footer>
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="logo" href="#"><span class="mark">π</span>数源 MathOrigin</a>
         <p>数之源：概念的起源、推导的源头。可追溯的推理，可感知的世界。</p>
+        <a class="rss" href="#">◈ 订阅 RSS / Atom</a>
       </div>
-      <div><h4>六条路径</h4><ul>
-        <li><a href="#" data-view="path">系统课程</a></li><li><a href="#">知识图谱</a></li>
-        <li><a href="#">测评计划</a></li><li><a href="#">阶梯刷题</a></li>
-        <li><a href="#">专题研习</a></li><li><a href="#">闯关挑战</a></li></ul></div>
       <div><h4>产品</h4><ul>
-        <li><a href="#cores">推理链深钻</a></li><li><a href="#cores">概念四卡</a></li>
-        <li><a href="#cores">公式馆</a></li><li><a href="#ai">AI 导师</a></li></ul></div>
+        <li><a href="#" data-view="path">六条路径</a></li><li><a href="#cores">推理链深钻</a></li>
+        <li><a href="#cores">概念四卡</a></li><li><a href="#" data-view="formula">公式馆</a></li>
+        <li><a href="#ai">AI 导师</a></li></ul></div>
       <div><h4>资源</h4><ul>
-        <li><a href="#blog">博客</a></li><li><a href="#download">下载中心</a></li>
-        <li><a href="#">学习方法论</a></li><li><a href="#">帮助中心</a></li></ul></div>
-      <div><h4>关注我们</h4>
+        <li><a href="#" data-view="glossary">词条百科</a></li><li><a href="#daily">每日一题</a></li>
+        <li><a href="#" data-view="timeline">数学年表</a></li><li><a href="#" data-view="tools">学习工具</a></li>
+        <li><a href="#blog">博客</a></li><li><a href="#">FAQ / 帮助</a></li></ul></div>
+      <div><h4>公司</h4><ul>
+        <li><a href="#">关于我们 / 宣言</a></li><li><a href="#">学习案例</a></li>
+        <li><a href="#">媒体素材</a></li><li><a href="#">路线图 / 更新日志</a></li>
+        <li><a href="#">联系我们</a></li></ul></div>
+      <div><h4>订阅周报</h4>
+        <form onsubmit="event.preventDefault();this.querySelector('button').textContent='✓ 已订阅';this.querySelector('button').disabled=true" style="display:flex;gap:8px;margin-bottom:14px">
+          <input type="email" placeholder="邮箱" required style="flex:1;min-width:0;height:40px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink9);padding:0 10px;font-size:14px">
+          <button class="btn btn-primary btn-md" style="height:40px;padding:0 14px">订阅</button>
+        </form>
         <div class="foot-qr" aria-hidden="true">公众号<br>二维码占位</div></div>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 数源 MathOrigin · 学习 Math，从源开始</span>
-      <span><a href="#">隐私政策</a> · <a href="#">用户协议</a> · <a href="#">京ICP备XXXXXXXX号</a> · 友情链接（预留）</span>
+      <span>© 2026 数源 MathOrigin · <span class="status-badge">全部服务正常</span></span>
+      <span><a href="#">隐私政策</a> · <a href="#">用户协议</a> · <a href="#">京ICP备XXXXXXXX号</a> · <a href="#">RSS</a></span>
     </div>
   </div>
 </footer>
 
-<script>
-/* 导航滚动收缩 */
-const nav=document.getElementById('nav');
-addEventListener('scroll',()=>nav.classList.toggle('shrink',scrollY>20),{passive:true});
+<!-- ================= ⌘K 面板 ================= -->
+<div id="cmdk" role="dialog" aria-label="全站搜索">
+  <div class="cmdk-box">
+    <input id="cmdkInput" placeholder="搜索词条、公式、文章、路径…（试试 正弦 / 勾股 / 测评）" autocomplete="off">
+    <div class="cmdk-res" id="cmdkRes"></div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
 
-/* 视图切换：首页 ⇄ 路径页模板（原型内演示） */
+<script>
+/* ===== 主题（V3） ===== */
+const themeBtn=document.getElementById('themeBtn');
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);themeBtn.textContent=t==='dark'?'☀️':'🌙';try{localStorage.setItem('lm-theme',t)}catch(e){}}
+applyTheme(document.documentElement.getAttribute('data-theme')||'light');
+themeBtn.onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+
+/* ===== 进度条 + 导航收缩 ===== */
+const prog=document.getElementById('progress'),nav=document.getElementById('nav');
+addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-innerHeight;
+  prog.style.transform='scaleX('+(h>0?scrollY/h:0)+')';
+  nav.classList.toggle('shrink',scrollY>20);
+},{passive:true});
+
+/* ===== 视图切换（6 视图） ===== */
 function showView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('active',a.dataset.view===v||(v==='home'&&a.hash==='#cores'&&false)));
-  scrollTo({top:0,behavior:'instant'});
+  const t=document.getElementById('view-'+v)||document.getElementById('view-home');
+  t.classList.add('active');scrollTo({top:0,behavior:'instant'});
+  if(v==='glossary')remember('正弦函数');
 }
-document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();showView(el.dataset.view)}));
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-view]');
+  if(el){e.preventDefault();showView(el.dataset.view);}
+});
 
-/* 入场 reveal */
+/* ===== 浏览记忆（F-12） ===== */
+function remember(title){try{localStorage.setItem('lm-last',title);
+  const c=document.getElementById('contCard');if(c){document.getElementById('contTitle').textContent=title;c.style.display='block';}}catch(e){}}
+try{const last=localStorage.getItem('lm-last');if(last){const c=document.getElementById('contCard');document.getElementById('contTitle').textContent=last;c.style.display='block';}}catch(e){}
+
+/* ===== ⌘K（14 §4.2） ===== */
+const INDEX=[
+ {g:'词条',ic:'§',t:'正弦函数',d:'从古希腊弦表说起',v:'glossary'},
+ {g:'词条',ic:'§',t:'对数',d:'为少乘几次长数而生',v:'glossary'},
+ {g:'词条',ic:'§',t:'傅里叶级数',d:'任何波都是正弦的叠加',v:'glossary'},
+ {g:'公式',ic:'ƒ',t:'勾股定理',d:'⚠ 仅直角三角形',v:'formula'},
+ {g:'公式',ic:'ƒ',t:'求根公式',d:'配方法的终点',v:'formula'},
+ {g:'公式',ic:'ƒ',t:'正弦定理',d:'a/sinA = 2R',v:'formula'},
+ {g:'文章',ic:'✎',t:'三角函数为什么存在？',d:'概念起源 · 博客',v:'home'},
+ {g:'文章',ic:'✎',t:'应用题怎么找等量关系',d:'解题方法 · 博客',v:'home'},
+ {g:'路径',ic:'▶',t:'系统课程路径',d:'按部就班的走法',v:'path'},
+ {g:'路径',ic:'▶',t:'阶梯刷题路径',d:'L1→L5 逐级解锁',v:'path'},
+ {g:'工具',ic:'⚒',t:'函数图像画板',d:'表达式实时绘图',v:'tools'},
+ {g:'工具',ic:'⚒',t:'数学年表',d:'起源故事时间线',v:'timeline'},
+];
+const cmdk=document.getElementById('cmdk'),cmdkIn=document.getElementById('cmdkInput'),cmdkRes=document.getElementById('cmdkRes');
+function openCmdk(){cmdk.classList.add('on');cmdkIn.value='';renderCmdk('');cmdkIn.focus()}
+function closeCmdk(){cmdk.classList.remove('on')}
+document.getElementById('kBtn').onclick=openCmdk;
+cmdk.onclick=e=>{if(e.target===cmdk)closeCmdk()};
+addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdk.classList.contains('on')?closeCmdk():openCmdk();}
+  if(e.key==='Escape')closeCmdk();
+});
+let cmdkTimer;
+cmdkIn.oninput=()=>{clearTimeout(cmdkTimer);cmdkTimer=setTimeout(()=>renderCmdk(cmdkIn.value.trim()),200)};
+function renderCmdk(q){
+  const hits=INDEX.filter(i=>!q||i.t.includes(q)||i.d.includes(q));
+  if(!hits.length){
+    cmdkRes.innerHTML='<div class="cmdk-empty">没有找到「'+q+'」<br><br>试试：<br><span class="chip">正弦起源</span><span class="chip">勾股定理</span><span class="chip">每日一题</span></div>';return;
+  }
+  const groups={};hits.forEach(i=>{(groups[i.g]=groups[i.g]||[]).push(i)});
+  cmdkRes.innerHTML=Object.entries(groups).map(([g,arr])=>
+    '<div class="cmdk-grp">'+g+'</div>'+arr.map(i=>
+      '<div class="cmdk-item" data-v="'+i.v+'"><span class="ic">'+i.ic+'</span>'+i.t+'<span class="desc">'+i.d+'</span></div>').join('')).join('');
+  cmdkRes.querySelectorAll('.cmdk-item').forEach(it=>it.onclick=()=>{closeCmdk();showView(it.dataset.v)});
+}
+
+/* ===== 每日一题（V5） ===== */
+document.querySelectorAll('#dailyOpts .opt').forEach(b=>b.onclick=()=>{
+  if(document.querySelector('#dailyOpts .opt.right'))return;
+  document.querySelectorAll('#dailyOpts .opt').forEach(x=>{if(x.dataset.a==='1')x.classList.add('right')});
+  if(b.dataset.a!=='1')b.classList.add('wrong');else toast('✓ 答对了！解析已为你展开');
+  if(b.dataset.a==='1')document.querySelector('#daily details').open=true;
+});
+function tickCd(){
+  const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);
+  let s=Math.floor((mid-now)/1000);const h=String(Math.floor(s/3600)).padStart(2,'0');
+  s%=60;const m=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');
+  document.getElementById('cdTxt').textContent=h+':'+m+':'+ss;
+  document.getElementById('cdRing').style.setProperty('--p',1-(mid-now)/864e5);
+}
+tickCd();setInterval(tickCd,1000);
+
+/* ===== 路径测验（V2 · 3 题状态机） ===== */
+const QS=[
+ {q:'学一个新东西时，你更倾向于？',o:[['按顺序一课一课来','course'],['先看清它的全景图','graph'],['直接开题，在做中学','ladder'],['和别人比着冲','challenge']]},
+ {q:'卡住一道题时，你第一反应是？',o:[['回头补前置知识','course'],['在图谱上找它的依赖','graph'],['再刷三道同类题','ladder'],['问 AI 但让它别直接给答案','graph']]},
+ {q:'你理想的每周节奏是？',o:[['稳定推进，细水长流','course'],['搞懂体系比刷量重要','graph'],['题量即安全感','ladder'],['上榜单才有动力','challenge']]},
+];
+const PC={course:['系统课程','var(--p1)','按部就班的走法，进度环会替你记路。'],
+ graph:['知识图谱','var(--p2)','你想看清全景——图谱路径就是为"找全貌的人"修的。'],
+ ladder:['阶梯刷题','var(--p4)','以战代练：L1→L5 逐级解锁，正确率就是通行证。'],
+ challenge:['闯关挑战','var(--p6)','好胜心是最好的燃料：关卡、段位、周榜等你来打。']};
+let qi=0,tally={};
+function renderQuiz(){
+  const body=document.getElementById('quizBody');
+  document.querySelectorAll('#quizBox .q-dot').forEach((d,i)=>d.classList.toggle('on',i<=qi));
+  if(qi<QS.length){
+    const Q=QS[qi];
+    body.innerHTML='<h3>'+Q.q+'</h3><div class="q-opts">'+Q.o.map((o,i)=>'<button class="q-opt" data-t="'+o[1]+'">'+String.fromCharCode(65+i)+'. '+o[0]+'</button>').join('')+'</div>';
+    body.querySelectorAll('.q-opt').forEach(b=>b.onclick=()=>{tally[b.dataset.t]=(tally[b.dataset.t]||0)+1;qi++;renderQuiz()});
+  }else{
+    const win=Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0],P=PC[win];
+    document.querySelectorAll('#quizBox .q-dot').forEach(d=>d.classList.add('on'));
+    body.innerHTML='<div class="q-result"><div class="sec-eyebrow">YOUR PATH · 你的路径</div><div class="tier" style="--pc:'+P[1]+'">'+P[0]+'</div><p>'+P[2]+'</p><button class="btn btn-primary btn-lg" data-view="path">开始这条路径（from=quiz）</button> <button class="mini-btn" id="qAgain" style="margin-left:10px">再测一次</button></div>';
+    document.getElementById('qAgain').onclick=()=>{qi=0;tally={};renderQuiz()};
+  }
+}
+renderQuiz();
+
+/* ===== Newsletter（V4） ===== */
+document.getElementById('nlForm').onsubmit=e=>{
+  e.preventDefault();
+  const btn=e.target.querySelector('button');btn.textContent='提交中…';btn.disabled=true;
+  setTimeout(()=>{btn.style.display='none';e.target.querySelector('input').style.display='none';document.getElementById('nlOk').style.display='inline'},600);
+};
+
+/* ===== 公式复制 ===== */
+document.getElementById('copyFx').onclick=()=>{
+  const txt='a^2 + b^2 = c^2';
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('✓ 已复制 a²+b²=c²')).catch(()=>toast('✓ 已复制 a²+b²=c²（原型降级）'));
+};
+
+/* ===== 词条 Tabs ===== */
+document.querySelectorAll('.gl-tab').forEach(tab=>tab.onclick=()=>{
+  document.querySelectorAll('.gl-tab').forEach(t=>t.classList.remove('on'));tab.classList.add('on');
+  document.querySelectorAll('.gl-panel').forEach(p=>p.classList.toggle('on',p.dataset.gl===tab.dataset.gl));
+});
+
+/* ===== 年表：拖拽 + 点击 ===== */
+const tl=document.getElementById('tlScroll');
+let down=false,sx=0,sl=0;
+tl.addEventListener('pointerdown',e=>{down=true;sx=e.clientX;sl=tl.scrollLeft;tl.classList.add('drag')});
+addEventListener('pointerup',()=>{down=false;tl.classList.remove('drag')});
+tl.addEventListener('pointermove',e=>{if(down)tl.scrollLeft=sl-(e.clientX-sx)});
+tl.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){tl.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
+const TLD={t0:['莱因德纸草书','1800BC 的埃及书吏用 8 张纸草记录分数加法——数学最早的出生证明是"记账"。'],
+ t1:['《几何原本》','23 个定义、5 条公设、465 个命题：人类第一次规定"什么才算证明"。'],
+ t2:['阿基米德','用内外接正多边形把 π 夹在中间——穷竭法比微积分早两千年摸到了极限。'],
+ t3:['刘徽割圆术','"割之弥细，所失弥少"——3072 边形给出 π≈3.1416，注文还顺手批评了原书的粗疏。'],
+ t4:['花拉子密','al-Khwārizmī 的《还原与对消》让"代数"诞生；他的名字变成了 algorithm。'],
+ t5:['笛卡尔','《方法论》附录里躺着解析几何：曲线第一次可以被方程写下来。'],
+ t6:['牛顿的瘟疫年','1665 年鼠疫停课，22 岁的牛顿回乡——微积分、光学与万有引力在隔离中萌芽。'],
+ t7:['欧拉《分析学引论》','e、i、π、1 与 0 同台；函数取代数成为分析学的主角。'],
+ t8:['黎曼几何','1854 年的就职演说讲给六位听众：空间可以弯曲——50 年后它成为引力的语言。'],
+ t9:['哥德尔不完备定理','1931：任何足够强的一致系统都存在证不了的真命题——数学第一次画出了自己的边界。']};
+tl.querySelectorAll('.tl-node').forEach(n=>n.onclick=()=>{
+  const d=TLD[n.dataset.d];if(!d)return;
+  const box=document.getElementById('tlDetail');box.classList.add('on');
+  document.getElementById('tlDTitle').textContent=d[0];
+  document.getElementById('tlDText').textContent=d[1];
+  box.scrollIntoView({behavior:'smooth',block:'center'});
+});
+
+/* ===== 函数画板（V2 · 原型用 Function，生产版走安全解析器） ===== */
+const cv=document.getElementById('plot'),ctx=cv&&cv.getContext('2d');
+function safeEval(src){
+  const s=src.replace(/\^/g,'**').replace(/\b(sin|cos|tan|sqrt|exp|log|ln|abs)\b/g,'Math.$1')
+             .replace(/Math\.ln/g,'Math.log').replace(/[^x0-9+\-*/().,a-zA-Z]/g,'');
+  if(/[a-df-qrt-wyzA-DF-Z]/.test(s.replace(/Math/g,'')))throw 0;
+  return new Function('x','with(Math){return '+s+'}');
+}
+function draw(){
+  if(!ctx)return;
+  const w=cv.width,h=cv.height,xd=6.3;
+  ctx.clearRect(0,0,w,h);
+  const x2p=x=>w/2+x/xd*(w/2), y2p=y=>h/2-y/xd*(w/2);
+  const st=getComputedStyle(document.documentElement);
+  const line=(st.getPropertyValue('--line')||'#E2E8F0').trim();
+  const prim=(st.getPropertyValue('--c-primary')||'#2F6BFF').trim();
+  ctx.lineWidth=1;ctx.strokeStyle=line;
+  for(let gx=-6;gx<=6;gx++){ctx.beginPath();ctx.moveTo(x2p(gx),0);ctx.lineTo(x2p(gx),h);ctx.stroke()}
+  for(let gy=-3;gy<=3;gy++){ctx.beginPath();ctx.moveTo(0,y2p(gy));ctx.lineTo(w,y2p(gy));ctx.stroke()}
+  ctx.strokeStyle=prim;ctx.lineWidth=2.4;ctx.beginPath();let started=false;
+  try{
+    const f=safeEval(document.getElementById('expr').value);
+    for(let px=0;px<=w;px+=1){
+      const x=(px-w/2)/(w/2)*xd;let y;
+      try{y=f(x)}catch(e){y=NaN}
+      if(!isFinite(y)||Math.abs(y)>50){started=false;continue}
+      const py=y2p(y);if(py<-h||py>2*h){started=false;continue}
+      if(!started){ctx.moveTo(px,py);started=true}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    document.getElementById('expr').classList.remove('bad');
+  }catch(e){document.getElementById('expr').classList.add('bad')}
+}
+document.getElementById('drawBtn').onclick=draw;
+document.getElementById('expr').addEventListener('keydown',e=>{if(e.key==='Enter')draw()});
+document.querySelectorAll('.chip[data-p]').forEach(c=>c.onclick=()=>{document.getElementById('expr').value=c.dataset.p;draw()});
+let dTimer;document.getElementById('expr').addEventListener('input',()=>{clearTimeout(dTimer);dTimer=setTimeout(draw,300)});
+if(cv)draw();
+addEventListener('resize',()=>{if(cv&&document.getElementById('view-tools').classList.contains('active'))draw()});
+
+/* ===== 入场 + 计数 ===== */
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.15});
 document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%3)*80+'ms';io.observe(el)});
-
-/* 数字滚动（tabular 防抖） */
 const ns=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return; ns.unobserve(e.target);
+  if(!e.isIntersecting)return;ns.unobserve(e.target);
   const el=e.target,t=+el.dataset.target,sfx=el.dataset.suffix||'',st=performance.now(),dur=1200;
   (function f(n){const p=Math.min((n-st)/dur,1),v=Math.round(t*(1-Math.pow(1-p,3)));
     el.textContent=v.toLocaleString('en-US')+sfx;p<1&&requestAnimationFrame(f)})(st);
 },{threshold:.5}));
 document.querySelectorAll('.stat-num').forEach(el=>ns.observe(el));
+
+/* ===== Toast ===== */
+let tTimer;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('on'),2200)}
 </script>
 </body>
 </html>
