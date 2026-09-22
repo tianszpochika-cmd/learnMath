@@ -1,3 +1,25 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# ===== S1 基线同步：以下配置与 cloudstudy（开发机已验证）保持一致 =====
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - core-js
+  - esbuild
+  - vue-demi
+
+# uni-app 插件在 pnpm isolated 布局下的 pinia 解析问题（cloudstudy 同款解决方案）
+publicHoistPattern:
+  - '*vue-demi*'
+  - '*@vue/devtools-api*'
+
+overrides:
+  # 与 cloudstudy 相同的兼容/安全钉扎（uniapp 与 Nuxt 工具链通用）
+  express>path-to-regexp: 0.1.13
+  '@dcloudio/uni-nvue-styler>postcss': 8.5.23
+  '@dcloudio/uni-cli-shared>adm-zip': 0.6.1
+  '@dcloudio/uni-cli-shared>@intlify/core-base': 9.1.11
+  '@intlify/message-resolver': 9.1.11
+  svgo: '>=4.1.0'

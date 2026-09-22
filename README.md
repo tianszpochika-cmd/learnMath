@@ -6,17 +6,19 @@
 
 > **当前阶段：文档先行（M0）** —— 本机仅产出需求与设计文档；代码开发在开发机进行，`git pull` 获取全部文档。文档总入口：[docs/README.md](./docs/README.md)
 
-## 技术选型（已确认）
+> **技术基线（S1）**：与 **cloudstudy（开发机已验证能跑）全量同步** —— Node 20.19.5 · pnpm 10.19.0 · Vue 3.5.41 · Vite 6.4.3(web/admin) · Nuxt 3.21 · Pinia 2 · uni-app dcloudio 定版 · Java 25 + Spring Boot 4.1.1 · Redis 7(compose)。原则：**确定能跑 > 理论最新**（ADR 见 docs/02 §9 #8）
 
-| 模块 | 选型 | 版本 |
+## 技术选型（已确认 · S1 基线）
+
+| 模块 | 选型 | 版本（= cloudstudy 已验证） |
 |------|------|------|
-| 后端 API | Java + Spring Boot (Maven) | Java 25 LTS + Spring Boot 4.1.1 |
-| Web 学习端 | Vue 3 + Vite + Pinia + TS | Vue 3.5.43 / Vite 8.3 |
-| 管理端 | Vue 3 + Element Plus + TS | Element Plus 2.14.6 |
-| 官网 (SSR) | Nuxt | 4.5.2 |
-| 移动端 | uni-app (Vue3 + Vite) | 官方脚手架锁定 |
-| 数据库 / 缓存 | MySQL 8 + Redis | 8.0.44 本地 / Redis 8.4.0 |
-| 运行环境 | Node LTS + pnpm | Node 24.21.0 + pnpm 10 |
+| 后端 API | Java + Spring Boot (Maven) | Java 25 LTS + Spring Boot 4.1.1（enforce-java-25） |
+| Web 学习端 | Vue 3 + Vite + Pinia + TS | Vue 3.5.41 / Vite 6.4.3 / Pinia 2 |
+| 管理端 | Vue 3 + Element Plus + TS | Element Plus 2.14.4 |
+| 官网 (SSR) | Nuxt | 3.21（cloudstudy official-site 同系） |
+| 移动端 | uni-app | dcloudio `3.0.0-alpha-1000920260909822` + vite 8.2.2 |
+| 数据库 / 缓存 | MySQL 8 + Redis 7 | mysql:8.0 / redis:7-alpine（compose 同 cloudstudy 镜像） |
+| 运行环境 | Node + pnpm + turbo | Node **20.19.5** + pnpm **10.19.0** + turbo 2.x |
 | 部署 | Docker Compose | 2.40 |
 
 ## 仓库结构
@@ -30,7 +32,7 @@ learnMath/
 ├── apps/
 │   ├── web/                     # Vue 3 Web 学习端
 │   ├── admin/                   # Vue 3 + Element Plus 管理端
-│   ├── official/                # Nuxt 4 官网（SSR/SEO）
+│   ├── official/                # Nuxt 3 官网（SSR/SEO）
 │   └── uniapp/                  # uni-app 移动端（H5/小程序/App）
 ├── packages/
 │   ├── shared/                  # 跨端共享类型、常量、工具
@@ -73,5 +75,6 @@ cd server && mvn spring-boot:run -pl learn-admin-api # 启动管理端 API
 
 - JDK 25（`C:\Program Files\Java\jdk-25`，构建 server 前需将 JAVA_HOME 指向它）
 - Maven 3.9+
-- Node 24.21.0 LTS（nvm 已切换）+ pnpm 10
-- MySQL 8、Redis 8（或 `docker compose up -d mysql redis`）
+- Node **20.19.5**（`.nvmrc` / `nvm use 20.19.5`，与 cloudstudy 同版）+ pnpm **10.19.0**
+- MySQL 8、Redis 7（`docker compose up -d`：宿主口 13307 / 16380）
+- 基线自检：`pnpm toolchain:check` 与 `pnpm ports:check`（versionDrift=fail）

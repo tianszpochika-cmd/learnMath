@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "host": "127.0.0.1",
+  "policy": {
+    "autoIncrement": false,
+    "bindOnlyToLoopback": true,
+    "checkCommand": "pnpm ports:check"
+  },
+  "services": {
+    "learn-app-api": {"port": 8080, "protocol": "http", "description": "学员域 API /api/app/v1"},
+    "learn-admin-api": {"port": 8081, "protocol": "http", "description": "管理域 API /api/admin/v1"},
+    "web-dev": {"port": 28180, "protocol": "http", "description": "Web 学习端 Vite dev"},
+    "admin-dev": {"port": 28181, "protocol": "http", "description": "管理端 Vite dev"},
+    "official-dev": {"port": 28182, "protocol": "http", "description": "官网 Nuxt dev"},
+    "uniapp-h5-dev": {"port": 28183, "protocol": "http", "description": "uni-app H5 dev"},
+    "mysql": {"port": 13307, "protocol": "mysql", "description": "容器宿主口 → 3306（与 cloudstudy 13306 并列）"},
+    "redis": {"port": 16380, "protocol": "redis", "description": "容器宿主口 → 6379（与 cloudstudy 16379 并列）"}
+  }
+}

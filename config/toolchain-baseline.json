@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "policy": {
+    "versionDrift": "fail",
+    "missingRuntime": "fail",
+    "supportedPlatforms": ["windows-x64", "linux-x64"],
+    "portsSource": "config/local-ports.json",
+    "portsAutoIncrement": false
+  },
+  "baseline": {
+    "alignedWith": "cloudstudy（开发机已验证基线 · S1 决策）",
+    "checkedAt": "2026-09"
+  },
+  "node": {
+    "requiredVersion": "20.19.5"
+  },
+  "pnpm": {
+    "requiredVersion": "10.19.0",
+    "lockfileVersion": "9.0",
+    "frozenInstall": true
+  },
+  "java": {
+    "requiredMajor": 25
+  },
+  "maven": {
+    "minimumVersion": "3.9.9"
+  },
+  "spring": {
+    "bootVersion": "4.1.1"
+  },
+  "docker": {
+    "minimumVersion": "28.0.0",
+    "testedVersion": "28.5.1",
+    "composeMinimumVersion": "2.40.0",
+    "composeTestedVersion": "2.40.2"
+  },
+  "browser": {
+    "engine": "chromium",
+    "minimumMajor": 151,
+    "testedChromeMajor": 151,
+    "allowNewerMajor": true,
+    "headlessRequired": true
+  },
+  "backendServices": ["learn-admin-api", "learn-app-api"],
+  "frontendVersions": {
+    "vue": "3.5.41",
+    "vueRouter": "^4.3.0",
+    "pinia": "^2.1.0",
+    "viteWebAdmin": "6.4.3",
+    "elementPlus": "^2.6.0",
+    "nuxt": "^3.11.0",
+    "uniApp": "3.0.0-alpha-1000920260909822",
+    "viteUniApp": "8.2.2",
+    "typescript": "^5.4.0"
+  }
+}

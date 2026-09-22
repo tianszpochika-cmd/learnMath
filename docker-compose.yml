@@ -10,18 +10,19 @@ services:
       MYSQL_DATABASE: learnmath
       TZ: Asia/Shanghai
     ports:
-      - "3306:3306"
+      - "13307:3306"   # 登记于 config/local-ports.json（与 cloudstudy 13306 并列）
     volumes:
       - ./docker-data/mysql:/var/lib/mysql
       - ./server/src/main/resources/db:/docker-entrypoint-initdb.d:ro
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
   redis:
-    image: redis:8-alpine
+    # S1 基线同步：与 cloudstudy 同镜像 redis:7-alpine（开发机已验证）
+    image: redis:7-alpine
     container_name: learnmath-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "16380:6379"   # 登记于 config/local-ports.json（与 cloudstudy 16379 并列）
     volumes:
       - ./docker-data/redis:/data
     command: redis-server --appendonly yes
