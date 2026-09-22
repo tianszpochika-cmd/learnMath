@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数源 MathOrigin — 移动端手机框原型 44 屏（docs/15 · M1-M6）</title>
+<style>
+/* ============ tokens（docs/15 §2 · 750rpx→390px 约 1:0.52 缩放） ============ */
+:root{
+  --p:#2F6BFF; --p-d:#1E4FD6; --p-l:#EEF4FF;
+  --ok:#22C55E; --warn:#F59E0B; --bad:#EF4444;
+  --p1:#2F6BFF; --p2:#10B981; --p3:#8B5CF6; --p4:#F59E0B; --p5:#EC4899; --p6:#F97316;
+  --ink:#111827; --ink2:#4B5563; --ink3:#9CA3AF;
+  --bg:#F6F7FA; --card:#FFFFFF; --line:#E5E7EB;
+  --grad:linear-gradient(135deg,#4F7BFF,#8B5CF6);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0E1116;font-family:-apple-system,"PingFang SC","HarmonyOS Sans","Microsoft YaHei",sans-serif;color:var(--ink);min-height:100vh}
+.layout{display:flex;min-height:100vh}
+
+/* ============ 侧栏屏目录 ============ */
+.side{width:250px;flex:none;background:#151A22;color:#9BA6B5;padding:18px 12px 40px;overflow-y:auto;height:100vh;position:sticky;top:0}
+.brand{font-weight:800;color:#fff;font-size:15px;padding:0 8px 4px}
+.brand small{display:block;font-weight:400;font-size:11px;color:#5C6779;margin-top:4px}
+.grp{font-size:10.5px;letter-spacing:.12em;color:#5C6779;font-weight:700;margin:18px 8px 6px}
+.side a{display:flex;gap:8px;font-size:12.5px;padding:7px 10px;border-radius:8px;cursor:pointer;color:#9BA6B5;text-decoration:none;align-items:center}
+.side a:hover{background:#1E2530;color:#fff}
+.side a.on{background:var(--p);color:#fff}
+.side a .no{font-size:10px;opacity:.55;min-width:24px}
+.side a.core::after{content:"🎯";margin-left:auto;font-size:10px}
+
+/* ============ 手机框 ============ */
+.stage{flex:1;display:flex;align-items:center;justify-content:center;padding:30px 10px}
+.phone{background:#1C1C1E;padding:12px;border-radius:56px;box-shadow:0 40px 80px -30px rgba(0,0,0,.7),0 0 0 2px #2A2A2C;position:relative}
+.viewport{width:390px;height:844px;border-radius:44px;overflow:hidden;position:relative;background:var(--bg)}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:118px;height:32px;background:#000;border-radius:20px;z-index:60}
+.statusbar{position:absolute;top:0;left:0;right:0;height:48px;display:flex;justify-content:space-between;align-items:center;padding:14px 26px 0;font-size:13.5px;font-weight:700;color:var(--ink);z-index:55;pointer-events:none}
+.statusbar .r{display:flex;gap:5px;align-items:center;font-size:11px}
+
+/* ============ 屏通用 ============ */
+.scr{display:none;position:absolute;inset:48px 0 0;overflow-y:auto;overscroll-behavior:contain}
+.scr.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scr::-webkit-scrollbar{width:0}
+.has-tab .scr.on{padding-bottom:72px}
+.nav{position:sticky;top:0;z-index:20;height:46px;display:flex;align-items:center;gap:8px;padding:0 14px;background:rgba(246,247,250,.92);backdrop-filter:blur(8px);font-weight:700;font-size:16.5px}
+.nav .bk{font-size:20px;cursor:pointer;color:var(--ink)}
+.nav .rt{margin-left:auto;font-size:13px;color:var(--p);font-weight:600;cursor:pointer}
+.pad{padding:8px 16px 24px}
+.sect{font-size:12.5px;color:var(--ink3);font-weight:700;letter-spacing:.06em;margin:18px 4px 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:46px;padding:0 22px;border-radius:12px;font-size:15.5px;font-weight:700;border:none;cursor:pointer;background:var(--grad);color:#fff;box-shadow:0 8px 18px -8px rgba(79,123,255,.55)}
+.btn:active{transform:scale(.98)}
+.btn.block{width:100%}
+.btn.ghost{background:#fff;color:var(--p);border:1.5px solid #C7D6FF;box-shadow:none}
+.btn.gray{background:#EEF0F4;color:var(--ink2);box-shadow:none}
+.btn:disabled{opacity:.45;box-shadow:none}
+.btn.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;background:var(--p-l);color:var(--p-d);border-radius:99px;padding:3px 11px;font-weight:600}
+.chip.gray{background:#F0F1F4;color:var(--ink3)}
+.chip.ok{background:#ECFDF5;color:#047857}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:10px;cursor:pointer}
+.row .t{font-weight:600;font-size:15px}
+.row .d{font-size:12px;color:var(--ink3)}
+.row .ar{margin-left:auto;color:var(--ink3)}
+.tag{font-size:10.5px;font-weight:800;border-radius:6px;padding:2px 7px}
+.tag.p1{background:#E4EDFF;color:#2F6BFF}.tag.p4{background:#FEF3C7;color:#B45309}
+.tag.p6{background:#FFEDD5;color:#C2410C}.tag.p2{background:#D1FAE5;color:#047857}
+.tag.p3{background:#EDE9FE;color:#6D28D9}.tag.p5{background:#FCE7F3;color:#BE185D}
+.muted{color:var(--ink3);font-size:12.5px}
+.mt8{margin-top:8px}.mt16{margin-top:16px}
+.hr{height:1px;background:var(--line);margin:12px 0}
+
+/* 数学字体仅公式域 */
+.math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}
+b.math{font-style:italic}
+
+/* 进度/环 */
+.ring{--v:.7;width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--p) calc(var(--v)*360deg),#E5E7EB 0);display:grid;place-items:center;position:relative}
+.ring::before{content:"";position:absolute;inset:6px;background:var(--card);border-radius:50%}
+.ring span{position:relative;font-weight:800;font-size:13px}
+
+/* ============ TabBar ============ */
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:70px;background:rgba(255,255,255,.96);border-top:1px solid var(--line);display:none;justify-content:space-around;align-items:flex-start;padding-top:8px;z-index:40}
+.viewport.has-tab .tabbar{display:flex}
+.tb{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--ink3);cursor:pointer;width:20%}
+.tb i{font-style:normal;font-size:19px;line-height:1.2}
+.tb.on{color:var(--p);font-weight:700}
+.tb.on i{transform:translateY(-1px)}
+
+/* ============ Sheet / 弹层 ============ */
+.dim{position:absolute;inset:0;background:rgba(3,7,18,.5);z-index:70;display:none}
+.dim.on{display:block;animation:fade .2s}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;z-index:75;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);max-height:88%;display:flex;flex-direction:column}
+.sheet.on{transform:none}
+.grab{width:44px;height:5px;border-radius:3px;background:#D7DBE2;margin:10px auto 4px;flex:none}
+.sheet-h{padding:6px 18px 10px;font-weight:800;font-size:16px;flex:none;display:flex;justify-content:space-between}
+.sheet-h .x{cursor:pointer;color:var(--ink3);font-weight:400}
+.sheet-b{overflow-y:auto;padding:4px 18px 26px}
+
+/* 深钻链 */
+.chain .st{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px 11px 14px;margin-bottom:10px;position:relative;cursor:pointer}
+.chain .st .k{font-size:11px;font-weight:800;color:var(--p)}
+.chain .st .tx{font-size:14.5px;font-weight:600;margin-top:2px}
+.chain .st.sub{margin-left:16px;border-left:3px solid var(--p)}
+.chain .st .more{font-size:12px;color:var(--p);margin-top:6px;display:none}
+.chain .st.open .more{display:block}
+.mode-tabs{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:30;margin:0 -16px;padding:8px 4px 10px}
+.mode-tabs .mt{flex:1;text-align:center;font-size:12.5px;color:var(--ink3);padding:7px 0;border-radius:9px;cursor:pointer;font-weight:600}
+.mode-tabs .mt.on{background:var(--p-l);color:var(--p-d)}
+
+/* 作答 */
+.opt{display:flex;gap:10px;align-items:flex-start;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:10px;cursor:pointer;font-size:15.5px}
+.opt .k{font-weight:800;color:var(--p)}
+.opt.right{border-color:var(--ok);background:#F0FDF4}
+.opt.wrong{border-color:var(--bad);background:#FEF2F2}
+.ansbar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);margin:0 -16px;padding:10px 16px 14px;display:flex;gap:10px;align-items:center;z-index:30}
+.ansbar .sq{width:42px;height:42px;border-radius:11px;border:1.5px solid var(--line);display:grid;place-items:center;cursor:pointer;font-size:16px;background:#fff}
+.mathbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mathbar button{font-size:14px;min-width:38px;height:34px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;font-family:"Cambria Math",serif}
+.mathbar button:hover{border-color:var(--p);color:var(--p)}
+.fillin{width:100%;height:42px;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font-size:16px;font-family:"Cambria Math",serif;font-style:italic;outline:none}
+.fillin:focus{border-color:var(--p)}
+.agrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.acell{aspect-ratio:1;border-radius:10px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13.5px;font-weight:700;cursor:pointer;background:#fff}
+.acell.done{background:var(--p);border-color:var(--p);color:#fff}
+.acell.cur{border-color:var(--p);color:var(--p)}
+.acell.flag{background:#FEF3C7;border-color:#F59E0B;color:#B45309}
+
+/* 报告/图表占位 */
+.bigscore{font-size:52px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center}
+.bar{height:9px;border-radius:6px;background:#E5E7EB;overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:var(--grad)}
+.chartph{height:150px;border-radius:12px;background:
+  repeating-linear-gradient(0deg,#EEF1F6 0 1px,transparent 1px 24px),
+  repeating-linear-gradient(90deg,#EEF1F6 0 1px,transparent 1px 24px),#fff;border:1px solid var(--line);position:relative;overflow:hidden}
+.chartph::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(circle at 22% 68%, rgba(47,107,255,.35) 0 6px, transparent 7px),
+  radial-gradient(circle at 46% 40%, rgba(139,92,246,.35) 0 6px, transparent 7px),
+  radial-gradient(circle at 70% 55%, rgba(47,107,255,.35) 0 6px, transparent 7px),
+  linear-gradient(120deg,transparent 20%,rgba(47,107,255,.25) 45%,rgba(139,92,246,.25) 70%,transparent 90%)}
+
+/* 日历 */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .d{aspect-ratio:1;border-radius:9px;display:grid;place-items:center;font-size:12.5px;background:#fff;border:1px solid var(--line);cursor:pointer}
+.cal .d.in{background:#ECFDF5;color:#047857;border-color:#A7F3D0;font-weight:700}
+.cal .d.mk{border-color:var(--p);color:var(--p);font-weight:700}
+.cal .d.hd{background:none;border:none;color:var(--ink3);font-size:11px}
+
+/* 深色点缀的启动/引导 */
+.dark{background:#0B1220;color:#E5E7EB;min-height:100%;display:flex;flex-direction:column}
+.dark h1,.dark h2{color:#fff}
+
+/* 引导轮播 */
+.ob{display:flex;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.ob>div{min-width:100%;padding:44px 30px 10px;text-align:center}
+.ob h2{font-size:24px;margin:26px 0 10px}
+.ob p{color:#9BA6B5;font-size:14.5px;line-height:1.8}
+.obdots{display:flex;gap:7px;justify-content:center;margin-top:18px}
+.obdots i{width:7px;height:7px;border-radius:50%;background:#33415E;cursor:pointer}
+.obdots i.on{background:var(--p);width:20px;border-radius:5px}
+.obart{font-size:74px;margin-top:34px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+
+/* 验证码格 */
+.codebox{display:flex;gap:9px;justify-content:center;margin:16px 0}
+.codebox b{width:46px;height:54px;border:1.5px solid var(--line);border-radius:11px;display:grid;place-items:center;font-size:22px;background:#fff}
+.codebox b.on{border-color:var(--p);color:var(--p)}
+
+/* AI 气泡 */
+.bub{max-width:82%;padding:10px 13px;border-radius:14px;font-size:14.5px;line-height:1.65;margin-bottom:11px}
+.bub.ai{background:#fff;border:1px solid var(--line);border-top-left-radius:4px}
+.bub.me{background:var(--p);color:#fff;margin-left:auto;border-top-right-radius:4px}
+.aiwrap{display:flex;flex-direction:column;height:100%}
+.aistream{flex:1;overflow-y:auto;padding:12px 16px}
+.aiinput{display:flex;gap:8px;padding:10px 14px 16px;border-top:1px solid var(--line);background:#fff}
+.aiinput input{flex:1;height:42px;border-radius:11px;border:1.5px solid var(--line);padding:0 12px;font-size:14.5px;outline:none}
+.aiq{display:flex;gap:7px;flex-wrap:wrap;padding:6px 16px 4px}
+
+/* 悬浮球 */
+.fab{position:absolute;right:14px;bottom:96px;width:52px;height:52px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:20px;box-shadow:0 10px 24px -6px rgba(79,123,255,.6);cursor:pointer;z-index:45}
+
+/* 打卡动效 */
+.pop{animation:pop .5s cubic-bezier(.22,1.6,.36,1)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* 断链高亮 */
+.broken{border-style:dashed!important;border-color:var(--bad)!important;position:relative}
+.broken::after{content:"断点";position:absolute;top:-9px;right:8px;font-size:10px;background:var(--bad);color:#fff;border-radius:6px;padding:1px 7px;font-weight:800}
+
+/* toast */
+#mto{position:absolute;left:50%;bottom:120px;transform:translateX(-50%) translateY(12px);background:rgba(17,24,39,.92);color:#fff;font-size:13.5px;border-radius:99px;padding:9px 18px;opacity:0;transition:.25s;z-index:90;pointer-events:none;max-width:86%;text-align:center}
+#mto.on{opacity:1;transform:translateX(-50%)}
+.hint{color:#5C6779;font-size:12px;max-width:300px;margin-left:26px;align-self:center;line-height:1.7}
+@media(max-width:900px){.side{display:none}.hint{display:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ============ 侧栏屏目录 ============ -->
+<aside class="side">
+  <div class="brand">数源 MathOrigin<small>移动端原型 · 44 屏（docs/15 · M1-M6）</small></div>
+  <div class="grp">启动/认证/引导 S01-S07</div>
+  <a data-go="s01"><span class="no">S01</span>启动屏 🎯</a><a data-go="s02"><span class="no">S02</span>价值引导 🎯</a>
+  <a data-go="s03"><span class="no">S03</span>测评弹层 🎯</a><a data-go="s04"><span class="no">S04</span>登录页 🎯</a>
+  <a data-go="s05"><span class="no">S05</span>验证码/注册 🎯</a><a data-go="s06"><span class="no">S06</span>协议弹层</a>
+  <a data-go="s07"><span class="no">S07</span>微信回跳</a>
+  <div class="grp">主 Tab（M1 五页）S08-S12</div>
+  <a data-go="s08"><span class="no">S08</span>首页 🎯</a><a data-go="s09"><span class="no">S09</span>路径中心</a>
+  <a data-go="s10"><span class="no">S10</span>做题聚合</a><a data-go="s11"><span class="no">S11</span>社区</a>
+  <a data-go="s12"><span class="no">S12</span>我的</a>
+  <div class="grp">学习 S13-S18</div>
+  <a data-go="s13"><span class="no">S13</span>课程详情</a><a data-go="s14"><span class="no">S14</span>课时页 🎯</a>
+  <a data-go="s15"><span class="no">S15</span>深钻五玩 🎯</a><a data-go="s16"><span class="no">S16</span>图谱列表</a>
+  <a data-go="s17"><span class="no">S17</span>节点四卡 🎯</a><a data-go="s18"><span class="no">S18</span>收藏/笔记</a>
+  <div class="grp">作答 S19-S23</div>
+  <a data-go="s19"><span class="no">S19</span>作答页 🎯</a><a data-go="s20"><span class="no">S20</span>答题卡抽屉</a>
+  <a data-go="s21"><span class="no">S21</span>成绩报告 🎯</a><a data-go="s22"><span class="no">S22</span>错题本 🎯</a>
+  <a data-go="s23"><span class="no">S23</span>断链详情 🎯</a>
+  <div class="grp">路径专项 S24-S28</div>
+  <a data-go="s24"><span class="no">S24</span>阶梯矩阵</a><a data-go="s25"><span class="no">S25</span>闯关地图</a>
+  <a data-go="s26"><span class="no">S26</span>专题详情</a><a data-go="s27"><span class="no">S27</span>测评答题</a>
+  <a data-go="s28"><span class="no">S28</span>测评报告/计划</a>
+  <div class="grp">计划/资源 S29-S33</div>
+  <a data-go="s29"><span class="no">S29</span>计划日历</a><a data-go="s30"><span class="no">S30</span>统计看板</a>
+  <a data-go="s31"><span class="no">S31</span>周报</a><a data-go="s32"><span class="no">S32</span>公式馆列表</a>
+  <a data-go="s33"><span class="no">S33</span>公式详情 🎯</a>
+  <div class="grp">游戏化 S34-S36</div>
+  <a data-go="s34"><span class="no">S34</span>打卡日历 🎯</a><a data-go="s35"><span class="no">S35</span>积分明细</a>
+  <a data-go="s36"><span class="no">S36</span>排行榜/挑战</a>
+  <div class="grp">社区/AI S37-S39</div>
+  <a data-go="s37"><span class="no">S37</span>发帖</a><a data-go="s38"><span class="no">S38</span>帖详情</a>
+  <a data-go="s39"><span class="no">S39</span>AI 对话 🎯</a>
+  <div class="grp">我的/系统 S40-S44</div>
+  <a data-go="s40"><span class="no">S40</span>通知中心</a><a data-go="s41"><span class="no">S41</span>全屏搜索</a>
+  <a data-go="s42"><span class="no">S42</span>设置</a><a data-go="s43"><span class="no">S43</span>数据导出</a>
+  <a data-go="s44"><span class="no">S44</span>注销冷静期</a>
+</aside>
+
+<!-- ============ 手机 ============ -->
+<div class="stage">
+<div class="phone">
+  <div class="island"></div>
+  <div class="viewport" id="vp">
+    <div class="statusbar"><span>9:41</span><span class="r">●●●● 📶 🔋</span></div>
+
+    <!-- S01 启动 -->
+    <div class="scr on dark" id="s01" style="align-items:center;justify-content:center;text-align:center;padding:120px 34px 60px">
+      <div style="font-size:84px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800">π</div>
+      <h1 style="font-size:30px;margin-top:10px">数源 MathOrigin</h1>
+      <p style="color:#8B96AC;font-size:14px;margin-top:10px">数之源 · 每一步都讲清楚为什么</p>
+      <div style="position:absolute;left:0;right:0;bottom:56px">
+        <button class="btn block" data-go="s04">进入 →</button>
+        <p style="color:#5C6779;font-size:11px;margin-top:14px">有登录态将直接进入首页（原型点按钮）</p>
+      </div>
+    </div>
+
+    <!-- S02 价值引导 -->
+    <div class="scr dark" id="s02">
+      <div style="padding:16px 22px;text-align:right"><span style="color:#8B96AC;font-size:14px;cursor:pointer" data-go="s04">跳过</span></div>
+      <div style="overflow:hidden">
+        <div class="ob" id="obTrack">
+          <div><div class="obart">6 ≫ 1</div><h2>同一个目标，六种走法</h2><p>课程 · 图谱 · 测评 · 阶梯 · 专题 · 闯关<br>选你喜欢的方式到达同一个知识点。</p></div>
+          <div><div class="obart">∵ ?</div><h2>盯着一道题，看透推理</h2><p>每一步凭什么合法、为什么想到、还能怎样推——一题五玩全在掌心。</p></div>
+          <div><div class="obart">§→A</div><h2>先听它从哪来</h2><p>概念先讲起源与现实，再给定义。<br>数学不是符号，是被现实逼出来的工具。</p></div>
+        </div>
+      </div>
+      <div class="obdots" id="obDots"><i class="on"></i><i></i><i></i></div>
+      <div style="padding:22px 30px 40px">
+        <button class="btn block" id="obBtn" data-go="s04">下一步</button>
+      </div>
+    </div>
+
+    <!-- S03 测评引导弹层（盖 S08） -->
+    <div class="scr" id="s03">
+      <div style="position:absolute;inset:0;background:rgba(3,7,18,.55);display:flex;align-items:flex-end">
+        <div style="background:#fff;width:100%;border-radius:24px 24px 0 0;padding:26px 24px 40px;animation:pop .4s cubic-bezier(.22,1.4,.36,1)">
+          <div style="font-size:44px;text-align:center">◎</div>
+          <h2 style="text-align:center;font-size:21px;margin-top:8px">3 分钟定位你的起点</h2>
+          <p class="muted" style="text-align:center;margin-top:8px;line-height:1.8">自适应测评给出定级与薄弱画像，<br>生成你的第一份学习计划（可随时跳过）。</p>
+          <button class="btn block mt16" data-go="s27">开始测评</button>
+          <button class="btn block gray mt8" data-go="s08" style="margin-top:10px">先逛逛（默认 L1 起步）</button>
+          <p class="muted" style="text-align:center;margin-top:12px">01-D3 · 跳过后首次练习将静默校准</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- S04 登录 -->
+    <div class="scr" id="s04">
+      <div class="pad" style="padding-top:64px">
+        <div style="font-size:46px;background:var(--grad);-webkit-background-clip:text;background-clip:text;font-weight:800">π</div>
+        <h1 style="font-size:27px;margin-top:6px">欢迎回来</h1>
+        <p class="muted mt8">手机号验证码登录（M2：验证码为主）</p>
+        <div class="card mt16" style="padding:6px 14px;display:flex;align-items:center;gap:8px">
+          <b>+86</b><div style="width:1px;height:22px;background:var(--line)"></div>
+          <input id="phoneIn" value="138 8888 8888" style="border:none;outline:none;font-size:17px;flex:1;letter-spacing:.5px;background:none">
+        </div>
+        <label style="display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink2);margin:14px 2px 4px;cursor:pointer">
+          <input type="checkbox" id="agreeCk" style="margin-top:3px;width:16px;height:16px;accent-color:#2F6BFF">
+          <span>我已阅读并同意 <b style="color:var(--p)" data-go="s06">《用户协议》</b> 与 <b style="color:var(--p)" data-go="s06">《隐私政策》</b>（01-U05）</span>
+        </label>
+        <button class="btn block" id="smsBtn" style="margin-top:12px">获取验证码</button>
+        <div style="text-align:center;margin:18px 0 6px;font-size:13px;color:var(--ink3)">— 更多方式 —</div>
+        <div id="moreLogin" style="display:none">
+          <div class="row" data-go="s07"><span style="color:#07C160;font-size:18px">✆</span><div><div class="t">微信一键登录</div><div class="d">微信授权，最短路径</div></div><span class="ar">›</span></div>
+          <div class="row"><span style="color:var(--p);font-size:16px">🔑</span><div><div class="t">账号密码登录</div><div class="d">已设密码的用户</div></div><span class="ar">›</span></div>
+          <div class="row"><span style="color:var(--p);font-size:16px">✉</span><div><div class="t">邮箱登录 / 注册</div><div class="d">收激活邮件（本地 mailpit）</div></div><span class="ar">›</span></div>
+          <p class="muted" style="text-align:center">未配置的渠道会自动隐藏（可降级原则）</p>
+        </div>
+        <div style="text-align:center"><b style="font-size:13.5px;color:var(--p);cursor:pointer" id="moreToggle">更多方式 ▾</b></div>
+        <p class="muted" style="text-align:center;margin-top:26px">京ICP备XXXXXXXX号 · 数源 MathOrigin</p>
+      </div>
+    </div>
+
+    <!-- S05 验证码/注册 -->
+    <div class="scr" id="s05">
+      <div class="nav"><span class="bk" data-go="s04">‹</span>验证码登录</div>
+      <div class="pad">
+        <p class="muted">验证码已发送至 <b style="color:var(--ink)">+86 138 8888 8888</b></p>
+        <div class="codebox" id="codeBox"><b></b><b></b><b></b><b></b><b></b><b></b></div>
+        <p class="muted" style="text-align:center" id="reSend">60s 后重新发送</p>
+        <div class="card mt16" style="padding:6px 14px"><input placeholder="设置昵称（注册流程）" style="border:none;outline:none;font-size:15.5px;width:100%;background:none"></div>
+        <button class="btn block" id="loginBtn" disabled>登录</button>
+        <p class="muted mt8" style="text-align:center">原型：点验证码格自动填充 · 填满 6 位可登录</p>
+        <p class="muted mt16" style="text-align:center">新用户登录后 → 首页弹测评引导（S03）</p>
+      </div>
+    </div>
+
+    <!-- S06 协议弹层 -->
+    <div class="scr" id="s06">
+      <div style="position:absolute;inset:0;background:rgba(3,7,18,.5);display:flex;align-items:flex-end" data-go="s04">
+        <div style="background:#fff;width:100%;border-radius:24px 24px 0 0;padding:8px 0 30px;max-height:80%;overflow:auto" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div class="sheet-h" style="padding:4px 20px 8px">用户协议 · 隐私政策摘要 <span class="x" data-go="s04">✕</span></div>
+          <div style="padding:0 20px;font-size:14px;color:var(--ink2);line-height:1.9">
+            <p>· 我们只收集学习所必需的数据（01 §9 最小化）；<br>· 你有权 <b style="color:var(--p)">导出数据</b> 与 <b style="color:var(--p)">注销账号</b>（7 天冷静期）；<br>· 协议版本更新后，下次登录需重新确认；<br>· 未成年人使用条款见完整文本。</p>
+            <div class="hr"></div>
+            <p class="muted">完整文本由管理端 article(type=legal) 维护，端内与官网 /legal 双端可查。</p>
+          </div>
+          <div style="padding:14px 20px 0;display:flex;gap:10px">
+            <button class="btn gray" style="flex:1" data-go="s04">稍后再选</button>
+            <button class="btn" style="flex:2" id="agreeAll">全选并同意</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S07 微信回跳 -->
+    <div class="scr" id="s07">
+      <div class="pad" style="text-align:center;padding-top:120px">
+        <div style="font-size:64px">✆</div>
+        <h2 style="margin-top:14px">微信授权中…</h2>
+        <p class="muted mt8">正在与数源 MathOrigin 核对身份</p>
+        <div style="width:46px;height:46px;border-radius:50%;border:4px solid var(--p-l);border-top-color:var(--p);margin:26px auto;animation:spin 1s linear infinite"></div>
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        <button class="btn block" data-go="s08">授权成功（模拟）→ 进入首页</button>
+        <div class="row mt16"><div><div class="t">失败了？</div><div class="d">3202 微信授权失败</div></div><span class="ar" data-go="s04">换验证码登录 ›</span></div>
+      </div>
+    </div>
+
+    <!-- S08 首页 -->
+    <div class="scr" id="s08">
+      <div class="pad" style="padding-top:14px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:44px;height:44px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800">A</div>
+          <div style="flex:1"><b style="font-size:17px">早上好，同学A</b><div class="muted">连续学习 12 天 · 白银段位</div></div>
+          <span style="font-size:19px;cursor:pointer" data-go="s41">🔍</span>
+          <span style="font-size:19px;cursor:pointer;position:relative" data-go="s40">🔔<i style="position:absolute;top:-3px;right:-4px;width:8px;height:8px;background:#EF4444;border-radius:50%"></i></span>
+        </div>
+
+        <div class="card mt16" style="background:linear-gradient(135deg,#2F6BFF,#6D8DFF);border:none;color:#fff">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <b style="font-size:15.5px">今日任务 1/3</b><span style="font-size:13px;opacity:.9" data-go="s29">全部任务 ›</span>
+          </div>
+          <div style="display:flex;gap:9px;margin-top:11px">
+            <div class="taskchk" style="flex:1;background:rgba(255,255,255,.16);border-radius:10px;padding:9px 10px;font-size:12.5px;cursor:pointer">☐ 学 1 课时</div>
+            <div class="taskchk" style="flex:1;background:rgba(255,255,255,.16);border-radius:10px;padding:9px 10px;font-size:12.5px;cursor:pointer">☑ 每日一练 ✓</div>
+            <div class="taskchk" style="flex:1;background:rgba(255,255,255,.16);border-radius:10px;padding:9px 10px;font-size:12.5px;cursor:pointer">☐ 错题重练</div>
+          </div>
+        </div>
+
+        <div class="card" style="display:flex;align-items:center;gap:14px">
+          <div style="font-size:30px">🔥</div>
+          <div style="flex:1"><b>连续打卡 12 天</b><div class="muted">今日还未打卡</div></div>
+          <button class="btn" id="ckBtn" style="height:40px;padding:0 18px">打卡</button>
+        </div>
+
+        <div class="sect">在学课程</div>
+        <div class="card" style="cursor:pointer" data-go="s13">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="ring" style="--v:.64"><span>64%</span></div>
+            <div style="flex:1"><b>一元二次方程 · 从因式分解到求根</b><div class="muted mt8">第 5/8 课时 · 上次学到「判别式的含义」</div>
+            <div class="bar mt8"><i style="width:64%"></i></div></div>
+          </div>
+        </div>
+
+        <div class="sect">每日一练（到期 5 题）</div>
+        <div class="row" data-go="s10"><span style="font-size:18px">🎯</span><div><div class="t">间隔重复已为你排好</div><div class="d">错题 3 · 薄弱点 2 · 约 6 分钟</div></div><span class="ar">›</span></div>
+
+        <div class="sect">学习热力（本周）</div>
+        <div class="card"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;font-size:11px;color:var(--ink3)">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          <i style="height:26px;border-radius:7px;background:#D1FAE5"></i><i style="height:26px;border-radius:7px;background:#6EE7B7"></i><i style="height:26px;border-radius:7px;background:#D1FAE5"></i><i style="height:26px;border-radius:7px;background:#10B981"></i><i style="height:26px;border-radius:7px;background:#6EE7B7"></i><i style="height:26px;border-radius:7px;background:#ECFDF5"></i><i style="height:26px;border-radius:7px;background:#ECFDF5"></i>
+        </div></div>
+
+        <div class="sect">路径推荐</div>
+        <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px">
+          <div class="card" style="min-width:180px;cursor:pointer;margin:0;border-top:4px solid var(--p4)" data-go="s24"><b>阶梯刷题</b><div class="muted mt8">L2 当前 · 正确率 83%</div></div>
+          <div class="card" style="min-width:180px;cursor:pointer;margin:0;border-top:4px solid var(--p6)" data-go="s25"><b>闯关挑战</b><div class="muted mt8">第 3 关待挑战</div></div>
+          <div class="card" style="min-width:180px;cursor:pointer;margin:0;border-top:4px solid var(--p2)" data-go="s16"><b>知识图谱</b><div class="muted mt8">掌握度 41 点</div></div>
+        </div>
+      </div>
+      <div class="fab" data-go="s39">π</div>
+    </div>
+
+    <!-- S09 路径中心 -->
+    <div class="scr" id="s09">
+      <div class="nav">路径中心</div>
+      <div class="pad">
+        <p class="muted">同一个目标，六种走法 · 共享掌握度与错题本</p>
+        <div class="row mt16" style="border-left:5px solid var(--p1)" data-go="s13"><div style="flex:1"><div class="t">▤ 系统课程</div><div class="d">按部就班 · 进度环记路</div></div><span class="chip">进行中 64%</span></div>
+        <div class="row" style="border-left:5px solid var(--p2)" data-go="s16"><div style="flex:1"><div class="t">◈ 知识图谱</div><div class="d">自由漫游 · 颜色即掌握度</div></div><span class="ar">›</span></div>
+        <div class="row" style="border-left:5px solid var(--p3)" data-go="s27"><div style="flex:1"><div class="t">◎ 测评计划</div><div class="d">定级 → 计划 → 动态调档</div></div><span class="chip p3" style="background:#EDE9FE;color:#6D28D9">未测评</span></div>
+        <div class="row" style="border-left:5px solid var(--p4)" data-go="s24"><div style="flex:1"><div class="t">▟ 阶梯刷题</div><div class="d">L1→L5 · 80% 晋级</div></div><span class="ar">›</span></div>
+        <div class="row" style="border-left:5px solid var(--p5)" data-go="s26"><div style="flex:1"><div class="t">❏ 专题研习</div><div class="d">数论 / 证明方法…主题深钻</div></div><span class="ar">›</span></div>
+        <div class="row" style="border-left:5px solid var(--p6)" data-go="s25"><div style="flex:1"><div class="t">♜ 闯关挑战</div><div class="d">关卡 · 星级 · 段位周榜</div></div><span class="ar">›</span></div>
+      </div>
+    </div>
+
+    <!-- S10 做题聚合 -->
+    <div class="scr" id="s10">
+      <div class="nav">做题</div>
+      <div class="pad">
+        <div class="card" style="display:flex;gap:13px;align-items:center;border-color:#FDE68A;background:#FFFBEB">
+          <div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(#F59E0B 75%,#F3F4F6 0);display:grid;place-items:center"><b style="background:#FFFBEB;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:12px">6:12</b></div>
+          <div style="flex:1"><b>每日一练 · 5 题待做</b><div class="muted">错题 3 · 薄弱点 2（间隔重复）</div></div>
+          <button class="btn" style="height:38px;padding:0 16px" data-go="s19">开始</button>
+        </div>
+        <div class="sect">自由练习</div>
+        <div class="row" data-go="s19"><div style="flex:1"><div class="t">按知识点练习</div><div class="d">选知识点/难度 → 即时判分</div></div><span class="ar">›</span></div>
+        <div class="row" data-go="s19"><div style="flex:1"><div class="t">试卷中心</div><div class="d">练习卷 / 晋级战 / Boss 战</div></div><span class="tag p6">考试态</span></div>
+        <div class="sect">复习</div>
+        <div class="row" data-go="s22" style="border-color:#FECACA"><div style="flex:1"><div class="t">错题本 · 8 题待重练</div><div class="d">3 题有断链记录（缺依据）</div></div><span class="ar">›</span></div>
+        <div class="row" data-go="s32"><div style="flex:1"><div class="t">公式馆 · 小练三型</div><div class="d">条件判断 / 变形识别 / 应用匹配</div></div><span class="ar">›</span></div>
+        <div class="sect">记录</div>
+        <div class="row" data-go="s21"><div style="flex:1"><div class="t">我的作答</div><div class="d">最近：模拟卷 82 分</div></div><span class="ar">›</span></div>
+      </div>
+    </div>
+
+    <!-- S11 社区 -->
+    <div class="scr" id="s11">
+      <div class="nav">社区 <span class="rt" data-go="s37">✎ 发帖</span></div>
+      <div class="pad">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <span class="chip">最新</span><span class="chip gray">精华</span><span class="chip gray">话题 · 三角学</span>
+        </div>
+        <div class="card" style="border-color:#FDE68A;background:#FFFDF5"><b style="font-size:12.5px;color:#B45309">我的帖子正在审核中（命中词→扣留态 3401）</b></div>
+        <div class="card" style="cursor:pointer" data-go="s38">
+          <div style="display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:#DBEAFE;display:grid;place-items:center">B</div><b style="font-size:14.5px">小B</b><span class="muted">2 小时前</span></div>
+          <p style="font-size:14.5px;margin-top:8px">这步为什么要除以 sinC？我总在这里卡住…</p>
+          <div class="mt8"><span class="chip gray">关联题目 #1024</span></div>
+          <div class="muted mt8">💬 6 回复 · 👍 12</div>
+        </div>
+        <div class="card" style="cursor:pointer" data-go="s38">
+          <div style="display:flex;gap:9px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:#FCE7F3;display:grid;place-items:center">C</div><b style="font-size:14.5px">小C</b><span class="chip ok" style="margin-left:auto">✓ 已采纳</span></div>
+          <p style="font-size:14.5px;margin-top:8px">均值不等式取等条件的三个检查位，总结给你…</p>
+          <div class="muted mt8">💬 12 回复 · 👍 40</div>
+        </div>
+      </div>
+      <div class="fab" data-go="s39">π</div>
+    </div>
+
+    <!-- S12 我的 -->
+    <div class="scr" id="s12">
+      <div class="nav">我的</div>
+      <div class="pad">
+        <div class="card" style="display:flex;gap:13px;align-items:center">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:800">A</div>
+          <div style="flex:1"><b style="font-size:17px">同学A</b><div class="muted mt8">🎽 白白银 II · 积分 1,240 · 连签 12 天</div></div>
+          <span class="ar" style="color:#9CA3AF">›</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s34"><div style="font-size:20px">📅</div><div class="muted mt8">打卡</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s35"><div style="font-size:20px">🪙</div><div class="muted mt8">积分</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s18"><div style="font-size:20px">⭐</div><div class="muted mt8">收藏</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s18"><div style="font-size:20px">📝</div><div class="muted mt8">笔记</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s21"><div style="font-size:20px">🧾</div><div class="muted mt8">作答</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s36"><div style="font-size:20px">🏆</div><div class="muted mt8">挑战</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s40"><div style="font-size:20px">🔔</div><div class="muted mt8">通知</div></div>
+          <div class="card" style="text-align:center;padding:14px 6px;cursor:pointer" data-go="s42"><div style="font-size:20px">⚙️</div><div class="muted mt8">设置</div></div>
+        </div>
+        <div class="sect">数据</div>
+        <div class="row" data-go="s30"><div class="t">学习统计</div><span class="ar">›</span></div>
+        <div class="row" data-go="s31"><div class="t">本周周报</div><span class="chip p3" style="background:#EDE9FE;color:#6D28D9">新</span><span class="ar">›</span></div>
+        <div class="row" data-go="s29"><div class="t">学习计划</div><span class="ar">›</span></div>
+      </div>
+    </div>
+
+    <!-- S13 课程详情 -->
+    <div class="scr" id="s13">
+      <div class="nav"><span class="bk" data-go="s08">‹</span>课程详情</div>
+      <div class="pad">
+        <div class="card" style="display:flex;gap:13px;align-items:center">
+          <div class="ring" style="--v:.64"><span>64%</span></div>
+          <div><b>一元二次方程 · 从因式分解到求根</b><div class="muted mt8">8 课时 · 已完成 5 · 含随堂练</div></div>
+        </div>
+        <div class="sect">章节目录（前置锁态=01-D4 练习锁死）</div>
+        <div class="row"><span>✓</span><div style="flex:1"><div class="t">第 1 章 等式的性质</div><div class="d">3 课时 · 已完成</div></div></div>
+        <div class="row"><span>✓</span><div style="flex:1"><div class="t">第 2 章 因式分解</div><div class="d">3 课时 · 已完成</div></div></div>
+        <div class="row" style="border-color:var(--p)" data-go="s14"><span style="color:var(--p)">▶</span><div style="flex:1"><div class="t">第 3 章 求根公式</div><div class="d">2 课时 · 当前</div></div><span class="chip">继续</span></div>
+        <div class="row" style="opacity:.6"><span>🔒</span><div style="flex:1"><div class="t">第 4 章 应用与建模</div><div class="d">前置：判别式 ≥ 掌握 80</div></div></div>
+      </div>
+    </div>
+
+    <!-- S14 课时页 -->
+    <div class="scr" id="s14">
+      <div class="nav"><span class="bk" data-go="s13">‹</span>3.2 求根公式的来历<span class="rt">进度 62%</span></div>
+      <div class="pad">
+        <p style="font-size:15.5px;line-height:1.9">把 <span class="math">ax²+bx+c=0 (a≠0)</span> 配成完全平方，是两千年前巴比伦人就会的操作。我们要回答的不是"怎么背"，而是——<b>为什么可以除以 a？为什么最后要 ±？</b></p>
+        <div class="card" style="text-align:center;padding:22px"><span class="math" style="font-size:26px">x = ( −b ± √(b²−4ac) ) / 2a</span></div>
+        <div class="card" style="border-style:dashed"><b style="font-size:14px">🎬 视频（外链）：配方法 6 分钟</b><div class="muted mt8">播放器占位 · 断点续播 02:14</div></div>
+        <div class="sect">随堂练 · 逐题即时反馈（D2 练习态）</div>
+        <p style="font-weight:600">方程 <span class="math">2x²−4x−6=0</span> 的一个根是？</p>
+        <div class="opt quiz1" data-r="0" style="margin-top:10px"><span class="k">A</span><span class="math">x = 3</span></div>
+        <div class="opt quiz1" data-r="1"><span class="k">B</span><span class="math">x = −1</span></div>
+        <div class="opt quiz1" data-r="1"><span class="k">C</span><span class="math">x = 3 或 x = −1</span></div>
+        <div class="opt quiz1" data-r="0"><span class="k">D</span><span class="math">x = 6</span></div>
+        <button class="btn block mt8" data-go="s14" onclick="mto('完成课时 · +10 积分 · 掌握度 ↑（L2 动效略）')">标记完成</button>
+        <p class="muted" style="text-align:center;margin-top:8px">心跳计时 05:12 · 断点已存</p>
+      </div>
+    </div>
+
+    <!-- S15 深钻五玩 -->
+    <div class="scr" id="s15">
+      <div class="nav"><span class="bk" data-go="s22">‹</span>深钻 · 一题五玩（M4）</div>
+      <div class="pad" style="padding-bottom:10px">
+        <div class="card"><b>题目 #1024</b><p class="mt8" style="font-size:14.5px">解方程 <span class="math">x²−5x+6=0</span>，并说明每一步的依据。</p></div>
+
+        <div class="dm" data-m="0">
+          <div class="sect">通读 · 推理链（点步展开三层）</div>
+          <div class="chain">
+            <div class="st" onclick="this.classList.toggle('open')"><div class="k">S1 · 工具选择</div><div class="tx">尝试因式分解：找两数积 6、和 −5</div><div class="more"><b>依据</b>：十字相乘法适用（首项系数为1）<br><b>为什么想到</b>：常数 6=2×3 且 2+3=5——信号明显<br><b>岔路</b>：6 的因数组不合时才转求根公式</div></div>
+            <div class="st sub" onclick="this.classList.toggle('open')"><div class="k">S2 · 等价变形</div><div class="tx">分解为 (x−2)(x−3)=0</div><div class="more"><b>依据</b>：乘法分配律逆用（等价变形）<br><b>为什么想到</b>：S1 已锁定 2 与 3<br><b>岔路</b>：写成 (x+2)(x+3) 是符号错——负号来自"和为负"</div></div>
+            <div class="st sub" onclick="this.classList.toggle('open')"><div class="k">S3 · 论证</div><div class="tx">零因子律：积为 0 则 x=2 或 x=3</div><div class="more"><b>依据</b>：整环中无零因子<br><b>为什么想到</b>：目标是"解出 x"，降次到一次<br><b>岔路</b>：不能两边同除 (x−2)——会丢根！</div></div>
+          </div>
+        </div>
+
+        <div class="dm" data-m="1" style="display:none">
+          <div class="sect">预测下一步（E2 · 点评双分支）</div>
+          <div class="card"><b>已知 (x−2)(x−3)=0，下一步该做什么？</b></div>
+          <div class="opt pred" data-ok="0"><span class="k">A</span>两边同除以 (x−2)</div>
+          <div class="opt pred" data-ok="1"><span class="k">B</span>用零因子律得 x=2 或 3</div>
+          <div class="opt pred" data-ok="0"><span class="k">C</span>展开重新计算</div>
+          <div class="card" id="predCm" style="display:none;border-color:var(--ok);background:#F0FDF4;font-size:14px"></div>
+        </div>
+
+        <div class="dm" data-m="2" style="display:none">
+          <div class="sect">顺逆对照（同色步对齐）</div>
+          <div class="card" style="border-left:4px solid var(--p)"><b>综合法（由因导果）</b><p class="muted mt8">条件 x²−5x+6 → 十字相乘 → 零因子 → 根</p></div>
+          <div class="card" style="border-left:4px solid var(--p3)"><b>分析法（执果索因）</b><p class="muted mt8">要 x=? → 需降次 → 需分解 → 需找因数对</p></div>
+          <p class="muted">移动端=上下折叠对照（15 §4-S15）；大屏并排画布见 Web 版。</p>
+        </div>
+
+        <div class="dm" data-m="3" style="display:none">
+          <div class="sect">多解画廊</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px"><span class="chip">解法A 因式分解</span><span class="chip gray">解法B 求根公式</span><span class="chip gray">解法C 图像交点</span></div>
+          <div class="card"><b>通法总结卡</b><p class="muted mt8">首项系数为 1 且判别式为完全平方 → 优先因式分解（最快）；否则求根公式是保底通法。</p></div>
+        </div>
+
+        <div class="dm" data-m="4" style="display:none">
+          <div class="sect">AI 苏格拉底（跳转 S39）</div>
+          <div class="card"><p class="muted">点下方按钮进入 AI 对话（上下文=本题）</p><button class="btn block mt8" data-go="s39">问 AI（默认不直接给答案）</button></div>
+        </div>
+      </div>
+      <div style="position:sticky;bottom:0">
+        <div class="mode-tabs" id="ddTabs">
+          <div class="mt on" data-dm="0">通读</div><div class="mt" data-dm="1">预测</div><div class="mt" data-dm="2">顺逆</div><div class="mt" data-dm="3">多解</div><div class="mt" data-dm="4">AI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S16 图谱列表 -->
+    <div class="scr" id="s16">
+      <div class="nav"><span class="bk" data-go="s08">‹</span>知识图谱<span class="rt">小图模式</span></div>
+      <div class="pad">
+        <div class="card" style="padding:8px 12px;display:flex;gap:8px;align-items:center">🔍<input placeholder="搜索知识点（图谱缩略图占位）" style="border:none;outline:none;flex:1;font-size:14.5px;background:none"></div>
+        <div class="sect">代数 · 掌握度列表（05 降级形态）</div>
+        <div class="row" data-go="s17"><i style="width:12px;height:12px;border-radius:50%;background:var(--ok)"></i><div style="flex:1"><div class="t">一元一次方程</div><div class="d">L5 通过 · 掌握 92</div></div><span class="tag p2">掌握</span></div>
+        <div class="row" data-go="s17"><i style="width:12px;height:12px;border-radius:50%;background:var(--warn)"></i><div style="flex:1"><div class="t">因式分解</div><div class="d">L3 · 掌握 61（薄弱）</div></div><span class="tag p4">薄弱</span></div>
+        <div class="row" data-go="s17"><i style="width:12px;height:12px;border-radius:50%;background:var(--bad)"></i><div style="flex:1"><div class="t">判别式与根的分布</div><div class="d">前置未达标 · 掌握 30</div></div><span class="tag" style="background:#FEE2E2;color:#B91C1C">前置</span></div>
+        <div class="row" style="opacity:.55"><i style="width:12px;height:12px;border-radius:50%;background:#D1D5DB"></i><div style="flex:1"><div class="t">韦达定理</div><div class="d">未学</div></div></div>
+        <div class="sect">图例</div>
+        <div class="card muted">🟢 掌握 ≥80 ｜ 🟡 薄弱 40-79 ｜ 🔴 前置未过 ｜ ⚪ 未学 —— 与 Web 图谱同源四档色</div>
+      </div>
+    </div>
+
+    <!-- S17 节点四卡 -->
+    <div class="scr" id="s17">
+      <div class="nav"><span class="bk" data-go="s16">‹</span>知识点详情（四卡）</div>
+      <div class="pad">
+        <div style="display:flex;gap:13px;align-items:center">
+          <div class="ring" style="--v:.61"><span>61</span></div>
+          <div><b style="font-size:18px">因式分解</b><div class="muted mt8">代数 · tier 2 · 薄弱区间</div></div>
+        </div>
+        <div style="display:flex;gap:7px;margin:14px 0 4px" id="fcTabs">
+          <span class="chip fc on" data-fc="0">起源</span><span class="chip gray fc" data-fc="1">现实</span><span class="chip gray fc" data-fc="2">抽象阶梯</span><span class="chip gray fc" data-fc="3">代表题</span>
+        </div>
+        <div class="card fcp" data-fc="0"><b>被面积问题逼出来的技巧</b><p class="muted mt8" style="line-height:1.8">古埃及人分地、巴比伦人凑数，都在反复做"把一块面积拆回长宽"。因式分解就是这门手艺的代数版：展开容易，拆回去才是功夫。</p></div>
+        <div class="card fcp" data-fc="1" style="display:none"><b>现实三例</b><p class="muted mt8">① 裁一块方地，剩下的面积如何表达<br>② 利息与增长的二次模型拆解<br>③ 抛物线拱桥的跨径分解</p></div>
+        <div class="card fcp" data-fc="2" style="display:none"><b>三级台阶</b><p class="muted mt8">REAL：拆面积 → MODEL：和与积的互逆 → SYMBOL：a²+2ab+b²=(a+b)²</p></div>
+        <div class="card fcp" data-fc="3" style="display:none"><b>代表题 3 道</b><p class="muted mt8">#1024 分解 x²−5x+6（入门）<br>#1102 十字相乘二次项系数≠1<br>#1310 结合判别式的逆向构造</p></div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip gray">前置：等式性质 ✓</span><span class="chip gray">后继：求根公式</span></div>
+        <button class="btn block mt16" data-go="s19">从此处开始练（锁态时=3311 提示）</button>
+        <button class="btn ghost block mt8" style="margin-top:10px" data-go="s33">关联公式：求根公式 ›</button>
+      </div>
+    </div>
+
+    <!-- S18 收藏/笔记 -->
+    <div class="scr" id="s18">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>收藏 / 笔记</div>
+      <div class="pad">
+        <div style="display:flex;gap:8px;margin-bottom:12px"><span class="chip">收藏 · 题 12</span><span class="chip gray">课时 5</span><span class="chip gray">公式 8</span><span class="chip gray">知识点 4</span></div>
+        <div class="row" data-go="s19"><div style="flex:1"><div class="t">#1024 因式分解基础</div><div class="d">收藏于昨天</div></div><span class="ar">›</span></div>
+        <div class="row" data-go="s33"><div style="flex:1"><div class="t">勾股定理（公式卡）</div><div class="d">⚠ 仅直角三角形</div></div><span class="ar">›</span></div>
+        <div class="sect">笔记</div>
+        <div class="card"><b>求根公式 · 为什么 ±</b><p class="muted mt8">开平方本身就有两个值，配方后 |x−h|=k → x=h±k…</p><div class="muted mt8">锚点：3.2 求根公式的来历</div></div>
+        <div class="card"><b>断链笔记：零因子</b><p class="muted mt8">不能两边除 (x−2)，会丢根！（错因：变形不等价）</p></div>
+        <button class="btn block">＋ 新建笔记（公式工具条）</button>
+      </div>
+    </div>
+
+    <!-- S19 作答 -->
+    <div class="scr" id="s19">
+      <div class="nav"><span class="bk" data-go="s10">‹</span><b style="font-size:15px">每日一练</b><span class="rt" style="color:#EF4444">⏱ 05:12</span></div>
+      <div class="pad" style="padding-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span class="chip">2 / 5 · 练习态逐题判分</span><span class="muted">草稿已存 ✓</span>
+        </div>
+        <div class="card">
+          <b>填空：配方解方程 <span class="math">x²−6x+5=0</span>，较大根为</b>
+          <input class="fillin mt8" id="fillIn" placeholder="输入答案（用下方数学工具条）">
+          <div class="mathbar">
+            <button data-ins="²">x²</button><button data-ins="√()">√</button><button data-ins="/">分数</button><button data-ins="±">±</button>
+            <button data-ins="π">π</button><button data-ins="θ">θ</button><button data-ins="|">|x|</button><button data-ins="∞">∞</button>
+          </div>
+        </div>
+        <div class="opt judge" data-r="0"><span class="k">A</span><span class="math">x = 5</span></div>
+        <div class="opt judge" data-r="1"><span class="k">B</span><span class="math">x = 1 或 x = 5，较大根 5</span></div>
+        <div class="card" id="judgeExp" style="display:none;border-color:var(--ok);background:#F0FDF4;font-size:14px">
+          ✓ 正确！因式分解 (x−1)(x−5)=0；别忘"较大根"审题。解析半屏 + 振动反馈（15 §5）
+        </div>
+        <div class="ansbar">
+          <div class="sq" onclick="mto('上一题')">‹</div>
+          <div class="sq" onclick="mto('已标记 ⚑')">⚑</div>
+          <div class="sq" style="border-color:var(--p);color:var(--p)" id="openSheet">▦</div>
+          <button class="btn" style="flex:1" id="subAns">提交本题</button>
+          <button class="btn gray" data-go="s21" onclick="mto('交卷确认弹窗（略）')">交卷</button>
+        </div>
+      </div>
+      <!-- 答题卡 Sheet（S20 态） -->
+      <div class="dim" id="asDim"></div>
+      <div class="sheet" id="asSheet">
+        <div class="grab"></div>
+        <div class="sheet-h">答题卡 · 40% ⇄ 90% 两态 <span class="x" id="closeSheet">收起 ✕</span></div>
+        <div class="sheet-b">
+          <div class="muted" style="margin-bottom:8px">已答 1 · 未答 4 · 标记 1</div>
+          <div class="agrid" id="aGrid">
+            <div class="acell done">1</div><div class="acell cur">2</div><div class="acell flag">3⚑</div>
+            <div class="acell">4</div><div class="acell">5</div>
+          </div>
+          <button class="btn block mt16" id="closeSheet2">收起（40% 预览态）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S20 答题卡独立屏（90% 全览静态示意） -->
+    <div class="scr" id="s20">
+      <div class="nav"><span class="bk" data-go="s19">‹</span>答题卡 · 90% 全览态</div>
+      <div class="pad">
+        <div class="muted">○ 未答 ｜ ✅ 已答 ｜ ⚑ 标记 —— 点格跳题（原型回 S19）</div>
+        <div class="agrid mt16" style="grid-template-columns:repeat(6,1fr)" onclick="go('s19')">
+          <div class="acell done">1</div><div class="acell cur">2</div><div class="acell flag">3</div>
+          <div class="acell">4</div><div class="acell">5</div><div class="acell">6</div>
+          <div class="acell">7</div><div class="acell">8</div><div class="acell">9</div>
+          <div class="acell">10</div><div class="acell">11</div><div class="acell">12</div>
+        </div>
+        <div class="card mt16"><b>统计</b><p class="muted mt8">已答 1 / 12 · 用时 05:12 · 剩余 14:48</p></div>
+        <button class="btn block" data-go="s19">返回作答</button>
+        <p class="muted mt8" style="text-align:center">考试态蒙层不可点关（15 §5 答题卡规则）</p>
+      </div>
+    </div>
+
+    <!-- S21 成绩报告 -->
+    <div class="scr" id="s21">
+      <div class="nav"><span class="bk" data-go="s10">‹</span>成绩报告</div>
+      <div class="pad" style="text-align:center">
+        <div class="bigscore">82</div>
+        <p class="muted">满分 100 · 用时 11:24 · 正确率 83%</p>
+        <div class="card mt16" style="text-align:left">
+          <b>知识点分布</b>
+          <div class="mt8"><span class="muted">因式分解 90%</span><div class="bar"><i style="width:90%"></i></div></div>
+          <div class="mt8"><span class="muted">判别式 62%</span><div class="bar"><i style="width:62%"></i></div></div>
+          <div class="mt8"><span class="muted">根的分布 45%</span><div class="bar"><i style="width:45%"></i></div></div>
+        </div>
+        <div class="card" style="text-align:left;border-color:#FECACA"><b style="color:#B91C1C">错题 2 题已进错题本</b><p class="muted mt8">其中 1 题可定位断链点</p></div>
+        <div class="card" style="text-align:left"><b>AI 归因（无 Key=规则文案）</b><p class="muted mt8">「根的分布」类错题集中：建议回补前置 <b style="color:var(--p)">不等式性质</b>。</p></div>
+        <button class="btn block" data-go="s22">去错题本</button>
+        <button class="btn ghost block" style="margin-top:10px" onclick="mto('分享海报已生成（移动端 M-报告）')">分享成绩海报</button>
+      </div>
+    </div>
+
+    <!-- S22 错题本 -->
+    <div class="scr" id="s22">
+      <div class="nav"><span class="bk" data-go="s10">‹</span>错题本<span class="rt">一键重练 8</span></div>
+      <div class="pad">
+        <div style="display:flex;gap:8px;margin-bottom:12px"><span class="chip">全部 8</span><span class="chip gray">到期 5</span><span class="chip gray">未掌握 6</span><span class="chip gray">按知识点</span></div>
+        <div class="card" style="border-left:4px solid var(--bad)" data-go="s23" >
+          <div style="display:flex;justify-content:space-between"><b>#1024 因式分解</b><span class="tag" style="background:#FEE2E2;color:#B91C1C">断在 S2 · 缺依据</span></div>
+          <p class="muted mt8">错 2 次 · 最近：昨天 · 点击看断链详情 ›</p>
+        </div>
+        <div class="card" style="border-left:4px solid var(--warn)"><div style="display:flex;justify-content:space-between"><b>#1102 十字相乘</b><span class="tag p4">不会</span></div><p class="muted mt8">错 1 次 · 到期：今天</p></div>
+        <div class="card" style="border-left:4px solid var(--warn)"><div style="display:flex;justify-content:space-between"><b>#1310 根的分布</b><span class="tag p4">前置缺</span></div><p class="muted mt8">断点建议：补「不等式性质」→ 图谱</p></div>
+        <button class="btn block" data-go="s19">开始重练（SRS 到期 5 题）</button>
+        <p class="muted mt8" style="text-align:center">重练连对 2 次 → 自动标已掌握（01 U-23）</p>
+      </div>
+    </div>
+
+    <!-- S23 断链详情 -->
+    <div class="scr" id="s23">
+      <div class="nav"><span class="bk" data-go="s22">‹</span>断链详情（01 K-04）</div>
+      <div class="pad">
+        <div class="card" style="border-color:#FECACA"><b style="color:#B91C1C">你的推理断在第 2 步 · 缺「依据」</b><p class="muted mt8">#1024 · 因式分解 · 错因：变形不等价</p></div>
+        <div class="chain">
+          <div class="st"><div class="k">S1 ✓</div><div class="tx">移项整理 x²−5x+6=0</div></div>
+          <div class="st broken"><div class="k">S2 ✗ 断点</div><div class="tx">你写成 (x+2)(x+3)=0</div><div class="more" style="display:block"><b>缺什么</b>：十字相乘的符号规则（依据缺失）——和为 −5 需要两个负因数</div></div>
+          <div class="st sub" style="opacity:.5"><div class="k">S3 —</div><div class="tx">零因子律（尚未到达）</div></div>
+        </div>
+        <div class="sect">补哪里</div>
+        <div class="row" data-go="s17"><div style="flex:1"><div class="t">知识点：因式分解 · 符号规则</div><div class="d">warrant 指向的图谱节点</div></div><span class="ar">去补 ›</span></div>
+        <div class="row" data-go="s19"><div style="flex:1"><div class="t">动机训练 ×2</div><div class="d">推荐「看到和为负该想到什么」预测题</div></div><span class="ar">开练 ›</span></div>
+        <button class="btn block mt16" data-go="s15">在深钻里重走这题</button>
+      </div>
+    </div>
+
+    <!-- S24 阶梯矩阵 -->
+    <div class="scr" id="s24">
+      <div class="nav"><span class="bk" data-go="s09">‹</span>阶梯刷题（P4）</div>
+      <div class="pad">
+        <div class="card" style="display:flex;gap:12px;align-items:center"><div class="ring" style="--v:.55;width:56px;height:56px"><span>83%</span></div><div><b>今日晋级进度</b><div class="muted">正确率≥80% 且 ≥10 题 → 解锁下一 L</div></div></div>
+        <div class="sect">知识点 × 难度矩阵（点当前格开练）</div>
+        <div class="card" style="padding:10px">
+          <div style="display:grid;grid-template-columns:1.6fr repeat(5,1fr);gap:7px;font-size:12px;text-align:center">
+            <span></span><span class="muted">L1</span><span class="muted">L2</span><span class="muted">L3</span><span class="muted">L4</span><span class="muted">L5</span>
+            <span style="text-align:left;font-weight:700">因式分解</span>
+            <i style="height:34px;border-radius:8px;background:#10B981;color:#fff;font-style:normal;display:grid;place-items:center">✓</i>
+            <i style="height:34px;border-radius:8px;background:#10B981;color:#fff;font-style:normal;display:grid;place-items:center">✓</i>
+            <i style="height:34px;border-radius:8px;border:2px solid #2F6BFF;color:#2F6BFF;font-style:normal;display:grid;place-items:center;font-weight:800;cursor:pointer" data-go="s19">▶</i>
+            <i style="height:34px;border-radius:8px;background:#F3F4F6;color:#9CA3AF;font-style:normal;display:grid;place-items:center">🔒</i>
+            <i style="height:34px;border-radius:8px;background:#F3F4F6;color:#9CA3AF;font-style:normal;display:grid;place-items:center">🔒</i>
+            <span style="text-align:left;font-weight:700">判别式</span>
+            <i style="height:34px;border-radius:8px;background:#10B981;color:#fff;font-style:normal;display:grid;place-items:center">✓</i>
+            <i style="height:34px;border-radius:8px;background:#F3F4F6;color:#9CA3AF;font-style:normal;display:grid;place-items:center">61</i>
+            <i style="height:34px;border-radius:8px;background:#F3F4F6;color:#9CA3AF;font-style:normal;display:grid;place-items:center">🔒</i>
+            <i style="height:34px;border-radius:8px;background:#F3F4F6;color:#9CA3AF;font-style:normal;display:grid;place-items:center">🔒</i>
+            <i style="height:34px;border-radius:8px;background:#F3F4F6;color:#9CA3AF;font-style:normal;display:grid;place-items:center">🔒</i>
+          </div>
+        </div>
+        <button class="btn block" data-go="s19">晋级战（差 2 题达 80%）</button>
+        <p class="muted mt8" style="text-align:center">3311 提示：「还差 2 题达 80%」（09 L4）</p>
+      </div>
+    </div>
+
+    <!-- S25 闯关地图 -->
+    <div class="scr" id="s25">
+      <div class="nav"><span class="bk" data-go="s09">‹</span>闯关地图（P6）</div>
+      <div class="pad" style="text-align:center">
+        <div class="card" style="display:flex;gap:12px;align-items:center;text-align:left"><div style="font-size:34px">⚔️</div><div><b>白银 II · 本周第 8 名</b><div class="muted">星数 46 · 距黄金差 14 ⭐</div></div></div>
+        <div style="position:relative;padding:26px 0">
+          <div style="position:absolute;left:50%;top:0;bottom:0;width:4px;background:linear-gradient(#2F6BFF,#8B5CF6);border-radius:2px;opacity:.35"></div>
+          <div class="card" style="position:relative;text-align:left"><span class="tag p2">已通关 ★★★</span><b style="display:block;margin-top:6px">第 1 关 · 等式性质</b></div>
+          <div class="card" style="position:relative;text-align:left"><span class="tag p2">已通关 ★★</span><b style="display:block;margin-top:6px">第 2 关 · 因式分解</b></div>
+          <div class="card" style="position:relative;text-align:left;border:2px solid var(--p)"><span class="tag p1">当前关</span><b style="display:block;margin-top:6px">第 3 关 · 求根公式</b><div class="muted mt8">星级：正确率≥90=★★★</div><button class="btn mt8" style="height:36px" data-go="s19">进入</button></div>
+          <div class="card" style="position:relative;text-align:left;opacity:.6"><span class="tag p4">🔒 需 48 ⭐</span><b style="display:block;margin-top:6px">第 4 关 · 根的分布</b></div>
+          <div class="card" style="position:relative;text-align:left;background:#FEF2F2;border-color:#FECACA"><span class="tag p6">BOSS · 模拟卷</span><b style="display:block;margin-top:6px">章末 Boss 战（限时 40 分钟）</b></div>
+        </div>
+        <button class="btn block" data-go="s36">看周榜 · 差 1 名进前三</button>
+      </div>
+    </div>
+
+    <!-- S26 专题详情 -->
+    <div class="scr" id="s26">
+      <div class="nav"><span class="bk" data-go="s09">‹</span>专题 · 数论入门（P5）</div>
+      <div class="pad">
+        <div class="card" style="background:linear-gradient(135deg,#EC4899,#8B5CF6);border:none;color:#fff"><b style="font-size:17px">数论入门：从整除到同余</b><p style="opacity:.85;font-size:13px;margin-top:6px">8 节点 · 从导读走到小论文 · 适合 L3+</p></div>
+        <div class="row"><span>✓</span><div style="flex:1"><div class="t">0 导读：为什么数论是"数学的体操"</div></div></div>
+        <div class="row" data-go="s14"><span style="color:var(--p)">▶</span><div style="flex:1"><div class="t">1 整除与余数（阅读+例题）</div></div><span class="chip">进行中</span></div>
+        <div class="row" data-go="s19"><span>✎</span><div style="flex:1"><div class="t">2 专题练习 · 12 题</div></div></div>
+        <div class="row"><span>📄</span><div style="flex:1"><div class="t">3 小作业：写一段"为什么 3 整除看三位"</div><div class="d">自评+社区互助</div></div></div>
+        <div class="row" style="opacity:.6"><span>🔒</span><div style="flex:1"><div class="t">4 欧几里得算法</div><div class="d">前置：同余基础</div></div></div>
+      </div>
+    </div>
+
+    <!-- S27 测评答题 -->
+    <div class="scr" id="s27">
+      <div class="nav"><span class="bk" data-go="s09">‹</span>入学测评<span class="rt" onclick="mto('退出=续答提醒（D3）')">退出</span></div>
+      <div class="pad">
+        <div style="display:flex;gap:5px;margin-bottom:6px">
+          <i style="flex:3;height:6px;border-radius:3px;background:var(--p)"></i>
+          <i style="flex:1;height:6px;border-radius:3px;background:#E5E7EB"></i>
+        </div>
+        <p class="muted">第 4/5 题 · 当前档：中考水平（连对升档/错 2 降档）</p>
+        <div class="card mt16"><b>若 <span class="math">a>b</span>，则下列恒成立的是（自适应题）</b></div>
+        <div class="opt"><span class="k">A</span><span class="math">a²>b²</span></div>
+        <div class="opt"><span class="k">B</span><span class="math">ac>bc（任意 c）</span></div>
+        <div class="opt"><span class="k">C</span><span class="math">−a<−b</span></div>
+        <div class="opt"><span class="k">D</span><span class="math">a−c>b−c</span></div>
+        <button class="btn block" data-go="s28">下一题（答完出报告）</button>
+      </div>
+    </div>
+
+    <!-- S28 测评报告/计划 -->
+    <div class="scr" id="s28">
+      <div class="nav"><span class="bk" data-go="s27">‹</span>测评报告 · 计划确认</div>
+      <div class="pad" style="text-align:center">
+        <div class="bigscore" style="font-size:44px">L3</div>
+        <p class="muted">定级：高考基础水平 · 推荐起点「判别式」</p>
+        <div class="chartph mt16"></div>
+        <p class="muted" style="margin-top:6px">维度雷达占位：代数强 / 几何弱 / 概念理解中</p>
+        <div class="card" style="text-align:left"><b>已生成首周计划（规则引擎兜底 ✓）</b>
+          <p class="muted mt8">周一：判别式课时 ×1 + 练习 10 题<br>周二：根的分布 入门 ×8<br>周三：错题重练 + 复测小节…</p></div>
+        <div class="card" style="text-align:left"><b>每日时长目标</b><input type="range" min="10" max="90" value="30" style="width:100%;accent-color:#2F6BFF"><p class="muted">30 分钟/天</p></div>
+        <button class="btn block" data-go="s29">确认计划（from=assessment）</button>
+        <button class="btn gray block" style="margin-top:10px" data-go="s08">稍后再说</button>
+      </div>
+    </div>
+
+    <!-- S29 计划日历 -->
+    <div class="scr" id="s29">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>学习计划<span class="rt">调整</span></div>
+      <div class="pad">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:9px"><b>2026 年 9 月</b><span class="muted">周 ⟷ 月</span></div>
+          <div class="cal">
+            <span class="d hd">一</span><span class="d hd">二</span><span class="d hd">三</span><span class="d hd">四</span><span class="d hd">五</span><span class="d hd">六</span><span class="d hd">日</span>
+            <span class="d in">1</span><span class="d in">2</span><span class="d mk">3</span><span class="d in">4</span><span class="d">5</span><span class="d">6</span><span class="d">7</span>
+            <span class="d in">8</span><span class="d mk">9</span><span class="d">10</span><span class="d mk">11</span><span class="d">12</span><span class="d">13</span><span class="d">14</span>
+            <span class="d" style="border:2px solid var(--p);color:var(--p);font-weight:800">15</span><span class="d">16</span><span class="d">17</span><span class="d">18</span><span class="d">19</span><span class="d">20</span><span class="d">21</span>
+          </div>
+        </div>
+        <div class="sect">今日任务（跨路径聚合）</div>
+        <div class="row"><input type="checkbox" checked style="width:18px;height:18px;accent-color:#22C55E"><div style="flex:1"><div class="t">判别式课时 ×1（P1）</div></div></div>
+        <div class="row"><input type="checkbox" style="width:18px;height:18px;accent-color:#22C55E"><div style="flex:1"><div class="t">每日一练 5 题（P4）</div></div><span class="chip gray">18:00 提醒</span></div>
+        <div class="row"><input type="checkbox" style="width:18px;height:18px;accent-color:#22C55E"><div style="flex:1"><div class="t">错题重练 3 题（复习）</div></div></div>
+        <p class="muted">动态调档：连 3 天达标 → 下周量 +1；连 3 天未完成 → 插入先修复测（09 L5）</p>
+      </div>
+    </div>
+
+    <!-- S30 统计看板 -->
+    <div class="scr" id="s30">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>学习统计</div>
+      <div class="pad">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="card"><div class="muted">本周时长</div><b style="font-size:24px">3h 42m</b></div>
+          <div class="card"><div class="muted">做题量</div><b style="font-size:24px">186</b></div>
+        </div>
+        <div class="sect">正确率趋势（折线占位）</div><div class="chartph"></div>
+        <div class="sect">推理能力画像（step_type 雷达占位）</div><div class="chartph"></div>
+        <div class="sect">知识点掌握雷达</div><div class="chartph"></div>
+        <div class="sect">学习热力（月）</div>
+        <div class="card"><div style="display:grid;grid-template-columns:repeat(14,1fr);gap:4px">
+          <i style="height:16px;border-radius:4px;background:#D1FAE5"></i><i style="height:16px;border-radius:4px;background:#6EE7B7"></i><i style="height:16px;border-radius:4px;background:#10B981"></i><i style="height:16px;border-radius:4px;background:#ECFDF5"></i><i style="height:16px;border-radius:4px;background:#6EE7B7"></i><i style="height:16px;border-radius:4px;background:#10B981"></i><i style="height:16px;border-radius:4px;background:#D1FAE5"></i>
+          <i style="height:16px;border-radius:4px;background:#6EE7B7"></i><i style="height:16px;border-radius:4px;background:#10B981"></i><i style="height:16px;border-radius:4px;background:#ECFDF5"></i><i style="height:16px;border-radius:4px;background:#D1FAE5"></i><i style="height:16px;border-radius:4px;background:#10B981"></i><i style="height:16px;border-radius:4px;background:#6EE7B7"></i><i style="height:16px;border-radius:4px;background:#10B981"></i>
+          <i style="height:16px;border-radius:4px;background:#ECFDF5"></i><i style="height:16px;border-radius:4px;background:#D1FAE5"></i><i style="height:16px;border-radius:4px;background:#6EE7B7"></i><i style="height:16px;border-radius:4px;background:#10B981"></i><i style="height:16px;border-radius:4px;background:#D1FAE5"></i><i style="height:16px;border-radius:4px;background:#ECFDF5"></i><i style="height:16px;border-radius:4px;background:#6EE7B7"></i>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- S31 周报 -->
+    <div class="scr" id="s31">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>第 38 周学习周报</div>
+      <div class="pad" style="text-align:center">
+        <div class="card" style="background:linear-gradient(135deg,#0B1220,#1E293B);border:none;color:#fff;padding:26px 18px">
+          <p style="opacity:.7;font-size:13px">数源 MathOrigin · 周报</p>
+          <div style="display:flex;justify-content:center;gap:26px;margin-top:18px">
+            <div><b style="font-size:26px">3.7h</b><div style="font-size:11.5px;opacity:.7">学习时长</div></div>
+            <div><b style="font-size:26px">186</b><div style="font-size:11.5px;opacity:.7">做题</div></div>
+            <div><b style="font-size:26px">83%</b><div style="font-size:11.5px;opacity:.7">正确率</div></div>
+          </div>
+        </div>
+        <div class="card" style="text-align:left"><b>AI 点评（无 Key=模板文案）</b><p class="muted mt8">本周代数稳中有升，「根的分布」仍是最大缺口——它卡的不是计算，是前置不等式。下周建议：先补 1 节前置，再攻 8 题。</p></div>
+        <div class="card" style="text-align:left"><b>下周建议任务</b><p class="muted mt8">· 不等式性质 课时 ×1<br>· 根的分布 L2 ×8<br>· 错题重练（周三到期 6 题）</p></div>
+        <button class="btn block" onclick="mto('周报分享海报已生成')">生成分享海报</button>
+      </div>
+    </div>
+
+    <!-- S32 公式馆列表 -->
+    <div class="scr" id="s32">
+      <div class="nav"><span class="bk" data-go="s10">‹</span>公式馆</div>
+      <div class="pad">
+        <div class="card" style="padding:8px 12px;display:flex;gap:8px;align-items:center">🔍<input placeholder="搜公式/别名（全站可点 F1）" style="border:none;outline:none;flex:1;font-size:14.5px;background:none"></div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px"><span class="chip">代数</span><span class="chip gray">几何·三角</span><span class="chip gray">分析</span><span class="chip gray">tier 筛选</span></div>
+        <div class="card" style="cursor:pointer" data-go="s33"><div style="display:flex;justify-content:space-between"><b>勾股定理</b><span class="tag p2">✓ 严格证明</span></div><div class="math mt8" style="font-size:19px">a² + b² = c²</div><p class="muted mt8">⚠ 仅直角三角形 · 别名：毕达哥拉斯/商高</p></div>
+        <div class="card" style="cursor:pointer" data-go="s33"><div style="display:flex;justify-content:space-between"><b>求根公式</b><span class="tag p2">✓ 推导确立</span></div><div class="math mt8" style="font-size:19px">x = (−b ± √(b²−4ac)) / 2a</div><p class="muted mt8">⚠ a≠0；判别式&lt;0 实数域无解</p></div>
+        <div class="card" style="cursor:pointer" data-go="s33"><div style="display:flex;justify-content:space-between"><b>均值不等式</b><span class="tag p2">✓ 严格证明</span></div><div class="math mt8" style="font-size:19px">(a+b)/2 ≥ √(ab)</div><p class="muted mt8">⚠ a,b&gt;0 且取等条件 a=b</p></div>
+        <div class="card" style="opacity:.75"><div style="display:flex;justify-content:space-between"><b>黎曼 ζ 函数猜想</b><span class="tag" style="background:#FEE2E2;color:#B91C1C">未证实</span></div><p class="muted mt8">proof_status=4 红紫徽标 · F3 口径</p></div>
+      </div>
+    </div>
+
+    <!-- S33 公式详情 -->
+    <div class="scr" id="s33">
+      <div class="nav"><span class="bk" data-go="s32">‹</span>公式详情（11 号七件套）</div>
+      <div class="pad">
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">几何 · tier 1</span><span class="tag p2">✓ 严格证明</span></div>
+        <h1 style="font-size:24px;margin-top:8px">勾股定理</h1>
+        <p class="muted">别名：毕达哥拉斯定理 · 商高定理</p>
+        <div class="card" style="text-align:center;padding:30px 14px;border:2px solid var(--line)"><span class="math" style="font-size:40px">a² + b² = c²</span></div>
+        <div class="card" style="border-color:#FECACA;background:#FEF2F2">
+          <b style="color:#B91C1C">⚠ 成立条件：仅直角三角形（∠C=90°）</b>
+          <p class="muted mt8">边长为正实数；任意三角形请走余弦定理（pulse 一次动画）</p>
+        </div>
+        <div style="display:flex;gap:9px"><button class="btn ghost" style="flex:1" onclick="mto('✓ 已复制 a²+b²=c²')">⧉ 复制</button><button class="btn gray" style="flex:1" data-go="s17">关联词条</button></div>
+        <div class="sect">推导摘要三步（完整五玩→深钻）</div>
+        <div class="card"><b class="math" style="color:var(--p)">S1</b> 面积拼图：四三角形拼大正方形<div class="muted mt8">面积守恒是起点</div></div>
+        <div class="card"><b class="math" style="color:var(--p)">S2</b> 代数整理：2ab 两边相消<div class="muted mt8">等价变形</div></div>
+        <div class="card" style="border-style:dashed" data-go="s15"><b>▸ S3 完整五玩</b><div class="muted mt8">顺逆/多解/预测 → 学员端深钻</div></div>
+        <div class="sect">常见错误变形（红笔）</div>
+        <div class="card" style="border-style:dashed;border-color:#FECACA"><span class="math" style="color:var(--bad);text-decoration:line-through">a²+b²=c² 对任意三角形成立</span><p class="muted mt8">缺 −2ab·cosC 修正项；C=90° 才退化</p></div>
+        <button class="btn block" data-go="s19">试做第 1 题（题面公开）</button>
+      </div>
+    </div>
+
+    <!-- S34 打卡日历 -->
+    <div class="scr" id="s34">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>打卡日历</div>
+      <div class="pad" style="text-align:center">
+        <div class="card" style="background:linear-gradient(135deg,#FFB020,#F97316);border:none;color:#fff">
+          <b style="font-size:30px" id="ckStreak">🔥 12</b><p style="opacity:.9;font-size:13px">连续打卡天数 · 补签卡 ×2</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:9px"><b>9 月</b><span class="muted">✓ 已打卡 · 🟦 补签</span></div>
+          <div class="cal">
+            <span class="d hd">一</span><span class="d hd">二</span><span class="d hd">三</span><span class="d hd">四</span><span class="d hd">五</span><span class="d hd">六</span><span class="d hd">日</span>
+            <span class="d in">✓</span><span class="d in">✓</span><span class="d in">✓</span><span class="d" style="background:#DBEAFE;color:#2F6BFF;font-weight:700">🟦</span><span class="d in">✓</span><span class="d in">✓</span><span class="d in">✓</span>
+            <span class="d in">✓</span><span class="d in">✓</span><span class="d in">✓</span><span class="d in">✓</span><span class="d in">✓</span><span class="d in">✓</span><span class="d" id="ckToday" style="cursor:pointer;font-weight:800">15</span>
+          </div>
+        </div>
+        <button class="btn block" id="ckBtn2">今日打卡（+5 · 动效）</button>
+        <p class="muted mt8">补签：消耗补签卡 ×1（3502 卡不足）· 00:05 日结断签</p>
+      </div>
+    </div>
+
+    <!-- S35 积分明细 -->
+    <div class="scr" id="s35">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>积分明细</div>
+      <div class="pad" style="text-align:center">
+        <div class="card"><div class="muted">当前余额</div><b style="font-size:38px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">1,240</b><p class="muted">今日获取 45 / 上限 200（防通胀）</p></div>
+        <div class="card" style="text-align:left"><div style="display:flex"><b>每日一练全对</b><span style="margin-left:auto;color:var(--ok);font-weight:800">+10</span></div><div class="muted">今天 09:12</div></div>
+        <div class="card" style="text-align:left"><div style="display:flex"><b>连续打卡 7 天奖励</b><span style="margin-left:auto;color:var(--ok);font-weight:800">+20</span></div><div class="muted">今天 08:03</div></div>
+        <div class="card" style="text-align:left"><div style="display:flex"><b>AI 对话 2 次（前 3 次免费后 −5）</b><span style="margin-left:auto;color:#B91C1C;font-weight:800">−5</span></div><div class="muted">昨天 21:40</div></div>
+        <div class="card" style="text-align:left"><div style="display:flex"><b>补签卡兑换</b><span style="margin-left:auto;color:#B91C1C;font-weight:800">−20</span></div><div class="muted">9 月 12 日</div></div>
+      </div>
+    </div>
+
+    <!-- S36 排行榜 -->
+    <div class="scr" id="s36">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>排行榜 / 挑战赛</div>
+      <div class="pad">
+        <div style="display:flex;gap:8px;margin-bottom:12px"><span class="chip">周榜</span><span class="chip gray">总榜</span><span class="chip gray">赛事</span></div>
+        <div class="card" style="background:#FFFBEB;border-color:#FDE68A;display:flex;gap:11px;align-items:center"><b style="color:#B45309">1</b><div style="width:36px;height:36px;border-radius:50%;background:#FDE68A;display:grid;place-items:center">甲</div><div style="flex:1"><b>甲同学</b><div class="muted">黄金 I · 2,410 分</div></div></div>
+        <div class="card" style="display:flex;gap:11px;align-items:center"><b style="color:#9CA3AF">2</b><div style="width:36px;height:36px;border-radius:50%;background:#E5E7EB;display:grid;place-items:center">乙</div><div style="flex:1"><b>乙同学</b><div class="muted">白银 I · 2,120 分</div></div></div>
+        <div class="card" style="display:flex;gap:11px;align-items:center"><b style="color:#B45309">3</b><div style="width:36px;height:36px;border-radius:50%;background:#FED7AA;display:grid;place-items:center">丙</div><div style="flex:1"><b>丙同学</b><div class="muted">白银 II · 1,980 分</div></div></div>
+        <div class="sect">进行中的挑战赛</div>
+        <div class="card" style="border-left:4px solid var(--p6)"><b>九月阶梯挑战 · 3 天后开赛</b><p class="muted mt8">限时 48h · 前 10 名 +100 分 · 参与 +10</p><button class="btn mt8" style="height:38px" onclick="mto('已报名（→注册/开赛提醒）')">报名参赛</button></div>
+        <div class="card" style="position:sticky;bottom:0;border-color:var(--p)"><div style="display:flex;gap:11px;align-items:center"><b style="color:var(--p)">8</b><div style="width:36px;height:36px;border-radius:50%;background:var(--p);color:#fff;display:grid;place-items:center">A</div><div style="flex:1"><b>我（同学A）</b><div class="muted">白银 II · 1,240 分 · 距第 7 名 60 分</div></div></div></div>
+      </div>
+    </div>
+
+    <!-- S37 发帖 -->
+    <div class="scr" id="s37">
+      <div class="nav"><span class="bk" data-go="s11">‹</span>发帖<span class="rt" onclick="mto('已提交：命中词→审核中，否则先发后审（09 L7）')">发布</span></div>
+      <div class="pad">
+        <input placeholder="标题：说清楚你的问题" style="width:100%;height:46px;border:1.5px solid var(--line);border-radius:11px;padding:0 13px;font-size:15.5px;outline:none;font-weight:700">
+        <div class="card mt16" style="min-height:180px">
+          <p class="muted">正文（富文本）：这一步为什么要除以 sinC？我总觉得跳了什么…</p>
+          <div class="mathbar" style="margin-top:12px"><button>x²</button><button>√</button><button data-ins="sin()">sin</button><button>π</button><button>∫</button><button>±</button></div>
+        </div>
+        <div class="row"><div style="flex:1"><div class="t">＋ 关联题目/知识点</div><div class="d">原题卡将随帖展示</div></div><span class="chip">已关联 #1024</span></div>
+        <div class="card" style="border-color:#FDE68A;background:#FFFBEB"><b style="font-size:13px;color:#B45309">发布前提示</b><p class="muted mt8">内容将经过实时检测：命中词会进入"审核中"，他人暂不可见（3401）。</p></div>
+      </div>
+    </div>
+
+    <!-- S38 帖详情 -->
+    <div class="scr" id="s38">
+      <div class="nav"><span class="bk" data-go="s11">‹</span>帖子详情</div>
+      <div class="pad">
+        <div style="display:flex;gap:10px;align-items:center"><div style="width:38px;height:38px;border-radius:50%;background:#DBEAFE;display:grid;place-items:center">B</div><div><b>小B</b><div class="muted">2 小时前 · 三角学话题</div></div></div>
+        <div class="card mt16"><b>这步为什么要除以 sinC？</b><p class="mt8" style="font-size:14.5px">解三角形那步直接除了，心里不踏实——什么条件保证这样做不丢解？</p></div>
+        <div class="card" style="background:var(--p-l);border-color:#C7D6FF"><b>原题卡 #1024</b><p class="muted mt8">点击进题目（只读）→ 关联深钻</p></div>
+        <div class="sect">回复 6</div>
+        <div class="card" style="border-left:4px solid var(--ok)"><div style="display:flex;gap:8px;align-items:center"><b>答主D</b><span class="chip ok">✓ 最佳答案</span></div><p class="mt8" style="font-size:14.5px">因为 C 是三角形内角，sinC∈(0,1] 恒不为 0——除式安全。丢解风险在"两边同除含变量的式子"，这里是常数化简。</p><div class="muted mt8">👍 24</div></div>
+        <div class="card"><b>答主E</b><p class="mt8" style="font-size:14.5px">补充：正弦定理的 a/sinA 本来就是"比值恒等"结构…</p><div class="muted mt8">👍 8</div></div>
+        <div style="display:flex;gap:9px;position:sticky;bottom:0;background:var(--bg);padding:10px 0">
+          <input placeholder="写下你的回复…" style="flex:1;height:44px;border-radius:11px;border:1.5px solid var(--line);padding:0 13px;outline:none">
+          <button class="btn" onclick="mto('回复已提交')">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S39 AI 对话 -->
+    <div class="scr" id="s39">
+      <div class="aiwrap">
+        <div class="nav" style="background:#fff;border-bottom:1px solid var(--line)"><span class="bk" data-go="s08">✕</span>AI 导师 · 苏格拉底模式<span class="rt" id="aiMode">切换直接讲解</span></div>
+        <div class="card" style="margin:10px 16px 0;background:var(--p-l);border-color:#C7D6FF;font-size:13px">📌 上下文：#1024 解方程 <span class="math">x²−5x+6=0</span>（题面唤起=60% 半屏，悬浮球=全屏 · M5）</div>
+        <div class="aistream" id="aiStream">
+          <div class="bub ai">已知 (x−2)(x−3)=0，先别急着写答案——你觉得"积为 0"意味着什么？</div>
+          <div class="bub me">两个因子里至少一个为 0？</div>
+          <div class="bub ai">对。那把它说完整：x−2=0 或 x−3=0，然后呢？</div>
+        </div>
+        <div class="aiq">
+          <span class="chip" data-aq="为什么不能两边同除 (x−2)？">为什么不能两边同除 (x−2)？</span>
+          <span class="chip gray" data-aq="给我出两道同类题">给我出两道同类题</span>
+        </div>
+        <div class="aiinput">
+          <input id="aiIn" placeholder="继续追问…（Enter 发送）">
+          <button class="btn" style="height:42px;padding:0 16px" id="aiSend">发送</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- S40 通知中心 -->
+    <div class="scr" id="s40">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>通知<span class="rt" onclick="mto('全部已读')">全部已读</span></div>
+      <div class="pad">
+        <div style="display:flex;gap:7px;margin-bottom:12px"><span class="chip">系统 2</span><span class="chip gray">学习 5</span><span class="chip gray">社区 3</span><span class="chip gray">审核 1</span></div>
+        <div class="row"><div style="width:34px;height:34px;border-radius:10px;background:#EDE9FE;display:grid;place-items:center">📢</div><div style="flex:1"><div class="t">协议已更新，需重新确认</div><div class="d">系统 · 点击弹协议勾选（v1.1）</div></div><i style="width:8px;height:8px;border-radius:50%;background:#EF4444"></i></div>
+        <div class="row"><div style="width:34px;height:34px;border-radius:10px;background:#DBEAFE;display:grid;place-items:center">🎯</div><div style="flex:1"><div class="t">每日一练已为你排好 5 题</div><div class="d">学习 · 今天 09:00</div></div><i style="width:8px;height:8px;border-radius:50%;background:#EF4444"></i></div>
+        <div class="row" data-go="s31"><div style="width:34px;height:34px;border-radius:10px;background:#D1FAE5;display:grid;place-items:center">📈</div><div style="flex:1"><div class="t">第 38 周周报已生成</div><div class="d">学习 · 昨天</div></div><span class="ar">›</span></div>
+        <div class="row" data-go="s38"><div style="width:34px;height:34px;border-radius:10px;background:#FCE7F3;display:grid;place-items:center">💬</div><div style="flex:1"><div class="t">你的问题收到 3 个新回复</div><div class="d">社区 · 深链直达帖子</div></div><span class="ar">›</span></div>
+        <div class="row"><div style="width:34px;height:34px;border-radius:10px;background:#FEF3C7;display:grid;place-items:center">🛡</div><div style="flex:1"><div class="t">你的帖子已通过审核</div><div class="d">审核 · 状态机通知</div></div></div>
+      </div>
+    </div>
+
+    <!-- S41 全屏搜索 -->
+    <div class="scr" id="s41">
+      <div class="nav"><span class="bk" data-go="s08">‹</span>搜索</div>
+      <div class="pad">
+        <div class="card" style="padding:8px 12px;display:flex;gap:8px;align-items:center">🔍<input autofocus placeholder="课程 / 题目 / 知识点 / 公式 / 帖子" style="border:none;outline:none;flex:1;font-size:15px;background:none"></div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px"><span class="chip">全部</span><span class="chip gray">课程</span><span class="chip gray">题目</span><span class="chip gray">知识点</span><span class="chip gray">公式</span><span class="chip gray">帖子</span></div>
+        <div class="sect">结果预览</div>
+        <div class="row" data-go="s33"><div style="flex:1"><div class="t">勾股定理（公式）</div><div class="d">a²+b²=c² · ⚠ 仅直角</div></div><span class="ar">›</span></div>
+        <div class="row" data-go="s17"><div style="flex:1"><div class="t">因式分解（知识点）</div><div class="d">掌握 61 · 薄弱</div></div><span class="ar">›</span></div>
+        <div class="sect">试试这些</div>
+        <div><span class="chip gray">正弦起源</span> <span class="chip gray">判别式</span> <span class="chip gray">根的分布</span></div>
+      </div>
+    </div>
+
+    <!-- S42 设置 -->
+    <div class="scr" id="s42">
+      <div class="nav"><span class="bk" data-go="s12">‹</span>设置</div>
+      <div class="pad">
+        <div class="sect">账号</div>
+        <div class="row"><div class="t">账号安全</div><span class="muted" style="margin-left:auto">改密 / 绑定手机</span><span class="ar">›</span></div>
+        <div class="row" data-go="s43"><div class="t">数据导出</div><span class="ar">›</span></div>
+        <div class="row" data-go="s44" style="border-color:#FECACA"><div class="t" style="color:#B91C1C">注销账号</div><span class="muted" style="margin-left:auto">7 天冷静期</span><span class="ar">›</span></div>
+        <div class="sect">内容与协议</div>
+        <div class="row" data-go="s06"><div class="t">用户协议 / 隐私政策</div><span class="muted" style="margin-left:auto">v1.1 · 可查</span><span class="ar">›</span></div>
+        <div class="row"><div class="t">消息通知设置</div><span class="muted" style="margin-left:auto">订阅消息 · 打卡提醒</span><span class="ar">›</span></div>
+        <div class="sect">其他</div>
+        <div class="row"><div class="t">判分振动</div><input type="checkbox" checked style="width:18px;height:18px;accent-color:#22C55E;margin-left:auto"></div>
+        <div class="row"><div class="t">清理缓存</div><span class="muted" style="margin-left:auto">18.2 MB</span><span class="ar">›</span></div>
+        <div class="row"><div class="t">关于</div><span class="muted" style="margin-left:auto">数源 MathOrigin v0.1</span><span class="ar">›</span></div>
+        <button class="btn gray block mt16">退出登录</button>
+      </div>
+    </div>
+
+    <!-- S43 数据导出 -->
+    <div class="scr" id="s43">
+      <div class="nav"><span class="bk" data-go="s42">‹</span>数据导出（01 U-06）</div>
+      <div class="pad">
+        <div class="card"><b>将导出哪些数据？</b><p class="muted mt8">· 个人资料与设置<br>· 全部作答记录与成绩<br>· 错题本与掌握度<br>· 笔记与收藏</p></div>
+        <div class="card" style="background:#EFF6FF;border-color:#BFDBFE"><b>形式与期限</b><p class="muted mt8">JSON + CSV 打包 → 站内信给下载链接，<b>7 天自动清除</b>（02 §7 清理任务）。</p></div>
+        <button class="btn block" id="expBtn">申请导出</button>
+        <div id="expDone" style="display:none">
+          <div class="card" style="border-color:#A7F3D0;background:#F0FDF4;margin-top:12px"><b>✓ 导出包已生成</b><p class="muted mt8">learnmath-export-20260915.zip（2.4 MB）· 6 天 23 小时后失效</p></div>
+        </div>
+        <div class="sect">历史</div>
+        <div class="card muted">暂无历史导出</div>
+      </div>
+    </div>
+
+    <!-- S44 注销冷静期 -->
+    <div class="scr" id="s44">
+      <div class="nav"><span class="bk" data-go="s42">‹</span>注销账号（01 U-07）</div>
+      <div class="pad">
+        <div class="card" style="border-color:#FECACA;background:#FEF2F2">
+          <b style="color:#B91C1C">注销后你将失去</b>
+          <p class="muted mt8">· 1,240 积分与全部成就徽章<br>· 学习进度与掌握度数据<br>· 社区内容将显示为「已注销用户」<br>· 全端下线（2009）</p>
+        </div>
+        <div class="card"><b>二次验证</b><p class="muted mt8">验证码确认身份（敏感操作）</p>
+          <div class="codebox" style="margin:12px 0 0"><b>8</b><b>6</b><b>1</b><b>3</b><b class="on">·</b><b>·</b></div>
+        </div>
+        <button class="btn block" style="background:#EF4444;box-shadow:none" onclick="mto('已进入冷静期（模拟）→ S44 倒计时态')">确认申请注销</button>
+
+        <div class="hr"></div>
+        <div class="card" style="border-color:var(--p)">
+          <b>冷静期进行中（状态 3）</b>
+          <div style="text-align:center;margin:12px 0"><b style="font-size:34px;color:var(--p)">6天23h</b><p class="muted">到期后自动匿名化（PII 清除、社区保留显示已注销）</p></div>
+          <button class="btn block" data-go="s12" onclick="mto('✓ 已撤销注销，账号恢复正常')">撤销注销（登录即撤销）</button>
+        </div>
+        <p class="muted">流程映射：S42 → 验证码二次验证 → 确认页 → 冷静期页；期满=全端 2009（15 §6）</p>
+      </div>
+    </div>
+
+    <!-- 全局：TabBar / toast / AI 悬浮（部分屏隐藏） -->
+    <div class="tabbar" id="tabbar">
+      <div class="tb" data-go="s08"><i>⌂</i>首页</div>
+      <div class="tb" data-go="s09"><i>◈</i>路径</div>
+      <div class="tb" data-go="s10"><i>✎</i>做题</div>
+      <div class="tb" data-go="s11"><i>☰</i>社区</div>
+      <div class="tb" data-go="s12"><i>☺</i>我的</div>
+    </div>
+    <div id="mto"></div>
+  </div>
+</div>
+<div class="hint">📱 390×844 视口 · 🎯=核心可点链：<b>启动→引导→登录→测评弹层→首页打卡→课时随堂练→作答(答题卡/工具条)→报告→错题断链→深钻五玩→AI→公式→设置注销</b><br>其余屏经左侧目录直达（M6 全量 44 屏）。Tab 五页底部可切。</div>
+</div>
+</div>
+
+<script>
+/* ===== 屏切换 ===== */
+const TABS=['s08','s09','s10','s11','s12'];
+function go(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  const el=document.getElementById(id); if(!el)return;
+  el.classList.add('on'); el.scrollTop=0;
+  const vp=document.getElementById('vp');
+  vp.classList.toggle('has-tab',TABS.includes(id));
+  document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on',a.dataset.go===id));
+  document.querySelectorAll('.tb').forEach(t=>t.classList.toggle('on',t.dataset.go===id));
+  if(id==='s05')startResend();
+}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-go]');
+  if(el&&!e.target.closest('input')){e.preventDefault();go(el.dataset.go);}
+});
+go('s01');
+
+/* toast */
+let mt;function mto(m){const t=document.getElementById('mto');t.textContent=m;t.classList.add('on');clearTimeout(mt);mt=setTimeout(()=>t.classList.remove('on'),2000)}
+window.mto=mto;window.go=go;
+
+/* 引导轮播 */
+let ob=0;const obTrack=document.getElementById('obTrack'),obDots=document.getElementById('obDots');
+function obSet(i){ob=(i+3)%3;obTrack.style.transform='translateX('+(-ob*100)+'%)';
+  obDots.querySelectorAll('i').forEach((d,k)=>d.classList.toggle('on',k===ob));
+  document.getElementById('obBtn').textContent=ob===2?'开始学习 →':'下一步'}
+obDots.querySelectorAll('i').forEach((d,k)=>d.onclick=()=>obSet(k));
+document.getElementById('obBtn').onclick=e=>{if(ob<2){e.stopImmediatePropagation();obSet(ob+1)}};
+
+/* 登录：更多方式折叠 / 协议校验 */
+document.getElementById('moreToggle').onclick=function(){
+  const m=document.getElementById('moreLogin');
+  const open=m.style.display==='none';
+  m.style.display=open?'block':'none';this.textContent=open?'收起 ▴':'更多方式 ▾';
+};
+document.getElementById('smsBtn').onclick=function(){
+  const ck=document.getElementById('agreeCk');
+  if(!ck.checked){this.classList.add('shake');mto('请先勾选协议（未勾选禁用 · 01-U05）');
+    setTimeout(()=>this.classList.remove('shake'),350);return}
+  go('s05');
+};
+document.getElementById('agreeAll').onclick=()=>{document.getElementById('agreeCk').checked=true;mto('✓ 已同意并继续');go('s04')};
+
+/* 验证码 */
+let code='',rsTimer;
+function renderCode(){document.querySelectorAll('#codeBox b').forEach((b,i)=>{b.textContent=code[i]||'';b.classList.toggle('on',!!code[i])});
+  document.getElementById('loginBtn').disabled=code.length<6}
+document.querySelectorAll('#codeBox b').forEach((b,i)=>b.onclick=()=>{
+  code=(code+'123456'.slice(0,6-code.length)).slice(0,6);renderCode();
+  if(code.length===6)mto('验证码正确 · 点「登录」');
+});
+document.getElementById('loginBtn').onclick=()=>{mto('登录成功 → 新用户弹测评引导');go('s03')};
+function startResend(){let s=60;clearInterval(rsTimer);
+  rsTimer=setInterval(()=>{s--;const el=document.getElementById('reSend');
+    if(!el)return clearInterval(rsTimer);
+    el.textContent=s>0?s+'s 后重新发送':'重新发送验证码';if(s<=0)clearInterval(rsTimer)},1000)}
+
+/* 首页打卡 */
+function doCheckin(btn){
+  if(btn.dataset.done)return;btn.dataset.done=1;
+  btn.textContent='✓ 已打卡';btn.classList.add('pop');
+  const s=document.getElementById('ckStreak');if(s){s.textContent='🔥 13';s.classList.add('pop')}
+  const d=document.getElementById('ckToday');if(d){d.classList.add('in');d.textContent='✓'}
+  mto('打卡成功 +5 · 连续 13 天（动效）');
+}
+document.getElementById('ckBtn').onclick=e=>{e.stopPropagation();doCheckin(e.target)};
+const ck2=document.getElementById('ckBtn2');if(ck2)ck2.onclick=()=>doCheckin(ck2);
+
+/* 课时随堂练/作答判分 */
+document.querySelectorAll('.quiz1').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('.quiz1').forEach(x=>{if(x.dataset.r==='1')x.classList.add('right')});
+  if(o.dataset.r!=='1')o.classList.add('wrong');else mto('✓ 答对了（判分+振动）');
+});
+document.querySelectorAll('.judge').forEach(o=>o.onclick=()=>{
+  document.querySelectorAll('.judge').forEach(x=>{if(x.dataset.r==='1')x.classList.add('right')});
+  if(o.dataset.r!=='1')o.classList.add('wrong');else{mto('✓ 正确 + 轻振动');document.getElementById('judgeExp').style.display='block'}
+});
+document.getElementById('subAns').onclick=()=>{
+  const f=document.getElementById('fillIn');
+  if(!f.value){mto('填空为空 · 用工具条输入试试');return}
+  mto('填空判分：'+(f.value.includes('5')?'✓ 正确':'✗ 再看看配方'));
+};
+document.querySelectorAll('.mathbar button[data-ins]').forEach(b=>b.onclick=()=>{
+  const f=document.getElementById('fillIn');if(f){f.value+=b.dataset.ins;f.focus()}
+});
+
+/* 答题卡抽屉（S19 内） */
+const asD=document.getElementById('asDim'),asS=document.getElementById('asSheet');
+function sheet(open){asD.classList.toggle('on',open);asS.classList.toggle('on',open)}
+document.getElementById('openSheet').onclick=()=>sheet(true);
+document.getElementById('closeSheet').onclick=()=>sheet(false);
+document.getElementById('closeSheet2').onclick=()=>sheet(false);
+asD.onclick=()=>sheet(false);
+document.querySelectorAll('#aGrid .acell').forEach(c=>c.onclick=()=>{sheet(false);mto('跳到第 '+c.textContent.replace('⚑','')+' 题')});
+
+/* 深钻模式 Tab */
+document.querySelectorAll('#ddTabs .mt').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('#ddTabs .mt').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+  document.querySelectorAll('#s15 .dm').forEach(d=>d.style.display=d.dataset.m===t.dataset.dm?'block':'none');
+});
+document.querySelectorAll('#s15 .pred').forEach(o=>o.onclick=()=>{
+  if(document.querySelector('#s15 .pred.right'))return;
+  document.querySelectorAll('#s15 .pred').forEach(x=>{if(x.dataset.ok==='1')x.classList.add('right')});
+  const cm=document.getElementById('predCm');cm.style.display='block';
+  if(o.dataset.ok==='1'){cm.style.borderColor='var(--ok)';cm.style.background='#F0FDF4';cm.innerHTML='✓ 完全正确——零因子律正是这步的依据，动机：目标是降次。'}
+  else{cm.style.borderColor='var(--warn)';cm.style.background='#FFFBEB';cm.innerHTML='「你会这么想：除掉一个因式更快」——<b>但 (x−2) 可能为 0，同除会丢根</b>；除变量式前必须讨论是否为零。'}
+});
+
+/* 节点四卡 */
+document.querySelectorAll('#fcTabs .fc').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('#fcTabs .fc').forEach(x=>{x.classList.remove('on');x.classList.add('gray')});
+  c.classList.add('on');c.classList.remove('gray');
+  document.querySelectorAll('.fcp').forEach(p=>p.style.display=p.dataset.fc===c.dataset.fc?'block':'none');
+});
+
+/* AI 打字机 */
+function aiReply(q){
+  const stream=document.getElementById('aiStream');
+  const um=document.createElement('div');um.className='bub me';um.textContent=q;stream.appendChild(um);
+  const am=document.createElement('div');am.className='bub ai';stream.appendChild(am);
+  const txt=q.includes('出题')?'好，两道同类题已生成（AI 出题 → 标准作答流，-10 积分）：① x²−7x+12=0 ② 2x²−8x+6=0'
+          :q.includes('除')?'关键在除式的值：(x−2) 是变量式，可能为 0——同除会丢解。常数化简才可随意除。':'我们把它拆成三步：先看条件给了什么，再问目标缺什么，最后选桥梁。你想先看哪边？';
+  let i=0;(function type(){am.textContent=txt.slice(0,++i);stream.scrollTop=1e5;if(i<txt.length)setTimeout(type,18)})()
+}
+function aiSend(){const inp=document.getElementById('aiIn');if(!inp.value.trim())return;aiReply(inp.value.trim());inp.value=''}
+document.getElementById('aiSend').onclick=aiSend;
+document.getElementById('aiIn').addEventListener('keydown',e=>{if(e.key==='Enter')aiSend()});
+document.querySelectorAll('#s39 .chip[data-aq]').forEach(c=>c.onclick=()=>aiReply(c.dataset.aq));
+document.getElementById('aiMode').onclick=function(){
+  const soc=this.textContent.includes('苏格拉底');
+  this.textContent=soc?'切换苏格拉底':'切换直接讲解';
+  mto(soc?'已切直接讲解（E5 双模式）':'已切回苏格拉底（默认）');
+};
+
+/* 导出 */
+const exp=document.getElementById('expBtn');
+if(exp)exp.onclick=()=>{exp.textContent='打包中…';exp.disabled=true;
+  setTimeout(()=>{exp.style.display='none';document.getElementById('expDone').style.display='block';mto('导出完成 → 站内信已发')},900)};
+</script>
+</body>
+</html>
