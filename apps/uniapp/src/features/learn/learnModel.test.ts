@@ -1,0 +1,9 @@
+import { describe, expect, it } from "vitest";
+import { chaptersOf, chainsOf, lessonOf, narrativeOf, nodeStatus, readReceipt, readingBlocks } from "./learnModel";
+describe("mobile learning BR02/06/08",()=>{
+  it("keeps reading, practice and completion as separate server states",()=>{expect(readReceipt({readCompleted:true,practicePassed:false,lessonCompleted:false})).toEqual({readCompleted:true,practicePassed:false,lessonCompleted:false});expect(readReceipt({readCompleted:false,practicePassed:false,lessonCompleted:true})).toBeNull();expect(lessonOf({title:"课时",content:"正文"})?.completionPolicy).toBeNull();});
+  it("does not show draft narrative when there is no published snapshot",()=>{expect(narrativeOf({origin:"未审稿",publishedVersion:0})).toBeNull();expect(narrativeOf({origin:"未审稿",publishedVersion:3})).toBeNull();expect(narrativeOf({publishedVersion:3,published_snapshot:{origin:"已发布"},origin:"新草稿"})?.cards.origin).toBe("已发布");expect(narrativeOf({publishedVersion:3,published_snapshot:{origin:"已发布"}})?.missing).toContain("能力地图");});
+  it("fails closed on unknown course tree and distinguishes graph states",()=>{expect(chaptersOf({items:[]})).toBeNull();expect(nodeStatus({id:1,name:"n",description:"",domain:"",score:null,locked:null,preparing:null,insufficientSample:null})).toBe("证据待核实");});
+  it("needs stable chain and step ids before rendering",()=>{expect(chainsOf([{id:1,title:"综合法",chainVersion:2,steps:[{id:7,seq:1,content:"推出"}]}])?.[0].steps[0].id).toBe(7);expect(chainsOf([{title:"缺编号",steps:[]}])).toBeNull();});
+  it("renders Markdown as native safe text blocks",()=>{const blocks=readingBlocks("# 标题\n\n<script>alert(1)</script>\n\n$$\nx^2+1\n$$");expect(blocks.map(x=>x.kind)).toEqual(["heading","paragraph","math"]);expect(blocks[1].text).toBe("<script>alert(1)</script>");});
+});

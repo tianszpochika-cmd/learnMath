@@ -1,285 +1,189 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
-  adaptiveHint,
-  assessProgress,
-  assessmentReportView,
-  dimRateText,
-  levelLabel,
-} from "../features/plan/planUi";
+  readAssessmentReport,
+  readAvailableAssessments,
+  startAssessment,
+  type AssessmentChoice,
+  type AssessmentReport,
+} from "../services/assessments";
 
-/** W11 测评答题 → 报告（16W11 · 定级与升降权威在服务端，本页提示+报告投影）。 */
+const route = useRoute();
 const router = useRouter();
+const id = computed(() => String(route.params.id ?? ""));
+const isReport = computed(() => route.name === "assessment-result");
+const catalog = ref<AssessmentChoice[]>([]);
+const report = ref<AssessmentReport | null>(null);
+const loading = ref(false);
+const starting = ref(false);
+const error = ref("");
+const acceptedRules = ref(false);
+let requestSerial = 0;
 
-const state = reactive({ level: 2, consecutiveCorrect: 0, wrongInLevel: 0, answered: 0 });
-const hint = computed(() => adaptiveHint(state));
-const progress = computed(() => assessProgress(state.answered));
+const selected = computed(() => catalog.value.find((entry) => entry.id === id.value) ?? null);
+const reportFinal = computed(() => report.value !== null && ["completed", "finalized", "2"].includes(report.value.status));
 
-const questions = [
-  { stem: "若 a > b，则下列恒成立的是？", options: ["a² > b²", "ac > bc（任意 c）", "−a < −b", "a−c > b−c"], answer: 3 },
-  { stem: "一元二次方程判别式 Δ = b²−4ac，Δ = 0 说明？", options: ["两不等实根", "无实根", "两相等实根", "无法判断"], answer: 2 },
-  { stem: "因式分解 x²−5x+6 = ?", options: ["(x−1)(x−6)", "(x−2)(x−3)", "(x+2)(x+3)", "(x−2)(x+3)"], answer: 1 },
-];
-const idx = ref(0);
-const selected = ref(-1);
-const finished = ref(false);
-
-function pick(i: number): void {
-  selected.value = i;
-}
-function next(): void {
-  if (selected.value < 0) return;
-  const correct = selected.value === questions[idx.value].answer;
-  state.answered += 1;
-  if (correct) {
-    state.consecutiveCorrect += 1;
-    // 注意：答对不清 wrongInLevel（档内错题计数只在换档/降档时重置，与服务端一致）
-  } else {
-    state.wrongInLevel += 1;
-    state.consecutiveCorrect = 0;
-    if (state.wrongInLevel >= 2 && state.level > 1) {
-      state.level -= 1;
-      state.wrongInLevel = 0;
+async function load(): Promise<void> {
+  const serial = ++requestSerial;
+  loading.value = true;
+  error.value = "";
+  acceptedRules.value = false;
+  catalog.value = [];
+  report.value = null;
+  try {
+    if (isReport.value) {
+      const next = await readAssessmentReport(id.value);
+      if (serial === requestSerial) report.value = next;
+    } else {
+      const next = await readAvailableAssessments();
+      if (serial === requestSerial) catalog.value = next;
     }
-  }
-  if (state.consecutiveCorrect >= 3 && state.level < 5) {
-    state.level += 1;
-    state.consecutiveCorrect = 0;
-    state.wrongInLevel = 0;
-  }
-  selected.value = -1;
-  if (idx.value < questions.length - 1) {
-    idx.value += 1;
-  } else {
-    finished.value = true; // 演示结束（真实终止=服务端 25 题帽/档5）
+  } catch (cause) {
+    if (serial === requestSerial) error.value = cause instanceof Error ? cause.message : "测评数据暂不可用";
+  } finally {
+    if (serial === requestSerial) loading.value = false;
   }
 }
+watch([id, isReport], () => { void load(); }, { immediate: true });
 
-const report = computed(() =>
-  assessmentReportView({
-    level: state.level,
-    answered: state.answered,
-    wrongTotal: state.wrongInLevel,
-    accuracy: state.answered === 0 ? null : Math.round(((state.answered - state.wrongInLevel) / state.answered) * 100),
-    reachedCeiling: state.level >= 5,
-    hitQuestionCap: state.answered >= 25,
-  }),
-);
-const dims = [
-  { name: "代数", rate: 80 as number | null },
-  { name: "几何", rate: null as number | null },
-  { name: "建模", rate: 60 as number | null },
-];
+async function begin(): Promise<void> {
+  if (!selected.value || selected.value.disabled || !acceptedRules.value || starting.value) return;
+  starting.value = true;
+  error.value = "";
+  try {
+    // 04 §8.1 开考返回 attemptId，后续作答交给共用作答页的服务端草稿/提交状态机。
+    const started = await startAssessment(selected.value.id);
+    await router.push("/paper/" + encodeURIComponent(started.attemptId));
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : "暂无法开始测评，请稍后重试";
+  } finally {
+    starting.value = false;
+  }
+}
 </script>
 
 <template>
-  <div class="as pad">
-    <div class="head">
-      <span class="bk" @click="router.push('/paths')">‹</span>
-      <h1>入学测评</h1>
-      <span class="chip">当前档 {{ levelLabel(state.level) }} · 起始 L2</span>
-      <span class="mut" style="margin-left: auto">{{ progress.label }} · {{ hint }}</span>
-      <button class="btn gray" @click="finished = true">交卷（演示）</button>
+  <div class="assessment-page">
+    <div class="topline">
+      <RouterLink to="/paths" class="back">← 返回课程</RouterLink>
+      <span class="eyebrow">ASSESSMENT · 测评</span>
     </div>
+    <section class="hero">
+      <div>
+        <h1>{{ isReport ? "从已覆盖的领域，看清下一步。" : "找到适合自己的起点。" }}</h1>
+        <p v-if="isReport">报告以服务端完成记录为准；未测到的领域保持待校准。</p>
+        <p v-else>测评会根据作答动态选题。档位、结果与推荐起点均由服务端决定。</p>
+      </div>
+      <div class="hero-mark" aria-hidden="true">◎</div>
+    </section>
 
-    <!-- 答题态 -->
-    <div v-if="!finished" class="grid">
-      <section class="card">
-        <div class="seg"><i :style="{ width: progress.percent + '%' }" /></div>
-        <p class="mut">服务端逐题调档但**未交卷不返正误**（BR-03 restricted 投影）；升降提示仅供预估</p>
-        <p class="stem">{{ questions[idx].stem }}</p>
-        <div
-          v-for="(o, i) in questions[idx].options"
-          :key="i"
-          class="opt"
-          :class="{ sel: selected === i }"
-          @click="pick(i)"
-        >
-          <span class="k">{{ String.fromCharCode(65 + i) }}</span>
-          <span>{{ o }}</span>
-        </div>
-        <button class="btn" style="margin-top: 14px" :disabled="selected < 0" @click="next">
-          {{ idx < questions.length - 1 ? "下一题" : "完成（演示出报告）" }}
-        </button>
-        <p class="mut">演示 3 题即止；真实终止=档 5 或 25 题（服务端 AssessmentEngine）</p>
-      </section>
-      <aside class="card">
-        <div class="sect">档位规则（17 A10 默认）</div>
-        <ul class="rules">
-          <li>起始档：中考水平（L2）</li>
-          <li>连对 3 题 → 升一档</li>
-          <li>错 2 题 → 降一档</li>
-          <li>达档 5 或答满 25 → 终止定级</li>
-          <li>可中断续答（draft 恢复 · 01-D3）</li>
-        </ul>
-      </aside>
-    </div>
+    <p v-if="loading" class="notice" role="status">正在读取{{ isReport ? "测评报告" : "可用测评" }}…</p>
+    <p v-if="error" class="notice error" role="alert">{{ error }}</p>
 
-    <!-- 报告态 -->
-    <div v-else class="grid">
-      <section class="card center">
-        <div class="big">{{ report.headline }}</div>
-        <p class="mut">正确率 {{ report.accuracyText }} · 答题 {{ state.answered }} 题</p>
-        <div class="reasons">
-          <span v-for="r in report.reasons" :key="r" class="chip">{{ r }}</span>
+    <template v-if="!loading && !isReport">
+      <section v-if="selected" class="grid">
+        <div class="card">
+          <div class="eyebrow">AVAILABLE ASSESSMENT</div>
+          <h2>{{ selected.title }}</h2>
+          <p class="lead">开始前请确认作答规则。开始后会进入服务端创建的独立作答记录。</p>
+          <div class="rule-list">
+            <div><strong>反馈时机</strong><span>整体结束后才显示结果；作答中不显示正误。</span></div>
+            <div><strong>辅助限制</strong><span>测评属于受限作答；公式、深钻和 AI 辅助不可用。</span></div>
+            <div><strong>时限与恢复</strong><span>以开考时服务端返回的规则和已同步答题记录为准。</span></div>
+            <div><strong>提前结束</strong><span>仅保留已答记录，不产生完整定级或通关奖励。</span></div>
+          </div>
+          <label class="confirm">
+            <input v-model="acceptedRules" type="checkbox" :disabled="selected.disabled || starting" />
+            <span>我已了解规则，确认开始这次测评</span>
+          </label>
+          <button type="button" class="button primary" :disabled="!acceptedRules || selected.disabled || starting" @click="begin">
+            {{ starting ? "正在请求开考…" : "确认并开始测评" }}
+          </button>
+          <p v-if="selected.disabled" class="muted">该测评当前不可开始，请选择其他学习内容。</p>
         </div>
-        <button class="btn" style="margin-top: 16px" @click="router.push('/plans')">生成计划（from=assessment）→</button>
-        <button class="btn gray" style="margin-top: 10px" @click="finished = false">再测一次（演示）</button>
+        <aside class="card side">
+          <div class="eyebrow">HOW IT WORKS</div>
+          <h2>每一步都有依据</h2>
+          <p>系统逐题调整题目档位。此页不在浏览器内判分，也不会用少量示例题推断全部领域水平。</p>
+          <RouterLink to="/paths" class="text-link">先看看课程 →</RouterLink>
+        </aside>
       </section>
-      <aside class="card">
-        <div class="sect">维度得分（未覆盖 → "—"）</div>
-        <div v-for="d in dims" :key="d.name" class="dimrow">
-          <span>{{ d.name }}</span>
-          <b>{{ dimRateText(d.rate) }}</b>
+      <section v-else-if="!error" class="card empty">
+        <h2>这项测评目前不可用</h2>
+        <p>服务端可用测评列表中没有此编号。请从课程入口选择已开放的测评。</p>
+        <RouterLink to="/paths" class="button">返回课程</RouterLink>
+      </section>
+    </template>
+
+    <template v-if="!loading && isReport && !error">
+      <section v-if="report && reportFinal && report.level !== null" class="grid">
+        <div class="card result">
+          <div class="eyebrow">SERVER REPORT · 已完成</div>
+          <h2>当前定级 <span>L{{ report.level }}</span></h2>
+          <p>此定级来自本次服务端测评记录，仅适用于实际覆盖的领域。</p>
+          <div v-if="report.recommendedStart" class="recommend">
+            <strong>推荐起点</strong>
+            <span>{{ report.recommendedStart }}</span>
+          </div>
+          <div v-else class="recommend muted">服务端尚未提供可展示的推荐起点。</div>
+          <RouterLink to="/plans" class="button primary">查看或制定学习计划</RouterLink>
         </div>
-        <p class="mut">入学定级只依据测评覆盖领域（BR-10：不用一组算术题推断全领域）</p>
-      </aside>
-    </div>
+        <aside class="card side">
+          <div class="eyebrow">DIMENSION COVERAGE</div>
+          <h2>已测维度</h2>
+          <div v-if="report.dimensions.length" class="dimensions">
+            <div v-for="dim in report.dimensions" :key="dim.name" class="dimension">
+              <span>{{ dim.name }}</span><strong>{{ dim.ratePercent === null ? "—" : Math.round(dim.ratePercent) + "%" }}</strong>
+            </div>
+          </div>
+          <p v-else>服务端暂未提供可展示的维度得分；未覆盖领域不推断为零分。</p>
+        </aside>
+      </section>
+      <section v-else class="card empty">
+        <h2>完整报告尚未就绪</h2>
+        <p>当前记录没有服务端确认的完成状态与定级。请稍后刷新报告，或回到课程继续学习。</p>
+        <button type="button" class="button" @click="load">重新读取报告</button>
+      </section>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.pad {
-  padding: 22px 32px 48px;
-  max-width: 1120px;
-  margin: 0 auto;
-}
-.head {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.bk {
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.head h1 {
-  font-size: 24px;
-}
-.chip {
-  font-size: 12.5px;
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  border-radius: 99px;
-  padding: 3px 12px;
-  font-weight: 600;
-}
-.mut {
-  color: var(--ink3);
-  font-size: 13px;
-}
-.grid {
-  display: grid;
-  grid-template-columns: 1.7fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
-}
-.card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 18px;
-}
-.seg {
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 6px;
-  overflow: hidden;
-}
-.seg i {
-  display: block;
-  height: 100%;
-  background: var(--grad);
-  transition: width 0.3s;
-}
-.stem {
-  font-size: 16.5px;
-  font-weight: 600;
-  line-height: 1.8;
-  margin-top: 16px;
-}
-.opt {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  border: 1.5px solid var(--line);
-  border-radius: 11px;
-  padding: 12px 14px;
-  margin-top: 10px;
-  cursor: pointer;
-  font-size: 15px;
-}
-.opt:hover {
-  border-color: var(--brand);
-}
-.opt.sel {
-  border-color: var(--brand);
-  background: var(--brand-soft);
-}
-.opt .k {
-  font-weight: 800;
-  color: var(--brand);
-}
-.btn {
-  border: none;
-  border-radius: 11px;
-  background: var(--grad);
-  color: #fff;
-  font-weight: 700;
-  height: 42px;
-  padding: 0 22px;
-  cursor: pointer;
-  font-size: 15px;
-}
-.btn:disabled {
-  opacity: 0.45;
-}
-.btn.gray {
-  background: #eef0f4;
-  color: var(--ink2);
-}
-.sect {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--ink3);
-  margin-bottom: 10px;
-}
-.rules {
-  padding-left: 18px;
-  font-size: 14.5px;
-  line-height: 2.1;
-  color: var(--ink2);
-}
-.center {
-  text-align: center;
-}
-.big {
-  font-size: 46px;
-  font-weight: 800;
-  background: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.reasons {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.dimrow {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 4px;
-  border-bottom: 1px solid #f1f3f7;
-  font-size: 14.5px;
-}
-@media (max-width: 960px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
+.assessment-page { max-width: 1240px; margin: auto; padding: 34px 24px 88px; color: var(--body); }
+.topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.back, .text-link { color: var(--primary-deep); font-weight: 700; text-decoration: none; }
+.eyebrow { color: var(--primary-deep); font-size: 12px; font-weight: 800; letter-spacing: .13em; }
+.hero { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 265px; overflow: hidden; padding: 42px 52px; border-radius: 23px; background: var(--deep); background-image: var(--grid); color: #d7e4ff; }
+.hero h1 { max-width: 760px; color: #fff; font: 700 clamp(32px, 4vw, 49px)/1.3 var(--serif); }
+.hero p { max-width: 700px; margin-top: 16px; font-size: 16px; }
+.hero-mark { flex: none; color: #779cff; font: 160px/.9 var(--serif); opacity: .55; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, .8fr); gap: 19px; margin-top: 22px; align-items: start; }
+.card { padding: 29px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: var(--shadow); }
+.card h2 { margin: 7px 0 10px; color: var(--text); font-size: 27px; line-height: 1.4; }
+.lead { color: var(--muted); }
+.rule-list { display: grid; margin: 25px 0; border-top: 1px solid var(--line); }
+.rule-list div { display: grid; grid-template-columns: 104px 1fr; gap: 16px; padding: 13px 2px; border-bottom: 1px solid var(--line); }
+.rule-list strong { color: var(--text); }
+.confirm { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; color: var(--text); font-weight: 650; cursor: pointer; }
+.confirm input { width: 17px; height: 17px; margin-top: 3px; accent-color: var(--primary); }
+.button { display: inline-flex; align-items: center; justify-content: center; min-height: 43px; padding: 9px 17px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--text); font-weight: 700; text-decoration: none; }
+.button.primary { border-color: transparent; background: var(--grad); color: #fff; }
+.button:disabled { opacity: .5; cursor: not-allowed; }
+.side p { margin: 15px 0 18px; color: var(--muted); }
+.notice { padding: 13px 16px; margin-top: 20px; border-radius: 10px; background: var(--primary-soft); color: var(--primary-deep); }
+.notice.error { background: var(--danger-bg); color: var(--danger); }
+.empty { margin-top: 22px; max-width: 690px; }
+.empty p { margin: 12px 0 19px; color: var(--muted); }
+.result h2 { font-family: var(--serif); }
+.result h2 span { color: var(--primary-deep); font-size: 1.55em; }
+.result > p { color: var(--muted); }
+.recommend { display: grid; gap: 5px; margin: 24px 0; padding: 17px; border-radius: 12px; background: var(--soft); }
+.recommend strong { color: var(--text); }
+.dimensions { margin-top: 14px; }
+.dimension { display: flex; justify-content: space-between; gap: 20px; padding: 10px 0; border-top: 1px solid var(--line); }
+.dimension strong { color: var(--text); }
+.muted { color: var(--muted); }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .hero { padding: 30px; min-height: 225px; } .hero-mark { font-size: 100px; } }
+@media (max-width: 550px) { .assessment-page { padding: 25px 16px 70px; } .hero { padding: 26px; } .hero-mark { display: none; } .hero p { font-size: 14px; } .card { padding: 22px; } .rule-list div { grid-template-columns: 1fr; gap: 3px; } }
 </style>

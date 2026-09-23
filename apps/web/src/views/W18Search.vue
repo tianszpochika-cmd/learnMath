@@ -1,232 +1,61 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
-import {
-  SEARCH_SUGGESTIONS,
-  searchEmptyState,
-  searchGroups,
-  searchPath,
-  type SearchDoc,
-} from "../features/ai/aiPanel";
+import { computed, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { SEARCH_SUGGESTIONS, searchPath, type SearchDoc, type SearchGroup } from "../features/ai/aiPanel";
+import { searchAll } from "../services/search";
 
-/** W18 全站搜索（16W18 · Ctrl+K 唤起；分组投影在 aiPanel 单测锁定）。 */
+const route = useRoute();
 const router = useRouter();
-const q = ref("");
+const q = ref(typeof route.query.q === "string" ? route.query.q : "");
+const groups = ref<SearchGroup[]>([]);
+const loading = ref(false);
+const error = ref("");
+const activeIndex = ref(0);
+const flat = computed(() => groups.value.flatMap((group) => group.items));
+let timer: ReturnType<typeof setTimeout> | null = null;
+let revision = 0;
 
-const corpus: SearchDoc[] = [
-  { type: "node", id: 12, name: "因式分解", sub: "代数 · 薄弱 61" },
-  { type: "node", id: 13, name: "判别式", sub: "Δ=b²−4ac · 未测量" },
-  { type: "node", id: 14, name: "根的分布", sub: "前置锁定" },
-  { type: "formula", id: 7, name: "勾股定理", sub: "毕达哥拉斯定理 · 仅直角" },
-  { type: "formula", id: 12, name: "求根公式", sub: "根号公式 · a≠0" },
-  { type: "question", id: 1024, name: "x²−5x+6=0 分解", sub: "因式分解基础 · 可深钻" },
-  { type: "question", id: 1087, name: "双直角勾股逆用", sub: "勾股 · L2" },
-  { type: "course", id: 1, name: "一元二次方程", sub: "从因式分解到求根 · 进行中 64%" },
-  { type: "post", id: 88, name: "这步为什么除 sinC", sub: "三角学 · 已采纳" },
-  { type: "node", id: 15, name: "正弦起源", sub: "弦表 · 弧之旅" },
-];
+watch(q, (value) => {
+  revision += 1;
+  const current = revision;
+  if (timer) clearTimeout(timer);
+  groups.value = [];
+  activeIndex.value = 0;
+  error.value = "";
+  if (!value.trim()) { loading.value = false; return; }
+  loading.value = true;
+  timer = setTimeout(async () => {
+    try {
+      const result = await searchAll(value);
+      if (current === revision) groups.value = result;
+    } catch (cause) {
+      if (current === revision) error.value = cause instanceof Error ? cause.message : "搜索暂时不可用，请稍后重试。";
+    } finally { if (current === revision) loading.value = false; }
+  }, 260);
+}, { immediate: true });
 
-const groups = computed(() => searchGroups(corpus, q.value));
-const hasQuery = computed(() => q.value.trim().length > 0);
-const emptyText = computed(() => searchEmptyState(hasQuery.value));
-
-function go(doc: SearchDoc): void {
-  void router.push(searchPath(doc));
-  q.value = "";
+function go(doc: SearchDoc) { void router.push(searchPath(doc)); }
+function onKey(event: KeyboardEvent) {
+  if (event.key === "Escape") { q.value = ""; return; }
+  if (!flat.value.length) return;
+  if (event.key === "ArrowDown") { event.preventDefault(); activeIndex.value = Math.min(flat.value.length - 1, activeIndex.value + 1); }
+  if (event.key === "ArrowUp") { event.preventDefault(); activeIndex.value = Math.max(0, activeIndex.value - 1); }
+  if (event.key === "Enter") { event.preventDefault(); const item = flat.value[activeIndex.value]; if (item) go(item); }
 }
-function suggest(s: string): void {
-  q.value = s;
-}
+onUnmounted(() => { if (timer) clearTimeout(timer); revision += 1; });
 </script>
 
 <template>
-  <div class="se pad">
-    <div class="head">
-      <span class="bk" @click="router.push('/do')">‹</span>
-      <h1>全站搜索</h1>
-      <span class="kbd">Ctrl+K 任意页唤起（输入框内不劫持 · 16 §5）</span>
-    </div>
-
-    <div class="searchbox">
-      <span class="mag">🔍</span>
-      <input v-model="q" autofocus placeholder="课程 / 题目 / 知识点 / 公式 / 帖子…" />
-      <button v-if="q" class="clear" @click="q = ''">✕</button>
-    </div>
-
-    <!-- 分组结果 -->
-    <template v-if="groups.length > 0">
-      <section v-for="g in groups" :key="g.key" class="group">
-        <div class="ghead">
-          {{ g.label }}
-          <span class="mut">{{ g.total }} 条{{ g.total > g.items.length ? "（显示前 " + g.items.length + "）" : "" }}</span>
-        </div>
-        <div v-for="d in g.items" :key="g.key + d.id" class="row" @click="go(d)">
-          <div class="info">
-            <b>{{ d.name }}</b>
-            <span class="mut">{{ d.sub }}</span>
-          </div>
-          <span class="tag" :class="'t-' + g.key">{{ g.label }}</span>
-          <span class="ar">›</span>
-        </div>
-      </section>
-    </template>
-
-    <!-- 空态 -->
-    <div v-else class="empty card">
-      <p>{{ emptyText }}</p>
-      <div class="sugs">
-        <button v-for="s in SEARCH_SUGGESTIONS" :key="s" class="chip" @click="suggest(s)">{{ s }}</button>
-        <button class="chip" @click="suggest('因式')">因式</button>
-        <button class="chip" @click="suggest('sinC')">sinC</button>
-      </div>
-    </div>
-
-    <p class="mut">命中即直达（searchPath 与路由表同口径）；键盘 ↑↓/Enter 选择版随 B30 契约期补</p>
+  <div class="search-page"><header class="hero"><RouterLink to="/" class="back">← 返回首页</RouterLink><p class="eyebrow">FIND YOUR NEXT STEP</p><h1>从一个问题出发</h1><p>搜索课程、知识点、题目、公式与讨论。结果来自当前服务端索引。</p></header>
+    <main class="search-main"><div class="search-box"><span aria-hidden="true">⌕</span><label class="sr-only" for="global-search">搜索学习内容</label><input id="global-search" v-model="q" type="search" autofocus autocomplete="off" placeholder="试试：判别式、因式分解、勾股定理…" @keydown="onKey"><button v-if="q" type="button" aria-label="清空搜索" @click="q = ''">清空</button></div><p class="hint">输入后自动搜索 · ↑↓ 选结果 · Enter 打开 · Esc 清空</p>
+      <p v-if="loading" class="state" role="status">正在查找…</p><div v-else-if="error" class="state error" role="alert"><h2>搜索暂时不可用</h2><p>{{ error }}</p><p>当前不会显示本地演示结果。你可以稍后重试。</p></div>
+      <div v-else-if="groups.length" class="results"><section v-for="group in groups" :key="group.key" class="group"><div class="group-head"><h2>{{ group.label }}</h2><span>{{ group.total }} 条</span></div><button v-for="doc in group.items" :key="group.key + doc.id" type="button" class="result" :class="{ active: flat.indexOf(doc) === activeIndex }" @mouseenter="activeIndex = flat.indexOf(doc)" @click="go(doc)"><span class="result-icon">{{ group.label.slice(0, 1) }}</span><span><strong>{{ doc.name }}</strong><small v-if="doc.sub">{{ doc.sub }}</small></span><span class="arrow" aria-hidden="true">↗</span></button></section></div>
+      <div v-else class="state"><h2>{{ q.trim() ? "暂未找到结果" : "想先从哪里开始？" }}</h2><p>{{ q.trim() ? "可以换一个关键词；结果以服务端索引为准。" : "输入想学的概念，也可以从下面的词开始。" }}</p><div class="suggestions"><button v-for="item in SEARCH_SUGGESTIONS" :key="item" type="button" @click="q = item">{{ item }} ↗</button></div></div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.pad {
-  padding: 26px 32px 48px;
-  max-width: 860px;
-  margin: 0 auto;
-}
-.head {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.bk {
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.head h1 {
-  font-size: 24px;
-}
-.kbd {
-  margin-left: auto;
-  font-size: 12px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 5px 11px;
-  color: var(--ink3);
-}
-.searchbox {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  background: #fff;
-  border: 2px solid var(--brand);
-  border-radius: 14px;
-  padding: 4px 16px;
-  margin-top: 16px;
-  box-shadow: 0 10px 26px -14px rgba(47, 107, 255, 0.5);
-}
-.mag {
-  font-size: 17px;
-}
-.searchbox input {
-  flex: 1;
-  height: 50px;
-  border: none;
-  outline: none;
-  font-size: 17px;
-}
-.clear {
-  border: none;
-  background: #f1f5f9;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.group {
-  margin-top: 18px;
-}
-.ghead {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--ink3);
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 12px 15px;
-  margin-top: 8px;
-  cursor: pointer;
-}
-.row:hover {
-  border-color: var(--brand);
-}
-.info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.mut {
-  color: var(--ink3);
-  font-size: 12.5px;
-}
-.tag {
-  font-size: 11px;
-  font-weight: 800;
-  border-radius: 6px;
-  padding: 3px 9px;
-}
-.t-node { background: #ede9fe; color: #6d28d9; }
-.t-formula { background: #e0e7ff; color: #4338ca; }
-.t-question { background: #e4edff; color: #2f6bff; }
-.t-course { background: #d1fae5; color: #047857; }
-.t-post { background: #fce7f3; color: #be185d; }
-.ar {
-  color: var(--ink3);
-}
-.card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 18px;
-}
-.empty {
-  text-align: center;
-  margin-top: 18px;
-}
-.empty p {
-  color: var(--ink3);
-  font-size: 14.5px;
-}
-.sugs {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-.chip {
-  font-size: 13px;
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  border: none;
-  border-radius: 99px;
-  padding: 6px 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.chip:hover {
-  background: var(--brand);
-  color: #fff;
-}
-.mut {
-  margin-top: 16px;
-}
+.search-page{min-height:100vh;background:var(--bg,#f8fafc);color:var(--ink,#0f172a)}.hero{padding:42px max(24px,calc((100vw - 850px)/2));background:linear-gradient(125deg,#102245,#24396f);color:#fff}.back{display:inline-block;margin-bottom:27px;color:#cbd9ff}.eyebrow{margin:0 0 8px;color:#9db9ff;font-size:11px;font-weight:850;letter-spacing:.18em}.hero h1{margin:0;font:700 clamp(30px,4vw,45px) var(--serif,Georgia,serif)}.hero>p:last-child{color:#d2ddf2;line-height:1.8}.search-main{max-width:850px;margin:0 auto;padding:27px 24px 70px}.search-box{display:flex;align-items:center;gap:12px;padding:7px 15px;border:2px solid var(--brand,#2f6bff);border-radius:16px;background:var(--card,#fff);box-shadow:var(--shadow,0 10px 28px -20px #1e376080)}.search-box>span{font-size:28px;color:var(--brand)}.search-box input{flex:1;min-width:0;min-height:48px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit}.search-box button{min-height:38px;padding:6px 10px;border:0;background:transparent;color:var(--brand);font-weight:800}.hint{margin:9px 4px;color:var(--ink3,#64748b);font-size:12px}.group{margin-top:28px;border:1px solid var(--line,#e2e8f0);border-radius:18px;background:var(--card,#fff);overflow:hidden}.group-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border-bottom:1px solid var(--line)}.group-head h2{margin:0;font:700 20px var(--serif,Georgia,serif)}.group-head span{color:var(--ink3);font-size:12px}.result{display:flex;align-items:center;gap:14px;width:100%;min-height:69px;padding:11px 20px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;cursor:pointer}.result:last-child{border-bottom:0}.result:hover,.result.active{background:var(--brand-soft,#eef4ff)}.result-icon{display:grid;place-items:center;width:35px;height:35px;border-radius:10px;background:var(--soft,#f1f5f9);color:var(--brand);font-weight:850}.result strong{display:block;font-size:15px}.result small{display:block;margin-top:4px;color:var(--ink3);font-size:12px}.arrow{margin-left:auto;color:var(--ink3)}.state{margin-top:27px;padding:34px;border:1px solid var(--line);border-radius:18px;background:var(--card);line-height:1.7}.state h2{margin:0 0 7px;font:700 24px var(--serif,Georgia,serif)}.state p{color:var(--ink3)}.state.error{border-color:var(--danger,#b91c1c)}.suggestions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}.suggestions button{min-height:39px;padding:7px 13px;border:1px solid var(--line);border-radius:99px;background:var(--soft);color:var(--ink2);font-weight:700}
+@media(max-width:600px){.hero{padding:27px 19px}.search-main{padding:17px}.state{padding:23px}.result{padding:11px 14px}}
 </style>

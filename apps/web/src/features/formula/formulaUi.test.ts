@@ -41,6 +41,7 @@ const full: FormulaDetail = {
     { legal: true, expression: "a²+b²=c²", note: "正位" },
     { legal: false, expression: "a²+b²=c² 对任意三角形", note: "缺 −2ab·cosC" },
   ],
+  drillTypes: ["CONDITION_JUDGE", "VARIANT_RECOGNIZE", "APPLICATION_MATCH"],
 };
 
 const bare: FormulaDetail = {
@@ -87,6 +88,7 @@ describe("七区与缺失（11 号 · BR-08）", () => {
     ]);
     expect(missingSections(null)).toHaveLength(7);
     expect(missingSections({ ...full, origin: "  ", applications: null })).toEqual(["起源", "应用"]);
+    expect(missingSections({ ...full, symbols: [{ symbol: "x", meaning: "变量", rangeNote: "" }] })).toEqual(["符号表"]);
   });
 
   it("单区缺失标记与完整度", () => {
@@ -127,22 +129,22 @@ describe("proof 徽标与引用（F3）", () => {
     expect(proofBadge(4)).toBe("⚑ 未证实（猜想）");
     expect(proofBadge(9)).toContain("未知");
     expect(citableAsTheorem(4)).toBe(false);
+    expect(citableAsTheorem(3)).toBe(false);
     expect(citableAsTheorem(2)).toBe(true);
   });
 });
 
 describe("小练三型与变形家族", () => {
-  it("有多少显示多少（条件/变形/应用各自独立开关）", () => {
+  it("只显示服务端确认可用的小练型，不从正文推断题库", () => {
     expect(drillAvailability(full)).toEqual([
       "CONDITION_JUDGE",
       "VARIANT_RECOGNIZE",
       "APPLICATION_MATCH",
     ]);
     expect(drillAvailability(bare)).toEqual([]);
-    expect(drillAvailability({ ...full, conditions: null })).toEqual([
-      "VARIANT_RECOGNIZE",
-      "APPLICATION_MATCH",
-    ]);
+    expect(drillAvailability({ ...full, conditions: null })).toHaveLength(3);
+    expect(drillAvailability({ ...full, drillTypes: undefined })).toEqual([]);
+    expect(drillAvailability({ ...full, drillTypes: ["CONDITION_JUDGE"] })).toEqual(["CONDITION_JUDGE"]);
     expect(drillTypeLabel("CONDITION_JUDGE")).toBe("条件判断");
     expect(drillTypeLabel("VARIANT_RECOGNIZE")).toBe("变形识别");
     expect(drillTypeLabel("APPLICATION_MATCH")).toBe("应用匹配");

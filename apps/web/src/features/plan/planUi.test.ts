@@ -176,9 +176,10 @@ describe("建议 diff（BR-10 · 3011 · undo）", () => {
   });
 
   it("undo 双条件 / 校准可见性", () => {
-    expect(undoEnabled(7, 7, false)).toBe(true);
-    expect(undoEnabled(7, 8, false)).toBe(false), "版本已变";
-    expect(undoEnabled(7, 7, true)).toBe(false), "有新证据";
+    expect(undoEnabled(7, 7, false)).toBe(false);
+    expect(undoEnabled(7, 7, false, true)).toBe(true);
+    expect(undoEnabled(7, 8, false, true)).toBe(false), "版本已变";
+    expect(undoEnabled(7, 7, true, true)).toBe(false), "有新证据";
     expect(calibrationVisible(true, 10)).toBe(true);
     expect(calibrationVisible(true, 9)).toBe(false);
     expect(calibrationVisible(false, 30)).toBe(false);

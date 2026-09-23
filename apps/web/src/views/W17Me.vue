@@ -1,361 +1,100 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  NOTIFY_TABS,
-  cancelView,
-  exportLinkView,
-  filterNotify,
-  loginOutcomeText,
-  tabUnread,
-  totalUnread,
-  type AccountFlowState,
-  type NotifyCat,
-  type NotifyItem,
-} from "../features/rank/rankUi";
+import { getAuthApi, getAppHttp } from "../services/client";
+import { cancelAccountDeletion, markNoticesRead, readAccount, readNotices, requestDataExport, type AccountView, type Notice, type NotificationType } from "../services/me";
+import { useAuthStore } from "../stores/auth";
 
-/**
- * W17 我的（16W17：通知四类 / 设置 / 账号数据导出与注销流展示镜像）。
- * 注：排行区在同一 W16Rank.vue（route=rank 时渲染榜；/me/* 渲染本组件）。
- */
 const route = useRoute();
 const router = useRouter();
+const auth = useAuthStore();
+const section = computed(() => route.path.endsWith("/account") ? "account" : route.path.endsWith("/settings") ? "settings" : "notifications");
+const notices = ref<Notice[]>([]);
+const account = ref<AccountView | null>(null);
+const loading = ref(true);
+const busy = ref(false);
+const error = ref("");
+const notice = ref("");
+const tab = ref<NotificationType>("SYSTEM");
+const legalOpen = ref<"terms" | "privacy" | null>(null);
+const legalText = ref("");
+const tabs: Array<{ key: NotificationType; label: string }> = [
+  { key: "SYSTEM", label: "系统" }, { key: "LEARNING", label: "学习" },
+  { key: "COMMUNITY", label: "社区" }, { key: "MODERATION", label: "审核" },
+];
+const filtered = computed(() => notices.value.filter((item) => item.type === tab.value));
+const unread = computed(() => notices.value.filter((item) => !item.read).length);
+const deletionPending = computed(() => ["pending", "cooling", "cooldown"].includes((account.value?.status || "").toLowerCase()));
 
-const section = computed<"notify" | "settings" | "account">(() => {
-  if (route.path.includes("settings")) return "settings";
-  if (route.path.includes("account") || route.path.includes("export")) return "account";
-  return "notify";
-});
-
-const notifications = reactive<NotifyItem[]>([
-  { id: 1, category: "SYSTEM", title: "协议已更新，需重新确认", timeLabel: "刚刚", read: false },
-  { id: 2, category: "SYSTEM", title: "系统公告：本周维护", timeLabel: "昨天", read: true },
-  { id: 3, category: "LEARNING", title: "每日一练已为你排好 5 题", timeLabel: "09:00", read: false },
-  { id: 4, category: "LEARNING", title: "第 38 周周报已生成", timeLabel: "昨天", read: true },
-  { id: 5, category: "COMMUNITY", title: "你的问题收到 3 个新回复", timeLabel: "2h", read: false },
-  { id: 6, category: "MODERATION", title: "你的帖子已通过审核", timeLabel: "3h", read: true },
-]);
-const notifyTab = ref<NotifyCat>("SYSTEM");
-const unread = computed(() => tabUnread(notifications));
-const filtered = computed(() => filterNotify(notifications, notifyTab.value));
-const total = computed(() => totalUnread(notifications));
-function readAll(cat: NotifyCat): void {
-  for (const n of notifications) {
-    if (n.category === cat) n.read = true;
-  }
-}
-
-const exportCreated = ref<number | null>(null);
-const exportView = computed(() => exportLinkView(exportCreated.value, Date.now()));
-function requestExport(): void {
-  exportCreated.value = Date.now();
-}
-function expireExport(): void {
-  exportCreated.value = Date.now() - 8 * 24 * 3600 * 1000;
+async function load() {
+  loading.value = true;
+  error.value = "";
+  try {
+    if (section.value === "notifications") notices.value = await readNotices();
+    if (section.value === "account" || section.value === "settings") account.value = await readAccount();
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : "个人信息暂时无法读取。"; }
+  finally { loading.value = false; }
 }
 
-const accountState = ref<AccountFlowState>("active");
-const dueAt = ref<number | null>(null);
-const anchorNow = ref(Date.now());
-const flow = computed(() => cancelView(accountState.value, dueAt.value, anchorNow.value));
-const loginText = computed(() => loginOutcomeText(accountState.value));
+async function readCurrentTab() {
+  const ids = filtered.value.filter((item) => !item.read).map((item) => item.id);
+  if (!ids.length || busy.value) return;
+  busy.value = true; error.value = "";
+  try { await markNoticesRead(ids); notices.value = await readNotices(); notice.value = `当前已加载通知中，${ids.length} 条的已读状态已同步。`; }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : "标记已读失败。"; }
+  finally { busy.value = false; }
+}
 
-function applyDeletion(): void {
-  accountState.value = "pending";
-  dueAt.value = anchorNow.value + 7 * 24 * 3600 * 1000 + 23 * 3600 * 1000;
+async function exportData() {
+  if (busy.value) return;
+  busy.value = true; error.value = ""; notice.value = "";
+  try { await requestDataExport(); notice.value = "导出申请已受理。下载链接会通过站内通知发送，链接有效期为 7 天。"; }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : "导出申请未确认，请重试。"; }
+  finally { busy.value = false; }
 }
-function cancelDeletion(): void {
-  accountState.value = "active";
-  dueAt.value = null;
+
+async function cancelDeletion() {
+  if (!deletionPending.value || busy.value) return;
+  busy.value = true; error.value = ""; notice.value = "";
+  try { await cancelAccountDeletion(); account.value = await readAccount(); notice.value = "撤销申请已由服务端确认。"; }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : "撤销未确认，请重试。"; }
+  finally { busy.value = false; }
 }
-function expireDue(): void {
-  anchorNow.value = Date.now() + 8 * 24 * 3600 * 1000;
-  accountState.value = "anonymized";
+
+async function openLegal(type: "terms" | "privacy") {
+  legalOpen.value = type; legalText.value = ""; error.value = "";
+  try {
+    const response = await getAppHttp().request<unknown>({ method: "GET", path: "/api/app/v1/legal/" + type });
+    const value = response && typeof response === "object" ? response as Record<string, unknown> : {};
+    legalText.value = typeof value.content === "string" ? value.content : "当前协议正文暂不可用。";
+  } catch { legalText.value = "当前协议正文暂不可用，请稍后重试。"; }
 }
+
+async function logout() {
+  if (busy.value) return;
+  busy.value = true; error.value = "";
+  try { await getAuthApi().auth.logout(); auth.clear(); await router.replace("/login"); }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : "退出未确认，请重试。"; }
+  finally { busy.value = false; }
+}
+
+watch(section, () => { notice.value = ""; void load(); });
+onMounted(() => { void load(); });
 </script>
 
 <template>
-  <div class="me pad">
-    <div class="head">
-      <span class="bk" @click="router.push('/do')">‹</span>
-      <h1>我的</h1>
-      <span class="chip">🔔 未读 {{ total }}</span>
-      <button class="btn ghost" style="margin-left: auto" @click="router.push('/rank')">🏆 榜单/赛事</button>
-    </div>
-
-    <nav class="menu">
-      <RouterLink to="/me/notifications" class="menubtn" :class="{ on: section === 'notify' }">通知中心</RouterLink>
-      <RouterLink to="/me/settings" class="menubtn" :class="{ on: section === 'settings' }">设置</RouterLink>
-      <RouterLink to="/me/account" class="menubtn" :class="{ on: section === 'account' }">账号与数据</RouterLink>
-    </nav>
-
-    <!-- 通知 -->
-    <template v-if="section === 'notify'">
-      <div class="ntabs">
-        <button v-for="t in NOTIFY_TABS" :key="t.key" :class="{ on: notifyTab === t.key }" @click="notifyTab = t.key">
-          {{ t.icon }} {{ t.label }}
-          <i v-if="unread[t.key] > 0">{{ unread[t.key] }}</i>
-        </button>
-        <button class="plain" @click="readAll(notifyTab)">全部已读</button>
-      </div>
-      <div v-for="n in filtered" :key="n.id" class="card nrow">
-        <span class="dot" :class="{ off: n.read }" />
-        <div class="ninfo">
-          <b>{{ n.title }}</b>
-          <span class="mut">{{ n.timeLabel }}</span>
-        </div>
-        <span class="ar">›</span>
-      </div>
-      <p v-if="filtered.length === 0" class="mut">该分类暂无通知</p>
-    </template>
-
-    <!-- 设置 -->
-    <template v-else-if="section === 'settings'">
-      <div class="card srow"><b>用户协议 / 隐私政策</b><span class="mut">v1.1 · 端内与官网 /legal 双端可查</span><span class="ar">›</span></div>
-      <div class="card srow">
-        <b>消息通知</b>
-        <span class="mut">每日一练 · 社区回复 · 审核结果</span>
-        <input type="checkbox" checked style="accent-color: var(--ok); width: 18px; height: 18px" />
-      </div>
-      <div class="card srow">
-        <b>判分振动</b>
-        <span class="mut">移动端设置同源（05 §5 语义四色+振动）</span>
-        <input type="checkbox" checked style="accent-color: var(--ok); width: 18px; height: 18px" />
-      </div>
-      <div class="card srow" @click="router.push('/report')"><b>学习统计</b><span class="mut">看板</span><span class="ar">›</span></div>
-      <div class="card srow" @click="router.push('/plans')"><b>学习计划</b><span class="mut">日历与建议</span><span class="ar">›</span></div>
-    </template>
-
-    <!-- 账号与数据 -->
-    <template v-else>
-      <div class="card">
-        <div class="sect" style="margin-top: 0">数据导出（01 U-06 · 7 天链接）</div>
-        <div class="exrow">
-          <span class="badge" :class="exportView.state === 'valid' ? 'ok' : exportView.state === 'expired' ? 'bad' : 'grey'">
-            {{ exportView.state === "valid" ? "已生成" : exportView.state === "expired" ? "已失效" : "未申请" }}
-          </span>
-          <span class="mut">{{ exportView.daysLeftText }}</span>
-          <button class="btn" @click="requestExport">申请导出</button>
-          <button class="btn ghost" @click="expireExport">模拟过期</button>
-        </div>
-        <p class="mut">JSON+CSV → 站内信链接；02 §7 清理任务到期删除</p>
-      </div>
-
-      <div class="card" :class="{ dangerbox: accountState !== 'active' }">
-        <div class="sect" style="margin-top: 0">注销账号（01 U-07 · 冷静期 7 天）</div>
-
-        <p v-if="loginText" class="loginblock">⛔ {{ loginText }}</p>
-
-        <template v-if="accountState === 'active'">
-          <p class="mut">流程：验证码二次验证 → 申请 → 冷静期（可撤销）→ 到期匿名化。</p>
-          <button class="btn" @click="applyDeletion">申请注销（需二次验证）</button>
-        </template>
-
-        <template v-else>
-          <div class="flow">
-            <b class="cd">{{ flow.countdownText }}</b>
-            <span class="mut">{{ flow.note }}</span>
-          </div>
-          <div class="acts">
-            <button v-if="flow.canCancel" class="btn" @click="cancelDeletion">{{ flow.primaryLabel }}</button>
-            <button v-if="accountState === 'pending'" class="btn ghost" @click="expireDue">模拟到期 → 匿名化</button>
-            <span v-if="accountState === 'anonymized'" class="badge bad">不可恢复 · 社区显示「已注销用户」</span>
-          </div>
-        </template>
-        <p class="mut">匿名化=后端 anonymizePii：nickname→已注销用户；phone/email/openid/hash 清除</p>
-      </div>
-    </template>
+  <div class="me-page"><header class="hero"><p class="eyebrow">YOUR SPACE · 我的空间</p><h1>{{ account?.nickname || "继续你的学习旅程" }}</h1><p>通知、设置与个人数据都以当前账号的服务端状态为准。</p></header>
+    <main class="main"><nav class="sections" aria-label="我的空间"><RouterLink to="/me/notifications" :aria-current="section === 'notifications' ? 'page' : undefined">通知<span v-if="unread" class="unread">{{ unread }}</span></RouterLink><RouterLink to="/me/settings" :aria-current="section === 'settings' ? 'page' : undefined">设置</RouterLink><RouterLink to="/me/account" :aria-current="section === 'account' ? 'page' : undefined">账号与数据</RouterLink></nav>
+      <p v-if="loading" class="state" role="status">正在读取当前账号信息…</p><p v-if="error" class="error" role="alert">{{ error }}</p><p v-if="notice" class="success" role="status">{{ notice }}</p>
+      <section v-if="!loading && section === 'notifications'" class="panel"><div class="panel-head"><div><p class="eyebrow">INBOX</p><h2>通知中心</h2></div><button type="button" :disabled="busy || !filtered.some((item) => !item.read)" @click="readCurrentTab">标记当前已加载的未读通知</button></div><div class="tabs" role="group" aria-label="通知类型"><button v-for="item in tabs" :key="item.key" type="button" :aria-pressed="tab === item.key" @click="tab = item.key">{{ item.label }}</button></div><div v-if="filtered.length" class="notice-list"><article v-for="item in filtered" :key="item.id" class="notice-row"><span class="dot" :class="{ read: item.read }" aria-hidden="true"/><div><strong>{{ item.title }}</strong><small>{{ item.createdAt || "时间待同步" }}</small></div><span>{{ item.read ? "已读" : "未读" }}</span></article></div><p v-else class="empty">当前分类没有服务端通知。</p></section>
+      <section v-if="!loading && section === 'settings'" class="panel"><p class="eyebrow">PREFERENCES</p><h2>设置</h2><div class="setting-row"><div><strong>用户协议与隐私政策</strong><p>阅读当前公开版本；协议状态以服务端为准。</p></div><div class="row-actions"><button type="button" @click="openLegal('terms')">用户协议</button><button type="button" @click="openLegal('privacy')">隐私政策</button></div></div><div class="setting-row"><div><strong>学习统计</strong><p>查看真实学习记录与趋势。</p></div><RouterLink to="/report">打开 →</RouterLink></div><div class="setting-row"><div><strong>学习计划</strong><p>查看任务、建议与版本状态。</p></div><RouterLink to="/plans">打开 →</RouterLink></div><div class="setting-row"><div><strong>退出登录</strong><p>退出后将清除当前用户在本设备尚未同步的作答草稿。</p></div><button type="button" :disabled="busy" @click="logout">退出登录</button></div></section>
+      <section v-if="!loading && section === 'account'" class="account-grid"><div class="panel"><p class="eyebrow">DATA EXPORT</p><h2>导出我的数据</h2><p>提交申请后，导出文件的下载链接通过站内通知发送，有效期为 7 天。这里不生成临时下载链接。</p><button type="button" class="primary" :disabled="busy" @click="exportData">{{ busy ? "提交中…" : "申请数据导出" }}</button></div><div class="panel danger-panel"><p class="eyebrow">ACCOUNT</p><h2>注销与冷静期</h2><p v-if="deletionPending">当前账号处于注销冷静期。{{ account?.deletionDueAt ? `预计结束：${account.deletionDueAt}` : '结束时间以服务端通知为准。' }}</p><p v-else-if="account?.status">当前账号状态：{{ account.status }}。</p><p v-else>服务端尚未返回可核对的注销状态。</p><button v-if="deletionPending" type="button" :disabled="busy" @click="cancelDeletion">撤销注销申请</button><p class="boundary">发起注销须完成二次验证。当前接口文档未定义验证请求字段，入口待契约补齐后开放；页面不会在本地模拟进入冷静期。</p></div></section>
+    </main>
+    <div v-if="legalOpen" class="overlay" @click.self="legalOpen = null"><section class="legal-dialog" role="dialog" aria-modal="true" :aria-label="legalOpen === 'terms' ? '用户协议' : '隐私政策'"><div class="legal-head"><h2>{{ legalOpen === "terms" ? "用户协议" : "隐私政策" }}</h2><button type="button" @click="legalOpen = null">关闭</button></div><div class="legal-content">{{ legalText || "正在读取公开协议…" }}</div></section></div>
   </div>
 </template>
 
 <style scoped>
-.pad {
-  padding: 22px 32px 48px;
-  max-width: 940px;
-  margin: 0 auto;
-}
-.head {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.bk {
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.head h1 {
-  font-size: 24px;
-}
-.chip {
-  font-size: 12.5px;
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  border-radius: 99px;
-  padding: 3px 12px;
-  font-weight: 600;
-}
-.menu {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-.menubtn {
-  padding: 8px 18px;
-  border-radius: 99px;
-  border: 1px solid var(--line);
-  background: #fff;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--ink3);
-  cursor: pointer;
-  text-decoration: none;
-}
-.menubtn.on {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
-}
-.ntabs {
-  display: flex;
-  gap: 8px;
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-.ntabs button {
-  padding: 8px 16px;
-  border-radius: 99px;
-  border: 1px solid var(--line);
-  background: #fff;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--ink3);
-  cursor: pointer;
-  position: relative;
-}
-.ntabs button.on {
-  background: var(--brand);
-  border-color: var(--brand);
-  color: #fff;
-}
-.ntabs button.plain {
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-}
-.ntabs button i {
-  font-style: normal;
-  background: var(--bad);
-  color: #fff;
-  border-radius: 99px;
-  font-size: 11px;
-  padding: 1px 7px;
-  margin-left: 5px;
-}
-.card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 15px 16px;
-}
-.nrow,
-.srow {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-top: 10px;
-  cursor: pointer;
-}
-.ninfo {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--bad);
-  flex: none;
-}
-.dot.off {
-  background: #e5e7eb;
-}
-.ar {
-  color: var(--ink3);
-}
-.mut {
-  color: var(--ink3);
-  font-size: 12.5px;
-}
-.sect {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--ink3);
-  margin-bottom: 10px;
-}
-.exrow {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.badge {
-  font-size: 11.5px;
-  font-weight: 800;
-  border-radius: 7px;
-  padding: 3px 10px;
-  background: #f1f5f9;
-  color: #64748b;
-}
-.badge.ok { background: #ecfdf5; color: #047857; }
-.badge.bad { background: #fee2e2; color: #b91c1c; }
-.badge.grey { background: #f1f5f9; color: #64748b; }
-.card.dangerbox {
-  border-color: #fecaca;
-}
-.loginblock {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  border-radius: 9px;
-  padding: 9px 13px;
-  font-size: 13.5px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-.flow {
-  display: flex;
-  gap: 14px;
-  align-items: baseline;
-}
-.cd {
-  font-size: 30px;
-  color: var(--brand);
-}
-.acts {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.btn {
-  border: none;
-  border-radius: 11px;
-  background: var(--grad);
-  color: #fff;
-  font-weight: 700;
-  height: 40px;
-  padding: 0 20px;
-  cursor: pointer;
-  font-size: 14.5px;
-}
-.btn.ghost {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-.mut {
-  margin-top: 8px;
-}
+.me-page{min-height:100vh;background:var(--bg,#f8fafc);color:var(--ink,#0f172a)}.hero{padding:43px max(24px,calc((100vw - 1000px)/2));background:linear-gradient(125deg,#102245,#273e75);color:#fff}.eyebrow{margin:0 0 8px;color:var(--brand,#4e7bff);font-size:11px;font-weight:850;letter-spacing:.17em}.hero .eyebrow{color:#9db8ff}.hero h1{margin:0;font:700 clamp(28px,4vw,42px) var(--serif,Georgia,serif)}.hero>p:last-child{color:#d2ddf2;line-height:1.8}.main{max-width:1000px;margin:0 auto;padding:25px 24px 60px}.sections{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:23px}.sections a{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:9px 17px;border:1px solid var(--line);border-radius:99px;background:var(--card,#fff);color:var(--ink2);font-weight:750}.sections a[aria-current=page]{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}.unread{display:grid;place-items:center;min-width:20px;height:20px;border-radius:99px;background:var(--brand);color:#fff;font-size:11px}.panel{padding:27px;border:1px solid var(--line);border-radius:19px;background:var(--card);box-shadow:var(--shadow)}.panel h2{margin:0 0 14px;font:700 27px var(--serif,Georgia,serif)}.panel p{line-height:1.7;color:var(--ink3)}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px}.panel-head button,.setting-row button,.row-actions button,.account-grid button{min-height:42px;padding:8px 14px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-weight:750}.panel button:disabled{opacity:.5}.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-top:22px;padding:5px;border:1px solid var(--line);border-radius:11px;background:var(--soft)}.tabs button{min-height:38px;padding:7px 15px;border:0;border-radius:8px;background:transparent;color:var(--ink2)}.tabs button[aria-pressed=true]{background:var(--card);color:var(--brand);font-weight:800}.notice-list{margin-top:15px}.notice-row{display:flex;align-items:center;gap:13px;padding:17px 4px;border-bottom:1px solid var(--line)}.notice-row>div{flex:1}.notice-row strong{display:block}.notice-row small{display:block;margin-top:4px;color:var(--ink3)}.notice-row>span:last-child{color:var(--ink3);font-size:12px}.dot{width:9px;height:9px;border-radius:50%;background:var(--brand)}.dot.read{background:var(--line)}.empty{margin-top:18px;padding:25px;background:var(--soft);border-radius:11px;text-align:center}.setting-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 0;border-top:1px solid var(--line)}.setting-row strong{font-size:16px}.setting-row p{margin:4px 0 0;font-size:13px}.setting-row a{color:var(--brand);font-weight:800}.row-actions{display:flex;gap:7px;flex-wrap:wrap}.account-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.account-grid .primary{background:var(--brand);border-color:var(--brand);color:#fff}.danger-panel{border-color:var(--danger,#b91c1c)}.boundary{margin-top:20px;padding:13px;border-radius:9px;background:var(--soft);font-size:13px}.state,.error,.success{padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink2)}.error{border-color:var(--danger);background:var(--danger-bg);color:var(--danger)}.success{border-color:var(--good);background:var(--good-bg);color:var(--good)}.overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;background:#07122cb8}.legal-dialog{width:min(100%,700px);max-height:85vh;display:flex;flex-direction:column;padding:26px;border-radius:18px;background:var(--card);color:var(--ink)}.legal-head{display:flex;justify-content:space-between;align-items:center}.legal-head h2{font:700 27px var(--serif)}.legal-head button{min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink)}.legal-content{overflow:auto;white-space:pre-wrap;line-height:1.8}
+@media(max-width:740px){.account-grid{grid-template-columns:1fr}.panel-head,.setting-row{align-items:flex-start;flex-direction:column}.hero{padding:30px 20px}.main{padding:16px}.panel{padding:21px}}
 </style>

@@ -1,480 +1,170 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import {
-  NARRATIVE_TABS,
-  badgeFor,
-  cardView,
-  colorHex,
-  colorLabel,
-  filterNodes,
-  graphColorOf,
-  legendItems,
-  missingCards,
-  neighborSet,
-  narrativeCompleteness,
-  tabFromQuery,
-  type CardKey,
-  type Narrative,
-  type NodeView,
-} from "../features/graph/graphUi";
+import { isApiError } from "@learnmath/shared";
+import { NARRATIVE_TABS, cardView, filterNodes, neighborSet, type CardKey } from "../features/graph/graphUi";
+import { graphData, graphNode, layoutGraph, practiceAttemptId, publishedNarrative, verifiedColor, type GraphData, type GraphNode, type PublishedNarrative } from "../features/graph/graphProjection";
+import { exploreApi, exploreError } from "../services/explore";
 
-/** W06 图谱画布（16W06 · WD5：全屏 DAG+检索+图例+右侧四卡抽屉）。 */
+type LoadState = "loading" | "ready" | "empty" | "unmapped" | "error";
 const router = useRouter();
-
+const state = ref<LoadState>("loading");
+const error = ref("");
+const graph = ref<GraphData | null>(null);
 const query = ref("");
-const selectedId = ref(2);
+const selectedId = ref<number | null>(null);
+const detail = ref<GraphNode | null>(null);
+const detailState = ref<LoadState>("loading");
+const detailError = ref("");
+const narrative = ref<PublishedNarrative | null>(null);
+const narrativeState = ref<LoadState>("loading");
 const tab = ref<CardKey>("origin");
+const actionBusy = ref(false);
+const actionNote = ref("");
+let graphGeneration = 0;
+let nodeGeneration = 0;
 
-const nodes: NodeView[] = [
-  { id: 1, name: "等式的性质", preparing: false, locked: false, score: 96, insufficientSample: false },
-  { id: 2, name: "因式分解", preparing: false, locked: false, score: 61, insufficientSample: false },
-  { id: 3, name: "判别式", preparing: false, locked: false, score: null, insufficientSample: false },
-  { id: 4, name: "韦达定理", preparing: false, locked: false, score: 100, insufficientSample: true },
-  { id: 5, name: "根的分布", preparing: false, locked: true, score: 85, insufficientSample: false },
-  { id: 6, name: "解三角形应用", preparing: true, locked: false, score: null, insufficientSample: false },
-  { id: 7, name: "函数与零点", preparing: false, locked: false, score: 45, insufficientSample: false },
-];
-const edges = [
-  { from: 1, to: 2 },
-  { from: 2, to: 4 },
-  { from: 2, to: 7 },
-  { from: 3, to: 5 },
-  { from: 4, to: 5 },
-];
-// 画布坐标（fixture）
-const pos: Record<number, { x: number; y: number }> = {
-  1: { x: 8, y: 16 },
-  2: { x: 30, y: 34 },
-  3: { x: 30, y: 68 },
-  4: { x: 54, y: 26 },
-  5: { x: 76, y: 52 },
-  6: { x: 76, y: 14 },
-  7: { x: 56, y: 66 },
-};
+const layout = computed(() => layoutGraph(graph.value?.nodes ?? []));
+const selected = computed(() => detail.value?.id === selectedId.value ? detail.value : graph.value?.nodes.find((item) => item.id === selectedId.value) ?? null);
+const position = computed(() => new Map(layout.value.nodes.map((node) => [node.id, node])));
+const matches = computed(() => new Set(filterNodes(graph.value?.nodes ?? [], query.value).map((node) => node.id)));
+const neighbors = computed(() => selectedId.value && graph.value ? neighborSet(graph.value.edges, selectedId.value) : new Set<number>());
+const canPractice = computed(() => selected.value?.locked === false && selected.value.preparing === false);
+const color = computed(() => selected.value ? verifiedColor(selected.value) : "unverified");
+const scoreLabel = computed(() => selected.value && (color.value === "green" || color.value === "yellow") && typeof selected.value.score === "number"
+  ? Math.round(selected.value.score) + "%" : "—");
 
-const narratives: Record<number, Narrative> = {
-  2: {
-    origin: "古埃及分地、巴比伦凑数——把面积拆回长宽的手艺，因式分解是它的代数版。",
-    prototype: "裁一块方地剩余面积 / 利息模型拆解 / 拱桥跨径分解",
-    capability: "不可达测距、结构还原、模型降次",
-    ladder: 'REAL：拆面积 → MODEL：和与积互逆 → SYMBOL：(a±b)² 展开与回收',
-  },
-  1: {
-    origin: "等量关系的原始契约",
-    prototype: "天平称重",
-    capability: "保持平衡的推理",
-    ladder: "平衡 → 等式 → 变形规则",
-  },
-};
+function colorHexFor(node: GraphNode): string {
+  const state = verifiedColor(node);
+  const colors: Record<string, string> = {
+    green: "var(--good)", yellow: "var(--warning)", locked: "var(--danger)",
+    preparing: "var(--prep)", "sample-low": "var(--faint)", "no-data": "var(--faint)", unverified: "var(--faint)",
+  };
+  return colors[state];
+}
+function statusText(node: GraphNode): string {
+  const state = verifiedColor(node);
+  return {
+    green: "掌握度已确认", yellow: "需要巩固", locked: "前置锁定", preparing: "内容筹备中",
+    "sample-low": "样本不足", "no-data": "尚未测量", unverified: "证据状态待核实",
+  }[state];
+}
+function nodeName(id: number): string {
+  return graph.value?.nodes.find((item) => item.id === id)?.name ?? "#" + id;
+}
 
-const visible = computed(() => filterNodes(nodes, query.value));
-const selected = computed(() => nodes.find((n) => n.id === selectedId.value) ?? nodes[0]);
-const color = computed(() => graphColorOf(selected.value));
-const badge = computed(() => badgeFor(selected.value));
-const narrative = computed(() => narratives[selected.value.id] ?? null);
-const missing = computed(() => missingCards(narrative.value));
-const completeness = computed(() => narrativeCompleteness(narrative.value));
-const hood = computed(() => neighborSet(edges, selected.value.id));
+async function loadGraph(): Promise<void> {
+  const current = ++graphGeneration;
+  state.value = "loading";
+  error.value = "";
+  graph.value = null;
+  selectedId.value = null;
+  try {
+    const response = await exploreApi.graph();
+    if (current !== graphGeneration) return;
+    const mapped = graphData(response);
+    if (!mapped) state.value = response === null || response === undefined ? "empty" : "unmapped";
+    else {
+      graph.value = mapped;
+      state.value = mapped.nodes.length ? "ready" : "empty";
+      selectedId.value = mapped.nodes[0]?.id ?? null;
+    }
+  } catch (cause) {
+    if (current !== graphGeneration) return;
+    error.value = exploreError(cause);
+    state.value = "error";
+  }
+}
 
-function select(id: number): void {
-  selectedId.value = id;
+async function loadNode(id: number): Promise<void> {
+  const current = ++nodeGeneration;
+  detail.value = null;
+  narrative.value = null;
+  detailState.value = "loading";
+  narrativeState.value = "loading";
+  detailError.value = "";
+  actionNote.value = "";
+  const [nodeResult, narrativeResult] = await Promise.allSettled([exploreApi.node(id), exploreApi.narrative(id)]);
+  if (current !== nodeGeneration) return;
+  if (nodeResult.status === "rejected") {
+    detailState.value = "error";
+    detailError.value = exploreError(nodeResult.reason);
+  } else {
+    detail.value = graphNode(nodeResult.value);
+    detailState.value = detail.value ? "ready" : nodeResult.value === null || nodeResult.value === undefined ? "empty" : "unmapped";
+  }
+  if (narrativeResult.status === "rejected") narrativeState.value = "error";
+  else {
+    narrative.value = publishedNarrative(narrativeResult.value);
+    narrativeState.value = narrative.value ? "ready" : "empty";
+  }
 }
-function isDim(id: number): boolean {
-  return query.value.trim() !== "" && !filterNodes([nodes.find((n) => n.id === id)!], query.value).length;
+
+async function startPractice(): Promise<void> {
+  if (!selectedId.value || !canPractice.value || actionBusy.value) return;
+  actionBusy.value = true;
+  actionNote.value = "";
+  try {
+    const response = await exploreApi.startPractice(selectedId.value);
+    const attemptId = practiceAttemptId(response);
+    if (attemptId) void router.push("/paper/" + attemptId);
+    else actionNote.value = "服务端未返回可用作答编号，暂不进入练习。";
+  } catch (cause) {
+    actionNote.value = isApiError(cause) && cause.code === 3311
+      ? "前置条件未满足，服务端拒绝进入练习。"
+      : "练习未启动：" + exploreError(cause);
+  } finally {
+    actionBusy.value = false;
+  }
 }
-function lockedHint(): string {
-  return selected.value.locked ? "3311 前置未满足：先补「不等式性质」等必需前置" : "";
-}
-function cardOf(k: CardKey) {
-  return cardView(k, narrative.value);
-}
+
+watch(selectedId, (id) => { if (id) void loadNode(id); });
+void loadGraph();
 </script>
 
 <template>
-  <div class="graph pad">
-    <div class="topbar">
-      <input v-model="query" placeholder="搜索知识点（定位飞入+高亮脉冲）" />
-      <span v-for="l in legendItems()" :key="l.color" class="lg">
-        <i :style="{ background: colorHex(l.color), borderStyle: l.color === 'preparing' ? 'dashed' : 'solid' }" />
-        {{ l.label }}
-      </span>
-      <span class="mut">WD5 · 点节点开四卡抽屉</span>
-    </div>
-
-    <div class="canvas">
-      <!-- 边 -->
-      <svg class="edges" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <line
-          v-for="(e, i) in edges"
-          :key="i"
-          :x1="pos[e.from].x + 6"
-          :y1="pos[e.from].y + 6"
-          :x2="pos[e.to].x + 6"
-          :y2="pos[e.to].y + 6"
-          stroke="#CBD5E1"
-          stroke-width="0.4"
-          stroke-dasharray="2 1.4"
-        />
-      </svg>
-      <!-- 节点 -->
-      <button
-        v-for="n in visible"
-        :key="n.id"
-        class="gn"
-        :class="{ on: n.id === selectedId, dim: isDim(n.id), hood: hood.has(n.id) && n.id !== selectedId }"
-        :style="{ left: pos[n.id].x + '%', top: pos[n.id].y + '%', borderColor: colorHex(graphColorOf(n)) }"
-        @click="select(n.id)"
-      >
-        <i :class="{ dashed: graphColorOf(n) === 'preparing' }" :style="{ background: colorHex(graphColorOf(n)) }" />
-        {{ n.name }}
-      </button>
-
-      <!-- 抽屉 -->
+  <main class="graph-page">
+    <header class="graph-head"><div><span class="eyebrow">KNOWLEDGE GRAPH · 知识图谱</span><h1>沿着前置关系，找到下一站。</h1><p>节点和连线来自图谱接口；颜色只有在锁态与有效证据状态完整时才表示学习结论。</p></div><button @click="router.push('/paths')">路径中心 ↗</button></header>
+    <div class="toolbar"><label>定位知识点 <input v-model="query" type="search" placeholder="输入名称筛选" :disabled="state !== 'ready'"></label><button @click="loadGraph" :disabled="state === 'loading'">刷新图谱 ↻</button><span class="hint">灰色也可能表示状态未核实，不能视为已解锁。</span></div>
+    <div v-if="state === 'loading'" class="notice" role="status">正在获取图谱节点与前置关系…</div>
+    <div v-else-if="state === 'error'" class="notice error" role="alert">图谱暂不可用：{{ error }} <button @click="loadGraph">重试</button></div>
+    <div v-else-if="state === 'empty'" class="notice">当前没有可展示的知识节点。</div>
+    <div v-else-if="state === 'unmapped'" class="notice">图谱数据已返回，但节点与边的字段尚未对齐；暂不画出可能错误的知识关系。</div>
+    <div v-else class="workspace">
+      <section class="map-wrap" aria-label="知识关系图"><div class="map" :style="{ height: layout.height + 'px' }">
+        <svg class="connections" :viewBox="'0 0 960 ' + layout.height" preserveAspectRatio="none" aria-hidden="true">
+          <line v-for="(edge, index) in graph?.edges" :key="index"
+            :x1="(position.get(edge.from)?.x ?? 0) + 70" :y1="(position.get(edge.from)?.y ?? 0) + 23"
+            :x2="(position.get(edge.to)?.x ?? 0) + 70" :y2="(position.get(edge.to)?.y ?? 0) + 23" />
+        </svg>
+        <button v-for="node in layout.nodes" :key="node.id" class="node-pill"
+          :class="{ active: node.id === selectedId, dim: query.trim() && !matches.has(node.id), neighbor: neighbors.has(node.id) }"
+          :style="{ left: node.x + 'px', top: node.y + 'px', '--node-color': colorHexFor(node) }" @click="selectedId = node.id">
+          <i></i><span>{{ node.name }}</span>
+        </button>
+      </div></section>
       <aside class="drawer">
-        <div class="dhead">
-          <b>{{ selected.name }}</b>
-          <span v-if="badge.tone !== 'none'" class="bdg" :class="badge.tone">{{ badge.text }}</span>
-          <span class="close" @click="router.push('/paths')">✕</span>
-        </div>
-
-        <div class="mastery">
-          <div class="ring" :style="{ '--pct': ((selected.score ?? 0) / 100) * 360 + 'deg' }">
-            <span>{{ selected.score === null ? "—" : Math.round(selected.score) }}</span>
-          </div>
-          <div class="mtext">
-            <b :style="{ color: colorHex(color) }">{{ colorLabel(color) }}</b>
-            <span class="mut">{{ selected.insufficientSample ? "1≤n<5 · 参考分不解锁（BR-01）" : selected.score === null ? "尚无有效证据" : "掌握度 · 近 7 天有练习" }}</span>
-          </div>
-        </div>
-
-        <nav class="tabs">
-          <button
-            v-for="t in NARRATIVE_TABS"
-            :key="t.key"
-            :class="{ on: tab === t.key, miss: cardOf(t.key).missing }"
-            @click="tab = t.key"
-          >
-            {{ t.label }}<i v-if="cardOf(t.key).missing">!</i>
-          </button>
-        </nav>
-
-        <div class="cardbody" :class="{ miss: cardOf(tab).missing }">{{ cardOf(tab).text }}</div>
-        <p v-if="missing.length" class="mut">待补全：{{ missing.join("、") }}（完整度 {{ completeness }}%）</p>
-
-        <div class="sect">代表题（四卡之后独立列 BR-08）</div>
-        <div class="row" @click="router.push('/deepdive/question/1024')">#1024 因式分解基础 <span>›</span></div>
-        <div class="row" @click="router.push('/deepdive/question/1102')">#1102 十字相乘 <span>›</span></div>
-
-        <div class="sect">前后继</div>
-        <div class="chips">
-          <span v-for="id in hood" :key="id" class="nodechip" @click="select(id)">
-            {{ nodes.find((n) => n.id === id)?.name }}
-          </span>
-        </div>
-
-        <p v-if="lockedHint()" class="lockhint">🔒 {{ lockedHint() }}</p>
-        <div class="dacts">
-          <button class="btn" @click="router.push('/paper/9001')">{{ selected.locked ? "去补先修" : "从此处开始练" }}</button>
-          <button class="btn ghost" @click="router.push('/formulas')">关联公式</button>
-        </div>
+        <div class="drawer-head"><span class="eyebrow">NODE DETAIL</span><button v-if="selected" @click="router.push('/graph/node/' + selected.id)">完整页面 ↗</button></div>
+        <h2>{{ selected?.name || '选择知识点' }}</h2>
+        <div v-if="selected" class="evidence"><span class="score">{{ scoreLabel }}</span><span><b :style="{ color: colorHexFor(selected) }">{{ statusText(selected) }}</b><small>{{ selected.insufficientSample === true ? '有效样本不足，不展示稳定掌握度' : '掌握度仅由服务端有效客观证据计算' }}</small></span></div>
+        <p v-if="detailState === 'error'" class="detail-alert">节点详情暂不可用：{{ detailError }}</p>
+        <p v-else-if="detailState === 'unmapped'" class="detail-alert">节点详情字段尚未对齐。</p>
+        <p v-if="selected?.description" class="definition">{{ selected.description }}</p>
+        <nav class="tabs"><button v-for="item in NARRATIVE_TABS" :key="item.key" :class="{ active: tab === item.key }" @click="tab = item.key">{{ item.label }}</button></nav>
+        <div v-if="narrativeState === 'loading'" class="card-body">正在获取已发布概念卡…</div>
+        <div v-else-if="narrativeState === 'error'" class="card-body">概念卡暂不可用。</div>
+        <div v-else class="card-body" :class="{ missing: cardView(tab, narrative?.cards).missing }">{{ cardView(tab, narrative?.cards).text }}<small v-if="narrative">已发布版本 {{ narrative.version }}</small></div>
+        <div class="relations"><h3>一跳关联</h3><button v-for="id in neighbors" :key="id" v-show="id !== selectedId" @click="selectedId = id">{{ nodeName(id) }} ↗</button><p v-if="neighbors.size <= 1">暂无可展示的前后继。</p></div>
+        <div class="relations"><h3>代表题与课程</h3><p>关联资源的响应字段尚未定义，暂不跳转固定题号或课时。</p></div>
+        <p v-if="selected?.locked === true" class="lock">当前节点由服务端标记为前置锁定。</p>
+        <p v-else-if="selected?.locked === null || selected?.preparing === null" class="lock">前置状态未核实，练习入口暂不可用。</p>
+        <button class="practice" :disabled="!canPractice || actionBusy" @click="startPractice">{{ actionBusy ? '启动中…' : '从此处开始练习' }}</button>
+        <p v-if="actionNote" class="detail-alert" role="status">{{ actionNote }}</p>
       </aside>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped>
-.pad {
-  padding: 20px 28px 40px;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-.topbar {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 16px;
-}
-.topbar input {
-  height: 36px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 0 14px;
-  width: 260px;
-  outline: none;
-  font-size: 14px;
-}
-.topbar input:focus {
-  border-color: var(--brand);
-}
-.lg {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  font-size: 12.5px;
-  color: var(--ink2);
-}
-.lg i {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  border: 1.5px solid;
-}
-.mut {
-  color: var(--ink3);
-  font-size: 12.5px;
-  margin-left: auto;
-}
-.canvas {
-  position: relative;
-  height: 560px;
-  background:
-    repeating-linear-gradient(0deg, #f3f5f9 0 1px, transparent 1px 28px),
-    repeating-linear-gradient(90deg, #f3f5f9 0 1px, transparent 1px 28px), #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  margin-top: 12px;
-  overflow: hidden;
-}
-.edges {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.gn {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  min-width: 84px;
-  padding: 8px 12px;
-  border-radius: 99px;
-  border: 2.5px solid;
-  background: #fff;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-  transition: transform 0.15s;
-}
-.gn:hover {
-  transform: translate(-50%, -50%) scale(1.08);
-  z-index: 5;
-}
-.gn.on {
-  box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.18);
-  z-index: 6;
-}
-.gn.dim {
-  opacity: 0.3;
-}
-.gn.hood {
-  outline: 1.5px dashed #94a3b8;
-}
-.gn i {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  flex: none;
-}
-.gn i.dashed {
-  border: 1.5px dashed #8b5cf6;
-  background: transparent !important;
-}
-.drawer {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 380px;
-  background: #fff;
-  border-left: 1px solid var(--line);
-  padding: 16px;
-  overflow-y: auto;
-  box-shadow: -8px 0 24px -14px rgba(0, 0, 0, 0.2);
-}
-.dhead {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.dhead b {
-  font-size: 19px;
-}
-.bdg {
-  font-size: 11.5px;
-  font-weight: 800;
-  border-radius: 7px;
-  padding: 2px 9px;
-}
-.bdg.violet {
-  background: #ede9fe;
-  color: #6d28d9;
-}
-.bdg.red {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-.close {
-  margin-left: auto;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.mastery {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-top: 14px;
-}
-.ring {
-  --pct: 0deg;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  background: conic-gradient(var(--brand) var(--pct), #e5e7eb 0);
-  display: grid;
-  place-items: center;
-  position: relative;
-  flex: none;
-}
-.ring::before {
-  content: "";
-  position: inset: 7px;
-  background: #fff;
-  border-radius: 50%;
-}
-.ring span {
-  position: relative;
-  font-weight: 800;
-  font-size: 15px;
-}
-.mtext {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.mtext b {
-  font-size: 15.5px;
-}
-.mut {
-  color: var(--ink3);
-  font-size: 12.5px;
-}
-.tabs {
-  display: flex;
-  gap: 7px;
-  margin-top: 16px;
-}
-.tabs button {
-  flex: 1;
-  padding: 8px 4px;
-  border-radius: 9px;
-  border: 1px solid var(--line);
-  background: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink3);
-  cursor: pointer;
-  position: relative;
-}
-.tabs button.on {
-  background: var(--brand-soft);
-  border-color: var(--brand);
-  color: var(--brand-deep);
-}
-.tabs button.miss::after,
-.tabs button i {
-  font-style: normal;
-  color: var(--warn);
-}
-.tabs button i {
-  margin-left: 3px;
-  font-weight: 900;
-}
-.cardbody {
-  margin-top: 12px;
-  background: #f8fafc;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 14px;
-  line-height: 1.8;
-}
-.cardbody.miss {
-  border-style: dashed;
-  color: var(--ink3);
-  text-align: center;
-}
-.sect {
-  font-size: 12.5px;
-  font-weight: 800;
-  color: var(--ink3);
-  margin: 16px 0 8px;
-}
-.row {
-  display: flex;
-  justify-content: space-between;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 9px 12px;
-  font-size: 13.5px;
-  cursor: pointer;
-  margin-top: 8px;
-}
-.row:hover {
-  border-color: var(--brand);
-}
-.chips {
-  display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-.nodechip {
-  font-size: 12.5px;
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  padding: 3px 11px;
-  border-radius: 99px;
-  cursor: pointer;
-}
-.lockhint {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  border-radius: 9px;
-  padding: 9px 12px;
-  font-size: 13px;
-  margin-top: 14px;
-}
-.dacts {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-}
-.btn {
-  border: none;
-  border-radius: 11px;
-  background: var(--grad);
-  color: #fff;
-  font-weight: 700;
-  height: 40px;
-  padding: 0 18px;
-  cursor: pointer;
-  font-size: 14.5px;
-  flex: 1;
-}
-.btn.ghost {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-@media (max-width: 960px) {
-  .drawer {
-    width: 320px;
-  }
-}
+.graph-page{max-width:1500px;margin:auto;padding:22px 26px 60px;color:var(--text)}.graph-head{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:27px 31px;border-radius:18px;background:var(--deep);color:#f8fafc}.eyebrow{font-size:10px;font-weight:850;letter-spacing:.17em;color:var(--faint)}.graph-head .eyebrow{color:#aec8f7}.graph-head h1{font:clamp(24px,2.8vw,35px)/1.35 var(--serif);margin:8px 0}.graph-head p{font-size:12px;color:#b9c9e3;line-height:1.7}.graph-head button{border:1px solid #ffffff53;background:#ffffff17;color:#fff;border-radius:9px;padding:9px 13px;white-space:nowrap}.toolbar{display:flex;align-items:center;gap:13px;flex-wrap:wrap;margin:16px 0;padding:12px 15px;border:1px solid var(--line);border-radius:11px;background:var(--paper)}.toolbar label{font-size:12px;font-weight:750;color:var(--muted)}.toolbar input{margin-left:9px;width:220px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--text);padding:7px 10px}.toolbar button{border:0;background:var(--primary-soft);color:var(--primary-deep);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:750}.hint{font-size:11px;color:var(--muted)}.notice{padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--muted);font-size:13px}.notice.error{background:var(--danger-bg);color:var(--danger)}.notice button{border:0;background:none;color:inherit;text-decoration:underline}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}.map-wrap{min-width:0;overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--paper);box-shadow:var(--shadow)}.map{position:relative;min-width:960px;background-image:var(--grid)}.connections{position:absolute;inset:0;width:960px;height:100%;pointer-events:none}.connections line{stroke:var(--faint);stroke-width:1.3;stroke-dasharray:5 5}.node-pill{position:absolute;display:flex;align-items:center;gap:9px;width:165px;min-height:46px;border:1px solid var(--node-color);border-left:4px solid var(--node-color);border-radius:10px;padding:8px 11px;background:var(--paper);color:var(--text);font-size:12px;font-weight:750;text-align:left;box-shadow:var(--shadow)}.node-pill i{width:9px;height:9px;flex:none;border-radius:50%;background:var(--node-color)}.node-pill.active{box-shadow:0 0 0 3px var(--primary-soft),var(--shadow)}.node-pill.dim{opacity:.3}.node-pill.neighbor:not(.active){border-style:dashed}.drawer{padding:21px;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}.drawer-head{display:flex;justify-content:space-between}.drawer-head button{border:0;background:none;color:var(--primary);font-size:11px;font-weight:750}.drawer h2{font:23px var(--serif);margin:11px 0 16px}.evidence{display:flex;align-items:center;gap:15px;padding:14px;background:var(--soft);border-radius:10px}.score{display:grid;place-items:center;width:57px;height:57px;border:3px solid var(--line);border-radius:50%;font-size:16px;font-weight:850}.evidence b,.evidence small{display:block}.evidence b{font-size:12px}.evidence small{font-size:10px;color:var(--muted);line-height:1.5;margin-top:5px}.definition{font-size:12px;line-height:1.7;color:var(--body);margin-top:14px}.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:19px}.tabs button{border:0;border-bottom:2px solid var(--line);background:none;color:var(--muted);padding:8px 0;font-size:11px}.tabs button.active{border-color:var(--primary);color:var(--primary);font-weight:800}.card-body{min-height:95px;padding:14px 4px;white-space:pre-wrap;font-size:13px;line-height:1.8;color:var(--body)}.card-body.missing{color:var(--faint)}.card-body small{display:block;color:var(--faint);font-size:10px;margin-top:8px}.relations{padding:14px 0;border-top:1px solid var(--line)}.relations h3{font-size:11px;color:var(--muted);margin-bottom:9px}.relations button{border:0;border-radius:20px;background:var(--primary-soft);color:var(--primary-deep);padding:6px 10px;margin:0 6px 6px 0;font-size:11px}.relations p,.detail-alert,.lock{font-size:11px;line-height:1.7;color:var(--muted)}.detail-alert{margin:10px 0;color:var(--warning)}.lock{padding:10px;border-radius:8px;background:var(--warning-bg);color:var(--warning)}.practice{width:100%;border:0;border-radius:9px;background:var(--primary);color:var(--deep);padding:11px;margin-top:13px;font-size:12px;font-weight:850}.practice:disabled{opacity:.4;cursor:default}@media(max-width:1040px){.workspace{grid-template-columns:1fr}.drawer{order:-1}}@media(max-width:620px){.graph-page{padding:15px 15px 48px}.graph-head{padding:22px;align-items:start;flex-direction:column}.toolbar input{width:170px}}
 </style>

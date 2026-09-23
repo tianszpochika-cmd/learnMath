@@ -54,6 +54,12 @@ describe("CSV 导入预检（镜像后端逐行报错）", () => {
     expect(parseKnowledgeCsv("").errors[0].reason).toBe("内容为空");
     expect(parseKnowledgeCsv("path,name\n").errors[0].reason).toBe("无数据行");
   });
+
+  it("按表头名称读取重排的列，不把其他列误当作路径", () => {
+    const result = parseKnowledgeCsv("name,description,path,difficulty\n方程,基础,代数,2");
+    expect(result.errors).toEqual([]);
+    expect(result.drafts[0]).toMatchObject({ name: "方程", parentPath: ["代数"], description: "基础", difficulty: 2 });
+  });
 });
 
 describe("树形展示", () => {

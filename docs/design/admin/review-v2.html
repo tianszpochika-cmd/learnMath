@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="数源 MathOrigin 管理端 A01–A19 UI/UX 交互评审稿；数据与操作为本地设计示例。">
+<title>数源 MathOrigin · 管理端 UI/UX 交互评审稿</title>
+<script>(function(){try{document.documentElement.dataset.theme=localStorage.getItem('lm-admin-review-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){document.documentElement.dataset.theme='light'}})();</script>
+<style>
+:root{--primary:#2F6BFF;--primary-deep:#173DB0;--primary-soft:#EEF4FF;--violet:#8B5CF6;--grad:linear-gradient(135deg,#4F7BFF,#8B5CF6);--bg:#F8FAFC;--paper:#fff;--soft:#F1F5F9;--line:#E2E8F0;--text:#0F172A;--body:#334155;--muted:#64748B;--faint:#94A3B8;--good:#15803D;--good-bg:#DCFCE7;--warn:#A16207;--warn-bg:#FEF3C7;--bad:#B91C1C;--bad-bg:#FEE2E2;--serif:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;--sans:system-ui,-apple-system,"PingFang SC","HarmonyOS Sans","Microsoft YaHei",sans-serif;--shadow:0 12px 35px -26px #29467088;--grid:repeating-linear-gradient(0deg,#2F6BFF0a 0 1px,transparent 1px 32px),repeating-linear-gradient(90deg,#2F6BFF0a 0 1px,transparent 1px 32px)}
+:root[data-theme="dark"]{--primary:#8AABFF;--primary-deep:#AFC4FF;--primary-soft:#192A49;--bg:#0B1220;--paper:#111827;--soft:#182437;--line:#2A3B52;--text:#F8FAFC;--body:#CBD5E1;--muted:#A9B8CA;--faint:#90A1B7;--good:#86EFAC;--good-bg:#173F2B;--warn:#FDE68A;--warn-bg:#493815;--bad:#FCA5A5;--bad-bg:#4B2028;--shadow:0 12px 34px -15px #0009;--grid:repeating-linear-gradient(0deg,#9AB5FF0b 0 1px,transparent 1px 32px),repeating-linear-gradient(90deg,#9AB5FF0b 0 1px,transparent 1px 32px)}
+*{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--body);font:14px/1.6 var(--sans)}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}a{color:inherit;text-decoration:none}h1,h2,h3,p{margin-top:0}h1,h2,h3,strong{color:var(--text)}:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+.reviewbar{min-height:40px;padding:5px max(16px,calc((100vw - 1500px)/2));background:#08101E;color:#D7E4FF;display:flex;align-items:center;gap:12px;font-size:12px}.reviewbar strong{color:#fff}.reviewbar .note{opacity:.76}.reviewbar select{margin-left:auto;width:min(310px,42vw);background:#1A2A45;color:#fff;border:1px solid #40567B;border-radius:8px;padding:5px 10px}
+.brand{display:flex;align-items:center;gap:10px;font:700 18px var(--serif);color:#fff}.mark{width:35px;height:35px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font:italic 22px var(--serif);flex:none}.eyebrow{color:var(--primary-deep);font-size:11px;letter-spacing:.13em;font-weight:850;text-transform:uppercase}.page-title{font:700 clamp(29px,3vw,41px)/1.24 var(--serif);letter-spacing:-.02em;margin:6px 0 9px}.lead{color:var(--muted);font-size:15px;max-width:710px}.muted{color:var(--muted)}.small{font-size:12px}.tiny{font-size:11px}.row{display:flex;align-items:center;gap:10px}.row.between{justify-content:space-between}.stack{display:grid;gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.mt{margin-top:18px}.mb{margin-bottom:18px}.grow{flex:1}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--text);border-radius:9px;padding:8px 13px;min-height:35px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:700;text-align:center}.btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary-deep)}.btn.primary{background:var(--grad);border-color:transparent;color:#fff}.btn.primary:hover:not(:disabled){filter:brightness(1.07);color:#fff}.btn.ghost{color:var(--primary-deep);border-color:var(--primary);background:transparent}.btn.danger{color:var(--bad);border-color:var(--bad);background:transparent}.btn.small{font-size:12px;min-height:29px;padding:5px 9px}.pill{display:inline-flex;align-items:center;gap:5px;background:var(--primary-soft);color:var(--primary-deep);border-radius:100px;padding:3px 9px;font-size:11px;font-weight:800;white-space:nowrap}.pill.good{background:var(--good-bg);color:var(--good)}.pill.warn{background:var(--warn-bg);color:var(--warn)}.pill.bad{background:var(--bad-bg);color:var(--bad)}.pill.neutral{background:var(--soft);color:var(--muted)}.status{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px}.status.good{background:var(--good-bg);border-color:var(--good);color:var(--good)}.status.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}.status.bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.pad{padding:20px}.pad-sm{padding:14px}.card h2{font-size:18px;line-height:1.4;margin-bottom:8px}.card h3{font-size:15px;margin-bottom:7px}.rule{height:1px;background:var(--line);margin:16px 0}.topline{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:23px}.topline .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.field{display:block;margin:10px 0}.field>span{display:block;font-weight:750;font-size:12px;color:var(--text);margin-bottom:5px}.field input,.field select,.field textarea,.search-input{width:100%;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--text);padding:8px 10px;min-height:37px}.field textarea{min-height:75px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus,.search-input:focus{outline:2px solid var(--primary);outline-offset:1px}.checkrow{display:flex;align-items:flex-start;gap:8px;font-size:12px}.checkrow input{accent-color:var(--primary);margin-top:4px}.checkrow span{color:var(--muted)}
+.login{min-height:calc(100vh - 40px);display:none;grid-template-columns:minmax(0,1.08fr) minmax(390px,.92fr)}.login.active{display:grid}.login-left{background:#0B1220;background-image:repeating-linear-gradient(0deg,#ffffff0a 0 1px,transparent 1px 32px),repeating-linear-gradient(90deg,#ffffff0a 0 1px,transparent 1px 32px);color:#D7E4FF;padding:64px max(46px,calc((100vw - 1380px)/2));display:flex;align-items:center;position:relative;overflow:hidden}.login-left h1{font:700 clamp(44px,5vw,66px)/1.24 var(--serif);color:#fff;margin:30px 0 20px}.login-left p{max-width:535px;font-size:16px;color:#CBD5E1}.login-left .ghost-math{position:absolute;right:0;bottom:-90px;font:italic 280px var(--serif);color:#8AABFF;opacity:.06;pointer-events:none}.login-right{background:var(--paper);display:grid;place-items:center;padding:40px}.login-card{width:min(100%,410px)}.login-card h2{font-size:28px}
+#workShell{display:flex;min-height:calc(100vh - 40px)}.sidebar{width:228px;flex:none;background:#0F1A2B;color:#A9BDD7;position:sticky;top:0;align-self:flex-start;height:100vh;overflow:auto;padding:15px 10px 28px;z-index:50}.sidebar .brand{font-size:16px;padding:4px 10px 18px}.sidebar .group{font-size:10px;color:#8294AF;letter-spacing:.14em;font-weight:800;padding:15px 12px 5px}.sidebar button{width:100%;border:0;background:transparent;color:inherit;padding:8px 12px;text-align:left;border-radius:8px;font-size:12.5px;display:flex;align-items:center;gap:9px}.sidebar button:hover,.sidebar button.on{background:#213655;color:#fff}.sidebar button.on{box-shadow:inset 3px 0 0 #8AABFF}.sidebar .code{font-size:10px;opacity:.58;min-width:26px}.sidebar .star{margin-left:auto;color:#C4B5FD;font-size:11px}.workspace{min-width:0;flex:1}.topbar{height:60px;position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 24px}.topbar .crumb{color:var(--muted);font-size:12px}.topbar .crumb strong{color:var(--text)}.topbar .right{margin-left:auto;display:flex;align-items:center;gap:8px}.iconbtn{width:35px;height:35px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--body)}.iconbtn:hover{border-color:var(--primary)}.avatar{width:34px;height:34px;border-radius:50%;background:var(--primary-soft);color:var(--primary-deep);display:grid;place-items:center;font-weight:800}.menubtn{display:none}.content{width:min(100%,1570px);margin:auto;padding:28px 24px 76px}.screen{display:none}.screen.active{display:block}.screen:focus{outline:none}.canvas-warning{display:none}
+.kpi{padding:17px 19px}.kpi .value{font-size:28px;color:var(--text);font-weight:850;line-height:1.2;margin:7px 0}.kpi .delta{font-size:11px;color:var(--good)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--paper)}.data-table{width:100%;border-collapse:collapse;min-width:670px;font-size:12.5px}.data-table th{text-align:left;background:var(--soft);color:var(--muted);font-size:11px;letter-spacing:.03em;font-weight:800;padding:10px 13px;white-space:nowrap}.data-table td{padding:10px 13px;border-top:1px solid var(--line);vertical-align:middle}.data-table tr:hover td{background:var(--primary-soft)}.data-table .cell-actions{white-space:nowrap;display:flex;gap:6px}.filterbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;background:var(--paper);border:1px solid var(--line);border-radius:11px;margin-bottom:12px}.filterbar input,.filterbar select{min-height:32px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--text);padding:5px 9px}.filterbar input{min-width:220px}.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:10px;font-size:12px}.pager button{min-width:28px;height:28px;border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:6px}.pager .on{background:var(--primary-soft);color:var(--primary-deep)}
+.tool-scroll{overflow-x:auto}.tool-layout{display:grid;grid-template-columns:220px minmax(430px,1fr) 290px;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--paper);min-height:520px}.tool-col{min-width:0;padding:15px;overflow:auto}.tool-col+.tool-col{border-left:1px solid var(--line)}.tool-col h2{font-size:14px}.tool-col h3{font-size:12px;color:var(--muted);letter-spacing:.06em}.tool-head{padding:12px 15px;border-bottom:1px solid var(--line);background:var(--paper);display:flex;align-items:center;gap:9px;flex-wrap:wrap}.asset{display:block;width:100%;text-align:left;border:1px dashed var(--line);border-radius:9px;padding:10px 12px;background:var(--paper);color:var(--body);margin:8px 0}.asset:hover{border-color:var(--primary);color:var(--primary-deep)}.node-card,.step-card{width:100%;text-align:left;border:1.5px solid var(--line);border-radius:10px;background:var(--paper);color:var(--body);padding:11px;margin-bottom:9px}.node-card.on,.step-card.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}.node-card strong,.step-card strong{display:block}.node-card small,.step-card small{color:var(--muted)}.node-actions{display:flex;gap:5px;justify-content:flex-end;margin-top:7px}.node-actions button{border:1px solid var(--line);background:var(--paper);color:var(--body);border-radius:6px;min-width:27px;height:26px}.node-actions button:hover{border-color:var(--primary)}.tool-canvas{background:var(--paper)}.graph-board{height:500px;position:relative;overflow:hidden;background-image:var(--grid);border:1px solid var(--line);border-radius:12px}.graph-board svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.graph-node{position:absolute;transform:translate(-50%,-50%);border:2px solid var(--pc,var(--primary));background:var(--paper);color:var(--text);box-shadow:var(--shadow);border-radius:12px;min-width:95px;padding:8px;text-align:center;font-weight:750;font-size:12px}.graph-node small{display:block;color:var(--muted);font-weight:500}.graph-node.src,.graph-node.on{box-shadow:0 0 0 4px var(--primary-soft),var(--shadow)}.graph-node.cycle{border-color:var(--bad);box-shadow:0 0 0 4px var(--bad-bg),var(--shadow)}.graph-line{stroke:var(--faint);stroke-width:2;fill:none;marker-end:url(#arrow)}.graph-line.candidate{stroke:var(--primary)}.graph-line.cycle{stroke:var(--bad)}.tabs{display:flex;gap:7px;overflow:auto;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:16px}.tabs button{white-space:nowrap;border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:7px;padding:6px 12px;font-weight:700}.tabs button.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-deep)}
+.drawer-overlay{position:fixed;inset:0;background:#020617aa;z-index:100;display:none}.drawer-overlay.open{display:block}.drawer{position:absolute;right:0;top:0;bottom:0;width:min(560px,100vw);background:var(--paper);box-shadow:-18px 0 55px #0003;display:flex;flex-direction:column}.drawer-head,.drawer-foot{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}.drawer-foot{border-top:1px solid var(--line);border-bottom:0;justify-content:flex-end}.drawer-body{overflow:auto;padding:20px;flex:1}.drawer-head h2{margin:0;font-size:20px}.drawer-head .close{margin-left:auto}.dialog{border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--body);width:min(500px,calc(100vw - 28px));padding:23px;box-shadow:0 28px 80px #0004}.dialog::backdrop{background:#020617a9}.dialog h2{font-size:21px}.dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+#toast{position:fixed;left:50%;bottom:23px;z-index:150;transform:translate(-50%,15px);opacity:0;pointer-events:none;background:var(--text);color:var(--paper);border-radius:99px;padding:8px 17px;font-size:12px;max-width:calc(100vw - 24px);text-align:center;transition:.2s}#toast.on{opacity:1;transform:translate(-50%,0)}
+@media(max-width:1279px){.sidebar{width:74px}.sidebar .brand .brandtext,.sidebar .group,.sidebar button .label,.sidebar button .star{display:none}.sidebar button{justify-content:center;padding:9px 4px}.sidebar .code{font-size:11px;opacity:1;min-width:0}.tool-layout{min-width:950px}}
+@media(max-width:1023px){.sidebar{display:none}.sidebar.open{display:block;position:fixed;left:0;top:0;width:220px;height:100vh;box-shadow:20px 0 50px #0004}.sidebar.open .brand .brandtext,.sidebar.open .group,.sidebar.open button .label,.sidebar.open button .star{display:block}.sidebar.open button{justify-content:flex-start;padding:8px 12px}.menubtn{display:inline-grid;place-items:center}.canvas-warning{display:block}.login{grid-template-columns:1fr}.login-left{min-height:380px;padding:45px 30px}.login-right{padding:35px 20px}.grid4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:767px){.reviewbar{padding:7px 12px;flex-wrap:wrap;gap:6px}.reviewbar .note{display:none}.reviewbar select{width:100%;max-width:none}.topbar{height:54px;padding:0 14px}.topbar .kbd,.topbar .avatar{display:none}.content{padding:22px 14px 64px}.topline{display:block}.topline .actions{justify-content:flex-start;margin-top:13px}.grid2,.grid3,.grid4{grid-template-columns:1fr}.login-left{min-height:330px}.login-left h1{font-size:40px}.filterbar input{min-width:0;width:100%}.graph-board{min-width:700px}.tool-layout{min-width:950px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="reviewbar"><strong>数源 · 管理端 UI/UX 评审稿</strong><span class="note">A01–A19｜所有数据和操作均为本地演示</span><select id="screenJump" aria-label="切换评审页面">
+  <option value="a01">A01 管理员登录</option><option value="a02">A02 运营大盘</option><option value="a03">A03 知识点树</option><option value="a04">A04 图谱边编辑</option><option value="a05">A05 课程管理</option><option value="a06">A06 课时编辑</option><option value="a07">A07 题库</option><option value="a08">A08 题目编辑</option><option value="a09">A09 组卷</option><option value="a10">A10 测评配置</option><option value="a11">A11 路径编排器</option><option value="a12">A12 推理链编辑器</option><option value="a13">A13 专题编排</option><option value="a14">A14 挑战赛</option><option value="a15">A15 用户管理</option><option value="a16">A16 社区审核</option><option value="a17">A17 AI 与内容供给</option><option value="a18">A18 数据统计</option><option value="a19">A19 系统与日志</option>
+</select></div>
+<main class="login active" id="screen-a01" tabindex="-1"><section class="login-left"><div><div class="brand"><span class="mark">π</span>数源 MathOrigin · 管理端</div><div class="eyebrow mt" style="color:#AFC4FF">CONTENT OPERATIONS · 内容生产</div><h1>让每一条知识链，<br>都有可追溯的来处。</h1><p>从知识点和题目，到课程、图谱与推理链；在发布前看清校验结果，分辨工作稿与学员正在使用的版本。</p><div class="row mt" style="flex-wrap:wrap"><span class="pill">图谱边校验</span><span class="pill">路径编排</span><span class="pill">推理链精修</span></div></div><div class="ghost-math" aria-hidden="true">∑</div></section><section class="login-right"><div class="login-card"><div class="eyebrow">ADMIN DESK · 评审入口</div><h2>进入管理工作台</h2><p class="muted">本稿使用演示身份，不采集账号密码，不连接管理服务。</p><div class="card pad mt"><strong>评审身份 · 内容管理员</strong><p class="small muted" style="margin:6px 0 0">可浏览本地页面和校验状态；发布、审计、数据导出均不执行。</p></div><label class="checkrow mt"><input type="checkbox" id="loginAcknowledge"><span>我了解这是本地 UI/UX 演示，不是正式管理登录</span></label><p class="small" id="loginError" role="status" style="color:var(--bad);min-height:20px"></p><button type="button" class="btn primary" style="width:100%" id="loginEnter">进入演示大盘 →</button><p class="small muted mt">正式产品的权限、失败锁定、二次验证与操作审计均需服务端验证。</p></div></section></main>
+<div id="workShell" hidden><aside class="sidebar" id="sidebar"><div class="brand"><span class="mark">π</span><span class="brandtext">数源管理端</span></div>
+  <div class="group">总览</div><button type="button" data-screen="a02"><span class="code">02</span><span class="label">运营大盘</span></button>
+  <div class="group">知识与内容</div><button type="button" data-screen="a03"><span class="code">03</span><span class="label">知识点树</span></button><button type="button" data-screen="a04"><span class="code">04</span><span class="label">图谱边编辑</span><span class="star">★</span></button><button type="button" data-screen="a05"><span class="code">05</span><span class="label">课程管理</span></button><button type="button" data-screen="a06"><span class="code">06</span><span class="label">课时编辑</span></button><button type="button" data-screen="a07"><span class="code">07</span><span class="label">题库</span></button><button type="button" data-screen="a08"><span class="code">08</span><span class="label">题目编辑</span></button><button type="button" data-screen="a09"><span class="code">09</span><span class="label">组卷</span></button><button type="button" data-screen="a10"><span class="code">10</span><span class="label">测评配置</span></button>
+  <div class="group">路径与引擎</div><button type="button" data-screen="a11"><span class="code">11</span><span class="label">路径编排器</span><span class="star">★</span></button><button type="button" data-screen="a12"><span class="code">12</span><span class="label">推理链编辑器</span><span class="star">★</span></button><button type="button" data-screen="a13"><span class="code">13</span><span class="label">专题编排</span></button><button type="button" data-screen="a14"><span class="code">14</span><span class="label">挑战赛</span></button>
+  <div class="group">运营与系统</div><button type="button" data-screen="a15"><span class="code">15</span><span class="label">用户管理</span></button><button type="button" data-screen="a16"><span class="code">16</span><span class="label">社区审核</span></button><button type="button" data-screen="a17"><span class="code">17</span><span class="label">AI 与内容供给</span></button><button type="button" data-screen="a18"><span class="code">18</span><span class="label">数据统计</span></button><button type="button" data-screen="a19"><span class="code">19</span><span class="label">系统与日志</span></button>
+</aside><div class="workspace"><header class="topbar"><button type="button" class="iconbtn menubtn" id="menuBtn" aria-label="打开页面菜单" aria-expanded="false" aria-controls="sidebar">☰</button><span class="crumb">数源管理端 / <strong id="crumbName">运营大盘</strong></span><div class="right"><button type="button" class="iconbtn" id="searchBtn" aria-label="搜索管理页面">⌕</button><span class="kbd small muted">Ctrl K</span><button type="button" class="iconbtn" id="themeBtn" aria-label="切换主题">☾</button><span class="avatar" aria-label="演示管理员">管</span></div></header><div class="content" id="content">
+<main class="screen page" id="screen-a02" tabindex="-1"><div class="topline"><div><div class="eyebrow">A02 · OPERATIONS OVERVIEW</div><h1 class="page-title">从内容流，看到今天该处理什么。</h1><p class="lead">任务、发布门禁与运营信号放在同一页。数字仅用于检查信息层级，不来自真实系统。</p></div><div class="actions"><span class="pill neutral">本地示例数据</span><button type="button" class="btn" data-screen="a19">查看审计页样式 →</button></div></div><div class="grid4"><article class="card kpi"><span class="small muted">待校内容</span><div class="value">24</div><div class="delta">推理链与四卡示例</div></article><article class="card kpi"><span class="small muted">需补题池</span><div class="value">3</div><div class="delta" style="color:var(--warn)">发布前需核对真实族数</div></article><article class="card kpi"><span class="small muted">待处理举报</span><div class="value">3</div><div class="delta">进入社区审核队列</div></article><article class="card kpi"><span class="small muted">最近 7 日做题量</span><div class="value">38,204</div><div class="delta">趋势形态示例</div></article></div><div class="grid2 mt"><section class="card pad"><div class="eyebrow">CONTENT PIPELINE</div><h2 class="mt">发布前的四个检查点</h2><div class="stack"><div class="status"><strong>01 · 内容工作稿</strong><br>编辑题目、课时、推理链与公式；当前在线版保持独立。</div><div class="status warn"><strong>02 · 资源覆盖</strong><br>节点 × 难度 × 题型及族数必须由真实清单生成。</div><div class="status"><strong>03 · 校对与冲突</strong><br>审核通过后仍要核对 expectedRevision 和发布差异。</div><div class="status"><strong>04 · 上线与审计</strong><br>发布及操作日志属于服务端职责，原型只展示流程。</div></div></section><section class="card pad"><div class="eyebrow">TODAY'S WORK</div><h2 class="mt">从待办进入编辑工作台</h2><div class="stack"><button type="button" class="asset" data-screen="a16"><strong>社区审核队列</strong><br><span class="small muted">待审 12、举报 3 · 查看上下文与处理理由</span></button><button type="button" class="asset" data-screen="a12"><strong>推理链待校</strong><br><span class="small muted">四要素、依赖与稳定步骤 ID 一起检查</span></button><button type="button" class="asset" data-screen="a11"><strong>路径覆盖检查</strong><br><span class="small muted">缺题、不可达、自锁时阻止发布</span></button><button type="button" class="asset" data-screen="a17"><strong>每日一题排期</strong><br><span class="small muted">仅审核内容可进入公开排期</span></button></div></section></div><div class="card pad mt" style="background-image:var(--grid)"><div class="eyebrow">BRAND CONTINUITY</div><h2 class="mt">与官网、学习端使用同一套清晰的层级。</h2><p class="muted">蓝紫主行动、页面级衬线、细网格仅用于引导区。表格、表单、画布标签维持紧凑无衬线。深浅主题共用状态语义。</p></div></main>
+
+<main class="screen page" id="screen-a03" tabindex="-1"><div class="topline"><div><div class="eyebrow">A03 · KNOWLEDGE</div><h1 class="page-title">知识点树</h1><p class="lead">看清父子关系、内容覆盖与上线状态；移动节点时要检查受影响的图谱边和题目引用。</p></div><div class="actions"><button type="button" class="btn" id="knowledgeImport">预览 CSV 导入</button><button type="button" class="btn primary" id="knowledgeAdd">新建节点样式</button></div></div><div class="filterbar"><input id="knowledgeSearch" aria-label="搜索知识点" placeholder="搜索知识点名称"><select id="knowledgeFilter" aria-label="筛选内容状态"><option value="all">全部状态</option><option value="published">已发布</option><option value="draft">工作稿</option><option value="prep">内容筹备</option></select><span class="pill neutral">列表模板 · 查询 / 表格 / 详情抽屉</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>知识点 / 层级</th><th>关联题族</th><th>课程</th><th>内容状态</th><th>操作</th></tr></thead><tbody id="knowledgeRows"><tr data-name="代数" data-state="published"><td><strong>▾ 代数</strong> <span class="small muted">根节点</span></td><td>—</td><td>4</td><td><span class="pill good">已发布</span></td><td><button type="button" class="btn small" data-knowledge="代数">查看</button></td></tr><tr data-name="因式分解" data-state="published"><td>　↳ <strong>因式分解</strong></td><td>12</td><td>2</td><td><span class="pill good">已发布</span></td><td><button type="button" class="btn small" data-knowledge="因式分解">查看</button></td></tr><tr data-name="判别式" data-state="draft"><td>　↳ <strong>判别式</strong></td><td>4</td><td>1</td><td><span class="pill neutral">工作稿</span></td><td><button type="button" class="btn small" data-knowledge="判别式">查看</button></td></tr><tr data-name="函数图像" data-state="prep"><td>　↳ <strong>函数图像</strong></td><td>0</td><td>0</td><td><span class="pill warn">内容筹备</span></td><td><button type="button" class="btn small" data-knowledge="函数图像">查看</button></td></tr></tbody></table></div><div class="pager"><span class="muted">示例 4 条</span><button class="on" type="button">1</button></div><div class="status mt">本表的数量为视觉示例。正式覆盖结论必须由发布内容清单计算，不能把样例数当成可上线资源。</div></main>
+
+<main class="screen page" id="screen-a04" tabindex="-1"><div class="topline"><div><div class="eyebrow">A04 · GRAPH EDGE CANVAS · AD5</div><h1 class="page-title">依赖边，要在加上之前看见回路。</h1><p class="lead">先点起点，再点终点。候选边在本地验证；构成环时展示路径并阻止加入。</p></div><div class="actions"><button type="button" class="btn" id="graphCycleDemo">演示成环</button><button type="button" class="btn ghost" data-screen="a03">返回知识点树</button></div></div><div class="canvas-warning status warn mb">画布建议在 ≥1024px 桌面宽度评审；窄屏可横向查看，本地原型不保存任何依赖边。</div><div class="card pad-sm mb row" style="flex-wrap:wrap"><span class="pill">图谱边工作稿</span><span class="small muted">域：一元二次方程</span><span class="small muted" id="graphCount">已显示：5 节点 / 4 条边（示例）</span><button type="button" class="btn small" id="graphClear" style="margin-left:auto">清除当前选择</button></div><div class="tool-scroll"><div class="graph-board" id="graphBoard" style="min-width:700px"><svg viewBox="0 0 900 500" preserveAspectRatio="none" aria-hidden="true" id="graphSvg"><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7" fill="var(--faint)"></path></marker></defs><g id="graphLines"></g></svg><button type="button" class="graph-node" style="left:14%;top:50%;--pc:#10B981" data-graph-node="equation">等式性质<small>起点</small></button><button type="button" class="graph-node" style="left:34%;top:34%;--pc:#2F6BFF" data-graph-node="factor">因式分解<small>前置</small></button><button type="button" class="graph-node" style="left:55%;top:50%;--pc:#8B5CF6" data-graph-node="quadratic">二次方程<small>核心</small></button><button type="button" class="graph-node" style="left:76%;top:33%;--pc:#F59E0B" data-graph-node="formula">求根公式<small>后继</small></button><button type="button" class="graph-node" style="left:76%;top:72%;--pc:#F97316" data-graph-node="application">应用建模<small>后继</small></button></div></div><div class="grid2 mt"><section class="card pad"><h2>候选边</h2><div id="graphStatus" class="status" role="status">选择起点，开始添加依赖。</div><div class="row mt" style="flex-wrap:wrap"><button type="button" class="btn primary" id="graphCommit" disabled>加入本地工作稿</button><span class="small muted">服务端仍需做最终无环校验与审计。</span></div></section><section class="card pad"><h2>检查什么</h2><p>关系方向代表“先学 → 后学”。编辑器还应检查孤立点、过深路径、已有引用与撤下影响。成环错误需指出具体路径（如 A→B→C→A），不能只给出数字 3310。</p><button type="button" class="btn small" data-screen="a11">去路径编排器 →</button></section></div></main>
+
+<main class="screen page" id="screen-a05" tabindex="-1"><div class="topline"><div><div class="eyebrow">A05 · COURSES</div><h1 class="page-title">课程与章节</h1><p class="lead">在目录中区分教学结构、课时完成门槛和发布状态；复杂课时编辑进入独立工作台。</p></div><div class="actions"><button type="button" class="btn primary" id="courseNew">预览新建课程</button></div></div><div class="filterbar"><input id="courseSearch" aria-label="搜索课程" placeholder="课程名称或章节"><select aria-label="课程状态"><option>全部状态</option><option>已发布</option><option>工作稿</option></select><span class="pill neutral">课程树 → 章节 → 课时</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>课程 / 章节</th><th>课时</th><th>默认完成规则</th><th>版本</th><th>状态</th><th>操作</th></tr></thead><tbody><tr data-course="一元二次方程"><td><strong>一元二次方程：从分解到求根</strong></td><td>8</td><td>阅读确认 + 随堂练</td><td>v3</td><td><span class="pill good">在线版</span></td><td><button type="button" class="btn small" data-screen="a06">编辑课时</button></td></tr><tr data-course="解三角形"><td><strong>解三角形：从测量到航海</strong></td><td>10</td><td>阅读确认 + 随堂练</td><td>v2</td><td><span class="pill good">在线版</span></td><td><button type="button" class="btn small" data-screen="a06">编辑课时</button></td></tr><tr data-course="数论入门"><td><strong>数论入门</strong></td><td>8</td><td>待配置</td><td>工作稿</td><td><span class="pill neutral">工作稿</span></td><td><button type="button" class="btn small" data-screen="a06">编辑课时</button></td></tr></tbody></table></div><div class="pager"><span class="muted">示例 3 门课程</span><button class="on" type="button">1</button></div></main>
+
+<main class="screen page" id="screen-a06" tabindex="-1"><div class="topline"><div><div class="eyebrow">A06 · LESSON EDITOR</div><h1 class="page-title">课时编辑：完成规则先于发布。</h1><p class="lead">独立编辑页示例。工作稿可修改；学员正在使用的在线快照保持独立，直到服务端审核与版本发布。</p></div><div class="actions"><button type="button" class="btn" data-screen="a05">返回课程</button><button type="button" class="btn ghost" id="lessonPreview">预览学员态</button><button type="button" class="btn primary" id="lessonPublish" disabled>预览发布确认</button></div></div><div class="grid2"><section class="card pad"><div class="row between"><h2>课时工作稿</h2><span class="pill neutral">尚未校验</span></div><label class="field"><span>课时标题</span><input value="为什么不能直接除以 (x−2)？" id="adminLessonTitle"></label><label class="field"><span>正文摘要</span><textarea id="adminLessonBody">从 x²−5x+6=0 的两种因子出发，说明零因子律与丢根风险。</textarea></label><label class="field"><span>完成策略</span><select id="lessonPolicy"><option value="practice_required">practice_required · 阅读 + 练习</option><option value="read_only">read_only · 纯阅读课</option></select></label><div class="grid2"><label class="field"><span>已审核客观题数</span><input id="lessonQuestionCount" type="number" min="0" value="0"></label><label class="field"><span>默认正确率门槛 %</span><input id="lessonThreshold" type="number" min="0" max="100" value="80"></label></div><div class="row mt" style="flex-wrap:wrap"><button type="button" class="btn ghost" id="lessonValidate">检查发布条件</button><span class="small muted">纯阅读课须额外确认语义。</span></div><div class="status warn mt" id="lessonValidation" role="status">当前为工作稿。默认策略要求审核客观题全答，正确率至少 80%；题数为 0 时不得发布。</div></section><section class="card pad"><div class="eyebrow">ONLINE SNAPSHOT</div><h2 class="mt">已发布 v2</h2><p>在线课时使用稳定内容快照。提交审核不会替换在线版；正式发布还要带 expectedRevision，冲突时比较差异。</p><div class="status"><strong>当前在线完成条件</strong><br>阅读确认 + 已审核随堂题全答 + 正确率 ≥80%</div><div class="rule"></div><h3>发布前还要看</h3><div class="stack"><div class="status">题目状态与内容关联是否已审核</div><div class="status">公式、图片、链接是否可访问</div><div class="status">版本差异、受影响学习快照与回退方案</div></div></section></div></main>
+<main class="screen page" id="screen-a07" tabindex="-1"><div class="topline"><div><div class="eyebrow">A07 · QUESTION BANK</div><h1 class="page-title">题库：先核对族、质量与曝光。</h1><p class="lead">查询、表格、分页和详情抽屉沿用统一模板。示例题目状态不表示项目已有可用题池。</p></div><div class="actions"><button type="button" class="btn" id="questionDuplicate">查看查重状态</button><button type="button" class="btn primary" data-screen="a08">进入题目编辑 →</button></div></div><div class="filterbar"><input id="questionSearch" aria-label="搜索题目" placeholder="题号、内容或变式族"><select id="questionType" aria-label="题型筛选"><option value="all">全部题型</option><option value="objective">客观题</option><option value="subjective">解答题</option></select><span class="pill neutral">已公开同族题不可进入高约束试卷</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>题号 / 题干摘要</th><th>题型</th><th>变式族</th><th>质量</th><th>公开曝光</th><th>操作</th></tr></thead><tbody id="questionRows"><tr data-qname="1024 因式分解" data-type="objective"><td><strong>#1024</strong> 解 x²−5x+6=0</td><td>选择</td><td>QF-ALG-17</td><td><span class="pill good">curated 示例</span></td><td>未公开</td><td><button type="button" class="btn small" data-screen="a08">编辑</button></td></tr><tr data-qname="1102 十字相乘" data-type="objective"><td><strong>#1102</strong> 十字相乘 2x²−7x+3</td><td>填空</td><td>QF-ALG-22</td><td><span class="pill good">curated 示例</span></td><td><span class="pill warn">公开同族</span></td><td><button type="button" class="btn small" data-question-detail="1102">详情</button></td></tr><tr data-qname="1310 韦达定理" data-type="subjective"><td><strong>#1310</strong> 逆向构造二次方程</td><td>解答</td><td>QF-ALG-30</td><td><span class="pill neutral">ai_draft 示例</span></td><td>未公开</td><td><button type="button" class="btn small" data-question-detail="1310">详情</button></td></tr></tbody></table></div><div class="pager"><span class="muted">示例 3 道 / 非真实覆盖</span><button class="on" type="button">1</button></div></main>
+
+<main class="screen page" id="screen-a08" tabindex="-1"><div class="topline"><div><div class="eyebrow">A08 · QUESTION EDITOR</div><h1 class="page-title">题目编辑：让判分规则可读、可检。</h1><p class="lead">当前为本地工作稿演示。题干、答案、变式族与判分配置需一同审核；在线版另有独立快照。</p></div><div class="actions"><button type="button" class="btn" data-screen="a07">返回题库</button><button type="button" class="btn ghost" id="questionPreview">预览题面</button><button type="button" class="btn primary" id="questionPublish" disabled>预览审核提交</button></div></div><div class="grid2"><section class="card pad"><div class="row between"><h2>题目工作稿 · #1024</h2><span class="pill neutral">未校验</span></div><label class="field"><span>题干</span><textarea id="adminQuestionStem">方程 x²−5x+6=0 的解是？</textarea></label><label class="field"><span>题型</span><select id="adminQuestionType"><option value="objective">单选 · 客观题</option><option value="subjective">解答题</option></select></label><div class="grid2"><label class="field"><span>变式族 ID</span><input id="questionFamily" value="QF-ALG-17"></label><label class="field"><span>知识点</span><input value="因式分解 / 零因子律"></label></div><div class="grid2"><label class="field"><span>A 选项</span><input value="x=2 或 x=3"></label><label class="field"><span>B 选项</span><input value="x=−2 或 x=−3"></label><label class="field"><span>C 选项</span><input value="只有 x=2"></label><label class="field"><span>D 选项</span><input value="x=1 或 x=6"></label></div><label class="field"><span>正确选项 / 判分配置</span><select id="questionAnswer"><option value="">请选择正确选项</option><option value="A">A · x=2 或 x=3</option><option value="B">B · x=−2 或 x=−3</option><option value="C">C · 只有 x=2</option><option value="D">D · x=1 或 x=6</option></select></label><div class="row mt" style="flex-wrap:wrap"><button type="button" class="btn ghost" id="questionValidate">检查工作稿</button><span class="small muted">解答题不能进入测评、晋级战、Boss 或挑战。</span></div><div class="status warn mt" id="questionStatus" role="status">尚未指定标准答案；工作稿不能提交审核。</div></section><section class="card pad"><div class="eyebrow">QUALITY &amp; SNAPSHOT</div><h2 class="mt">把审核与在线版本分开</h2><div class="status"><strong>工作稿质量</strong><br>本地示例 · 未提交校对</div><div class="status mt"><strong>在线版</strong><br>v2 示例；修改工作稿不会自动覆盖学员已开始的作答快照。</div><div class="rule"></div><h3>发布前还需要</h3><div class="stack"><div class="status">变式族及公开曝光范围复核</div><div class="status">题型与 judge_config 校验</div><div class="status">推理链、解析和知识点挂点审核</div></div><button type="button" class="btn small mt" data-screen="a12">打开推理链编辑 →</button></section></div></main>
+
+<main class="screen page" id="screen-a09" tabindex="-1"><div class="topline"><div><div class="eyebrow">A09 · PAPER BUILDER</div><h1 class="page-title">组卷：题池不足要让人看得见。</h1><p class="lead">卷用途决定题型、反馈时间与辅助权限；候选集来自发布时的真实题池和曝光检查。</p></div><div class="actions"><button type="button" class="btn" data-screen="a07">查看题库</button><button type="button" class="btn primary" id="paperPublish" disabled>预览发布确认</button></div></div><div class="grid2"><section class="card pad"><h2>组卷规则工作稿</h2><label class="field"><span>用途</span><select id="paperPurpose"><option value="practice">学习练习</option><option value="assessment">测评</option><option value="promotion">晋级战</option><option value="boss">Boss</option><option value="challenge">挑战赛</option></select></label><div class="grid2"><label class="field"><span>目标题数</span><input type="number" id="paperTarget" min="1" value="10"></label><label class="field"><span>可用审核客观题族数（示例）</span><input type="number" id="paperEligible" min="0" value="7"></label></div><label class="checkrow mt"><input type="checkbox" id="paperSubjective"><span>包含解答题</span></label><label class="checkrow mt"><input type="checkbox" id="paperPublicFamily"><span>包含已公开同族题</span></label><div class="grid2 mt"><label class="field"><span>反馈时机</span><select id="paperFeedback"><option value="after_submit">练习：逐题提交后</option><option value="after_handin">交卷后</option></select></label><label class="field"><span>辅助策略</span><select id="paperAssist"><option value="practice">允许学习辅助</option><option value="locked">考试态限制 AI / 答案 / 深钻</option></select></label></div><button type="button" class="btn ghost mt" id="paperValidate">预览抽题结果</button><div class="status warn mt" id="paperStatus" role="status">目标题数 10，示例可用族数 7；还差 3 个。不可用占位题补足。</div></section><section class="card pad"><div class="eyebrow">CANDIDATE PREVIEW</div><h2 class="mt">候选题与排除原因</h2><div class="table-wrap"><table class="data-table" style="min-width:470px"><thead><tr><th>题目族</th><th>状态</th><th>原因</th></tr></thead><tbody><tr><td>QF-ALG-17</td><td><span class="pill good">候选</span></td><td>已审核、未公开</td></tr><tr><td>QF-ALG-22</td><td><span class="pill bad">排除</span></td><td>公开同族</td></tr><tr><td>QF-ALG-30</td><td><span class="pill bad">排除</span></td><td>解答题 / ai_draft</td></tr></tbody></table></div><p class="small muted mt">公开同族与未审核题在高约束试卷中必须排除。考试参考公式表发布后还需随作答规则冻结。</p></section></div></main>
+
+<main class="screen page" id="screen-a11" tabindex="-1"><div class="topline"><div><div class="eyebrow">A11 · PATH CANVAS · AD3</div><h1 class="page-title">把学习路径编排成可解释的门槛。</h1><p class="lead">左侧选素材，中间排顺序，右侧编辑引用与解锁规则。校验不通过时无法进入发布确认。</p></div><div class="actions"><button type="button" class="btn ghost" id="pathValidate">校验路径</button><button type="button" class="btn primary" id="pathPreviewPublish" disabled>预览发布确认</button></div></div><div class="canvas-warning status warn mb">三栏画布以桌面为主；窄屏可横向查看。本地节点与校验不构成真实覆盖报告。</div><div class="tool-scroll"><div class="tool-layout"><section class="tool-col"><h2>素材库</h2><p class="small muted">引用类型 · 点击添加到工作稿</p><button type="button" class="asset" data-path-add="lesson">▤ 课时 · lesson</button><button type="button" class="asset" data-path-add="quiz">▦ 练习组 · quiz</button><button type="button" class="asset" data-path-add="paper">≣ 试卷 · paper</button><button type="button" class="asset" data-path-add="assessment">◎ 测评 · assessment</button><button type="button" class="asset" data-path-add="topic">❏ 专题 · topic</button><button type="button" class="asset" data-path-add="boss">♜ Boss · boss</button><div class="status mt">P4 阶梯的样本门槛、晋级卷题池与 P6 星级规则需单独校验。</div></section><section class="tool-col tool-canvas"><div class="row between"><h2>系统课程 · P1</h2><span class="pill neutral" id="pathCount">3 个节点</span></div><div id="pathNodeList" class="mt"></div><div class="status mt" id="pathStatus" role="status">工作稿未校验。拖动重排在设计稿中以 ↑↓ 操作演示；稳定节点 ID 不随顺序变化。</div></section><aside class="tool-col"><h2>属性与解锁规则</h2><div class="small muted" id="pathSelectedId">选择一个节点</div><label class="field"><span>标题</span><input id="pathTitle"></label><label class="field"><span>引用 ref</span><input id="pathRef" placeholder="lesson #51"></label><label class="field"><span>解锁类型</span><select id="pathRule"><option value="sequential">前一节点完成</option><option value="mastery">掌握度达标</option><option value="paper_pass">试卷通过</option><option value="stars">累计星数</option></select></label><label class="field"><span>规则参数</span><input id="pathRuleValue" placeholder="如 node=12; score≥80; n≥5"></label><button type="button" class="btn small" id="pathApply">更新本地节点</button><div class="rule"></div><h3>发布前 coverage</h3><p class="small muted">真实校验要逐节点核对题族、难度、题型、前置可达性与晋级战自锁循环。</p><button type="button" class="btn small" data-screen="a17">查看内容供给 →</button></aside></div></div></main>
+
+<main class="screen page" id="screen-a12" tabindex="-1"><div class="topline"><div><div class="eyebrow">A12 · REASONING CHAIN · AD4</div><h1 class="page-title">每一步，都要有依据和动机。</h1><p class="lead">选中步骤后同时编辑内容、依据、动机和岔路，右侧预览依赖关系。步骤的稳定 ID 与显示顺序分开。</p></div><div class="actions"><span class="pill warn">quality: ai_draft 示例</span><button type="button" class="btn ghost" id="chainValidate">校验推理链</button><button type="button" class="btn primary" id="chainReview" disabled>预览提交校对</button></div></div><div class="canvas-warning status warn mb">推理链三栏以桌面为主。审核工作稿不替换在线快照，公式深钻应使用独立资源类型。</div><div class="tool-scroll"><div class="tool-layout"><section class="tool-col"><div class="row between"><h2>步骤列表</h2><button type="button" class="btn small" id="chainAdd">＋ 加步</button></div><p class="small muted">↑↓ 改顺序，稳定 ID 保留</p><div id="chainStepList" class="mt"></div></section><section class="tool-col"><div class="row between"><h2>四要素编辑</h2><span class="pill neutral" id="chainCurrentId">S1</span></div><label class="field"><span>步骤类型</span><select id="chainType"><option>工具选择</option><option>等价变形</option><option>论证</option><option>回代检验</option></select></label><label class="field"><span>content · 步骤内容</span><textarea id="chainContent"></textarea></label><label class="field"><span>warrant · 合法性依据 / 图谱挂点</span><textarea id="chainWarrant"></textarea></label><label class="field"><span>motive · 为什么想到</span><textarea id="chainMotive"></textarea></label><label class="field"><span>off_ramp · 易错岔路</span><textarea id="chainOff"></textarea></label><div class="field"><span>depends_on · 依赖步骤（可多选）</span><div id="chainDepends" class="stack"></div></div><button type="button" class="btn small" id="chainApply">更新本地步骤</button></section><aside class="tool-col"><h2>链预览与问题</h2><div id="chainPreview" class="stack"></div><div class="status warn mt" id="chainStatus" role="status">当前工作稿尚未校验；S4 缺少依据挂点。</div><div class="rule"></div><p class="small muted">校验需检查孤步、依赖、四要素与知识点挂点；AI 草稿必须人工校对后才可作为 curated 内容。</p></aside></div></div></main>
+
+<main class="screen page" id="screen-a16" tabindex="-1"><div class="topline"><div><div class="eyebrow">A16 · MODERATION</div><h1 class="page-title">审核时，把上下文与理由放在一起。</h1><p class="lead">三态动作应可追溯。这里只演示队列、详情和二次确认，不操作真实社区内容。</p></div><div class="actions"><span class="pill warn">待审 12 · 举报 3（示例）</span><button type="button" class="btn" id="moderationPolicy">查看处理原则</button></div></div><div class="tabs" id="moderationTabs"><button type="button" class="on" data-moderation-tab="pending">待审核</button><button type="button" data-moderation-tab="reported">举报</button><button type="button" data-moderation-tab="terms">敏感词库</button></div><div class="grid2"><section class="card pad"><h2 id="moderationListTitle">待审核内容 · 示例</h2><div id="moderationQueue" class="stack"><div class="asset" data-review-item="post-887"><div class="row between"><strong>帖子 #887 · “求这道题的完整答案”</strong><span class="pill warn">疑似索取答案</span></div><p class="small muted" style="margin:5px 0">作者：演示学员 B · 关联题：一元二次方程</p><button type="button" class="btn small" data-review-detail="post-887">查看上下文</button></div><div class="asset" data-review-item="post-901"><div class="row between"><strong>回复 #901 · “先试零因子律”</strong><span class="pill neutral">待审</span></div><p class="small muted" style="margin:5px 0">作者：演示学员 C · 含公式内容</p><button type="button" class="btn small" data-review-detail="post-901">查看上下文</button></div></div></section><section class="card pad"><div class="eyebrow">DECISION CONTEXT</div><h2 class="mt">先看原帖，再做决定。</h2><p id="moderationDetail" class="muted">选择左侧内容查看上下文、风险标签与历史记录。</p><label class="field"><span>处理理由（驳回/删除必填）</span><textarea id="moderationReason" placeholder="说明本次决定依据"></textarea></label><div class="row mt" style="flex-wrap:wrap"><button type="button" class="btn" id="moderationApprove" disabled>通过</button><button type="button" class="btn danger" id="moderationReject" disabled>驳回</button></div><div class="status mt" id="moderationStatus" role="status">正式处理需权限检查、二次确认与真实操作日志。</div></section></div></main>
+<main class="screen page" id="screen-a10" tabindex="-1">
+  <div class="eyebrow">ASSESSMENT · A10 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">测评配置</h1><p class="lead">先定义测什么，再定义如何反馈。用途、辅助策略与反馈时机分别配置，发布前检查题型、题族和覆盖范围。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a09">查看试卷</button><button type="button" class="btn primary" id="a10Validate">校验配置</button></div></div>
+  <div class="status mb" id="a10Status">演示状态：待校验。页面数值与题目数量均为设计示例，未读取真实题库。</div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="测评基础规则">
+      <div class="row between"><h2>01 · 作答规则</h2><span class="pill">工作稿示例</span></div>
+      <label class="field"><span>测评名称</span><input id="a10Name" value="一元二次方程 · 入门测评" aria-label="测评名称"></label>
+      <div class="grid2">
+        <label class="field"><span>用途 mode</span><select id="a10Mode"><option value="assessment">入学测评</option><option value="practice">普通练习</option></select></label>
+        <label class="field"><span>反馈 feedback_mode</span><select id="a10Feedback"><option value="on_submit">交卷后反馈</option><option value="immediate">逐题即时反馈</option></select></label>
+      </div>
+      <label class="field"><span>辅助 assistance_policy</span><select id="a10Assist"><option value="restricted">限制辅助 · 入学测评默认</option><option value="reference_only">仅参考公式条件摘要 · 仅练习演示</option></select></label>
+      <p class="small muted">测评开答时由服务端冻结规则快照。这里仅展示字段结构；前端选择不能改变进行中的作答策略。</p>
+      <div class="status">测评发布门禁：仅审核通过的客观题；拒绝解答题、未审核题、公开每日题及其同族。开卷时仍需再次校验。</div>
+    </section>
+    <section class="card pad stack" aria-label="维度与覆盖检查">
+      <div class="row between"><h2>02 · 维度与覆盖</h2><span class="pill">示例范围</span></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">领域</th><th scope="col">本卷题族</th><th scope="col">样例结论</th></tr></thead><tbody><tr><td>因式分解</td><td>4</td><td>可形成局部观察</td></tr><tr><td>求根公式</td><td>3</td><td>样本不足</td></tr><tr><td>几何</td><td>0</td><td>未覆盖，不推断</td></tr></tbody></table></div>
+      <label class="field"><span>推荐起点规则说明</span><textarea id="a10PlacementRule" rows="3">只对实际覆盖的领域给出建议；证据不足时保持“待校准”。用户确认后才更新推荐起点。</textarea></label>
+      <div class="status">跳过测评保持 placement=pending；测评中途退出不产生完整定级。自评不能充当客观证据。</div>
+      <div class="row"><button type="button" class="btn" id="a10Preview">预览开考说明</button><button type="button" class="btn" id="a10Publish" disabled>发布测评 · 校验后可操作</button></div>
+    </section>
+  </div>
+</main>
+
+<main class="screen page" id="screen-a13" tabindex="-1">
+  <div class="eyebrow">TOPIC BUILDER · A13 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">专题编排</h1><p class="lead">把课时、练习与深钻排成一段有节奏的学习旅程；节点身份保持稳定，调整顺序不改历史引用。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a11">查看路径编排器</button><button type="button" class="btn primary" id="a13Validate">检查可用性</button></div></div>
+  <div class="status mb" id="a13Status">工作稿示例 · 待检查资源引用、题族覆盖和前置关系；当前未对学习端发布。</div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="专题节点序列">
+      <div class="row between"><h2>一元二次方程 · 三步建立直觉</h2><span class="pill">4 个节点</span></div>
+      <p class="small muted">顺序调整只改变展示序号；资源 ID、步骤稳定 ID 和已有用户快照保持原值。</p>
+      <div class="card pad row between"><div><span class="pill">01 · 课时</span><strong>因式分解回顾</strong><div class="small muted">ref: lesson-051 · 已有在线快照</div></div><div class="row"><button type="button" class="btn small" data-a13-move="1:-1" aria-label="上移因式分解回顾">↑</button><button type="button" class="btn small" data-a13-move="1:1" aria-label="下移因式分解回顾">↓</button></div></div>
+      <div class="card pad row between"><div><span class="pill">02 · 题组</span><strong>分解与求根 · 练习</strong><div class="small muted">ref: quiz-012 · 需要审核客观题族</div></div><div class="row"><button type="button" class="btn small" data-a13-move="2:-1" aria-label="上移练习">↑</button><button type="button" class="btn small" data-a13-move="2:1" aria-label="下移练习">↓</button></div></div>
+      <div class="card pad row between"><div><span class="pill">03 · 深钻</span><strong>求根公式从哪里来</strong><div class="small muted">ref: formula-004 · 工作稿与在线版分开</div></div><div class="row"><button type="button" class="btn small" data-a13-move="3:-1" aria-label="上移公式深钻">↑</button><button type="button" class="btn small" data-a13-move="3:1" aria-label="下移公式深钻">↓</button></div></div>
+      <div class="card pad row between"><div><span class="pill">04 · 挑战</span><strong>用两种方法比较解法</strong><div class="small muted">ref: challenge-008 · 题池待校验</div></div><div class="row"><button type="button" class="btn small" data-a13-move="4:-1" aria-label="上移挑战">↑</button><button type="button" class="btn small" data-a13-move="4:1" aria-label="下移挑战">↓</button></div></div>
+    </section>
+    <section class="card pad stack" aria-label="专题属性与覆盖">
+      <h2>属性与门禁</h2>
+      <label class="field"><span>专题名称</span><input id="a13Title" value="一元二次方程 · 三步建立直觉"></label>
+      <label class="field"><span>完成后的下一站</span><select id="a13Next"><option>回到学习计划，给出建议</option><option>进入相关知识图谱</option></select></label>
+      <div class="status">专题包含的挑战节点需独立题池，不能使用本轮训练已曝光题族。资源缺失应显示“内容筹备中”，不能标成学习者未解锁。</div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">校验项</th><th scope="col">示例结果</th></tr></thead><tbody><tr><td>节点引用</td><td>4 / 4 已绑定</td></tr><tr><td>前置可达</td><td>待检查</td></tr><tr><td>挑战独立题族</td><td>待检查</td></tr></tbody></table></div>
+      <div class="row"><button type="button" class="btn" id="a13Preview">预览学员旅程</button><button type="button" class="btn" id="a13Publish" disabled>发布专题 · 校验后可操作</button></div>
+    </section>
+  </div>
+</main>
+
+<main class="screen page" id="screen-a14" tabindex="-1">
+  <div class="eyebrow">CHALLENGE · A14 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">挑战赛配置与监控</h1><p class="lead">公平计分从题池和规则快照开始。异常标记只供人工复核，不能直接认定违规。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a09">前往组卷</button><button type="button" class="btn primary" id="a14Validate">校验赛事</button></div></div>
+  <div class="status mb" id="a14Status">示例赛事 · 尚未发布。下方榜单与异常数据均为虚构演示。</div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="赛事规则">
+      <div class="row between"><h2>秋季数学推理挑战</h2><span class="pill">配置草稿</span></div>
+      <div class="grid2"><label class="field"><span>作答时长</span><select id="a14Duration"><option value="25">25 分钟</option><option value="40">40 分钟</option></select></label><label class="field"><span>反馈时机</span><select id="a14Feedback"><option value="on_submit">交卷后</option></select></label></div>
+      <label class="field"><span>辅助策略</span><select id="a14Assist"><option value="restricted">restricted · 限制辅助</option></select></label>
+      <div class="status">发布与开赛双重检查：只允许审核通过的客观题；排除公开每日题及其同族、已在本轮训练曝光的题族。未覆盖或题池不足时保持“内容筹备中”。</div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">题池门禁</th><th scope="col">设计示例</th></tr></thead><tbody><tr><td>审核客观题族</td><td>12 族</td></tr><tr><td>已公开同族排除</td><td>待复核</td></tr><tr><td>训练题池独立性</td><td>待复核</td></tr></tbody></table></div>
+      <button type="button" class="btn" id="a14Publish" disabled>发布赛事 · 校验后可操作</button>
+    </section>
+    <section class="card pad stack" aria-label="榜单监控示例">
+      <div class="row between"><h2>榜单监控</h2><span class="pill">演示数据</span></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">名次</th><th scope="col">演示学员</th><th scope="col">客观分</th><th scope="col">用时</th><th scope="col">复核</th></tr></thead><tbody><tr><td>01</td><td>学习者 A</td><td>90</td><td>18:42</td><td>—</td></tr><tr><td>02</td><td>学习者 B</td><td>85</td><td>04:12</td><td>用时偏短 · 待人工复核</td></tr><tr><td>03</td><td>学习者 C</td><td>80</td><td>22:08</td><td>—</td></tr></tbody></table></div>
+      <p class="small muted">排名示例仅演示客观分与用时呈现。平台内限制不代表能识别站外帮助，也不提供监考级防作弊结论。</p>
+      <div class="row"><button type="button" class="btn" id="a14ReviewFlag">查看异常复核说明</button><button type="button" class="btn" id="a14Refresh">刷新演示榜单</button></div>
+    </section>
+  </div>
+</main>
+
+<main class="screen page" id="screen-a15" tabindex="-1">
+  <div class="eyebrow">LEARNER OPS · A15 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">用户管理</h1><p class="lead">查看学习轨迹与异常状态时保留证据来源；主观自评、AI 建议和已判分客观记录分别展示。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a18">查看总体统计</button></div></div>
+  <div class="status mb">此页使用虚构演示学员，不含真实账号资料；详情面板为设计示例，不连接管理接口。</div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="用户列表">
+      <div class="row between"><h2>学员列表</h2><span class="pill">3 条样例</span></div>
+      <label class="field"><span>搜索演示学员</span><input id="a15Search" placeholder="姓名代号或演示编号"></label>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">代号</th><th scope="col">最近学习</th><th scope="col">路径进度</th><th scope="col">查看</th></tr></thead><tbody><tr><td>学习者 A · U-014</td><td>今日</td><td>3 / 8 节点</td><td><button type="button" class="btn small" data-a15-user="A">详情</button></td></tr><tr><td>学习者 B · U-027</td><td>昨日</td><td>5 / 8 节点</td><td><button type="button" class="btn small" data-a15-user="B">详情</button></td></tr><tr><td>学习者 C · U-031</td><td>3 天前</td><td>1 / 8 节点</td><td><button type="button" class="btn small" data-a15-user="C">详情</button></td></tr></tbody></table></div>
+      <p class="small muted">正式详情建议使用右侧 Drawer，以保留列表筛选与滚动位置；未保存修改在关闭前确认。</p>
+    </section>
+    <aside class="card pad stack" id="a15Detail" aria-label="演示学员详情">
+      <div class="row between"><h2 id="a15DetailName">学习者 A · U-014</h2><span class="pill">演示详情</span></div>
+      <div class="table-wrap"><table class="data-table"><tbody><tr><th scope="row">课时进度</th><td id="a15Progress">3 / 8 节点完成</td></tr><tr><th scope="row">掌握度证据</th><td>仅已判分且合格的客观题；样本不足时不报确定掌握</td></tr><tr><th scope="row">自评</th><td>单独展示，不计客观成绩</td></tr><tr><th scope="row">积分流水</th><td>示例：参与 +10，撤销/幂等需查事件</td></tr></tbody></table></div>
+      <div class="status">“完成”与“掌握”是不同状态；已下架题目仍保留历史作答快照，不物理删除历史内容。</div>
+      <button type="button" class="btn" id="a15History">查看演示学习记录</button>
+    </aside>
+  </div>
+</main>
+
+<main class="screen page" id="screen-a17" tabindex="-1">
+  <div class="eyebrow">CONTENT SUPPLY · A17 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">AI 与内容供给</h1><p class="lead">将服务配置、候选内容、人工校对与在线快照分开呈现；AI 来源标签不能替代审核或发布。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a12">查看推理链编辑</button></div></div>
+  <div class="status mb">全部配置和用量均为设计示例；不展示真实密钥，不请求 Provider，不触发真实生成或发布。</div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="模型服务与用量">
+      <div class="row between"><h2>模型服务</h2><span class="pill">未连接 · 演示</span></div>
+      <label class="field"><span>服务环境</span><select id="a17Provider"><option value="demo">演示 Provider</option><option value="none">未配置</option></select></label>
+      <label class="field"><span>凭据</span><input type="password" value="" placeholder="正式产品中仅显示已配置状态，不回显密钥" disabled></label>
+      <div class="row"><button type="button" class="btn" id="a17TestProvider">查看连接测试设计</button><button type="button" class="btn" id="a17Usage">查看用量口径</button></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">日期</th><th scope="col">演示请求</th><th scope="col">待人工处理</th></tr></thead><tbody><tr><td>周一</td><td>38</td><td>4</td></tr><tr><td>周二</td><td>42</td><td>6</td></tr><tr><td>周三</td><td>35</td><td>3</td></tr></tbody></table></div>
+      <p class="small muted">用量趋势只供容量观察；它不能证明答案质量、人工校对或线上可用。</p>
+    </section>
+    <section class="card pad stack" aria-label="内容供给流程">
+      <div class="row between"><h2>供给流水线</h2><span class="pill">待校对 3 条示例</span></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">候选内容</th><th scope="col">来源质量</th><th scope="col">工作稿</th></tr></thead><tbody><tr><td>题 #1310 · 逆向构造</td><td>AI 整理</td><td>待核步骤依据</td></tr><tr><td>求根公式 · 七区</td><td>人工编写</td><td>条件边界待审</td></tr><tr><td>概念卡 · 判别式</td><td>AI 整理</td><td>四卡缺 1</td></tr></tbody></table></div>
+      <div class="status">工作稿 draft/review/published 与 completeness 独立。提交审核不会覆盖当前在线快照；发布需要 expectedRevision 并处理冲突。无发布快照时公开端不读取草稿正文。</div>
+      <div class="row"><button type="button" class="btn" data-screen="a08">校对题目</button><button type="button" class="btn" data-screen="a12">校对推理链</button></div>
+      <h3>每日一题 · 排期示例</h3><p>明日候选：因式分解入门题。公开后，该题及同族必须排除测评、晋级战、Boss 和挑战赛题池。</p>
+      <button type="button" class="btn" id="a17Schedule">查看排期门禁</button>
+    </section>
+  </div>
+</main>
+
+<main class="screen page" id="screen-a18" tabindex="-1">
+  <div class="eyebrow">ANALYTICS · A18 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">数据统计</h1><p class="lead">从流量走向学习质量，也保持每个指标的证据边界。图表和数字用于界面评审，不代表真实运营结果。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a02">返回运营大盘</button><button type="button" class="btn" id="a18Export">导出设计示例 CSV</button></div></div>
+  <div class="status mb" id="a18Status">演示数据 · 近 7 天。导出按钮仅展示导出交互，不应声称已生成服务端任务。</div>
+  <div class="row mb"><label class="field"><span>统计区间</span><select id="a18Range"><option value="7">近 7 天</option><option value="30">近 30 天</option></select></label><label class="field"><span>维度</span><select id="a18Dimension"><option value="learning">学习质量</option><option value="content">内容供给</option><option value="operations">运营</option></select></label></div>
+  <div class="grid3 mb"><section class="card pad"><div class="small muted">已判分客观提交 · 示例</div><h2>1,284</h2><p class="small">按提交事件去重，不把自评计入客观判分。</p></section><section class="card pad"><div class="small muted">有效掌握证据 · 示例</div><h2>846</h2><p class="small">排除已曝光同族、辅助作答与同族窗口内后续提交。</p></section><section class="card pad"><div class="small muted">待校对内容 · 示例</div><h2>13</h2><p class="small">工作稿队列，不等于线上可见内容数量。</p></section></div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="知识点样例统计"><h2>知识点观察</h2><div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">节点</th><th scope="col">合格证据数</th><th scope="col">状态</th></tr></thead><tbody><tr><td>因式分解</td><td>18</td><td>可展示估计</td></tr><tr><td>求根公式</td><td>3</td><td>样本不足</td></tr><tr><td>根的分布</td><td>0</td><td>尚未测量</td></tr></tbody></table></div><p class="small muted">n=0 显示“尚未测量”；n&lt;5 显示“样本不足”。缺内容、前置未解锁与能力判断分别统计。</p></section>
+    <section class="card pad stack" aria-label="数据口径"><h2>口径说明</h2><div class="status">客观得分：服务端已判分；解答题自评：单独记录；AI 建议断链：不进入推理能力分数。</div><div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">指标</th><th scope="col">示例用途</th></tr></thead><tbody><tr><td>课时完成率</td><td>阅读确认 + 策略门槛</td></tr><tr><td>掌握度</td><td>合格客观证据</td></tr><tr><td>内容覆盖</td><td>节点 × 难度 × 题型 / 族数</td></tr></tbody></table></div><button type="button" class="btn" data-screen="a11">查看路径覆盖校验</button></section>
+  </div>
+</main>
+
+<main class="screen page" id="screen-a19" tabindex="-1">
+  <div class="eyebrow">SYSTEM &amp; AUDIT · A19 / 本地设计示例</div>
+  <div class="topline"><div><h1 class="page-title">系统设置与操作日志</h1><p class="lead">密钥配置只展示状态，不回显值；操作记录与设计示例分层，便于核对谁在何时改了什么。</p></div><div class="row"><button type="button" class="btn ghost" data-screen="a17">AI 服务配置</button></div></div>
+  <div class="status mb">此页日志为虚构示例，不是已发生的管理操作或真实审计记录。</div>
+  <div class="grid2">
+    <section class="card pad stack" aria-label="系统配置示例"><h2>配置分组</h2><div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">分组</th><th scope="col">示例状态</th><th scope="col">处理方式</th></tr></thead><tbody><tr><td>内容审核</td><td>草稿配置</td><td>变更前显示差异</td></tr><tr><td>第三方服务</td><td>未连接</td><td>密钥仅可替换，不回显</td></tr><tr><td>公告与提示</td><td>草稿配置</td><td>发布需确认</td></tr></tbody></table></div><label class="field"><span>审核提醒阈值 · 示例</span><select id="a19Threshold"><option value="24">待审超过 24 小时提醒</option><option value="12">待审超过 12 小时提醒</option></select></label><button type="button" class="btn" id="a19SaveSettings">预览配置差异</button><p class="small muted">正式保存需权限校验、危险变更确认与服务端日志；本稿不写配置。</p></section>
+    <section class="card pad stack" aria-label="操作日志示例"><div class="row between"><h2>操作日志</h2><span class="pill">虚构记录</span></div><label class="field"><span>按操作或资源筛选</span><input id="a19LogSearch" placeholder="例如：题目、工作稿、发布"></label><div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">时间</th><th scope="col">操作者</th><th scope="col">操作示例</th><th scope="col">对象</th></tr></thead><tbody><tr><td>09:42</td><td>演示管理员 A</td><td>提交审核</td><td>公式工作稿 #04</td></tr><tr><td>09:18</td><td>演示管理员 B</td><td>撤销草稿修改</td><td>题目 #1024</td></tr><tr><td>昨日</td><td>演示管理员 A</td><td>发布版本 2</td><td>概念卡 #12</td></tr></tbody></table></div><div class="status">真实日志应记录服务端确认的操作结果与资源版本；弹出的“操作已审计”提示本身不能证明日志持久化。</div><button type="button" class="btn" id="a19LogFilter">筛选示例记录</button></section>
+  </div>
+</main>
+
+</div></div></div>
+<div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle"><div class="drawer-head"><h2 id="drawerTitle">详情</h2><button type="button" class="btn small close" id="drawerClose">关闭</button></div><div class="drawer-body" id="drawerBody"></div><div class="drawer-foot"><button type="button" class="btn" id="drawerDismiss">返回列表</button></div></aside></div>
+<dialog class="dialog" id="confirmDialog" aria-labelledby="confirmTitle"><h2 id="confirmTitle">确认操作</h2><p id="confirmText"></p><div class="actions"><button type="button" class="btn" id="confirmCancel">取消</button><button type="button" class="btn primary" id="confirmProceed">确认</button></div></dialog>
+<dialog class="dialog" id="searchDialog" aria-label="搜索管理页面"><h2>跳转管理页面</h2><label class="field"><span>页面名称</span><input class="search-input" id="searchInput" placeholder="试试：题库、路径、审核"></label><div class="stack mt" id="searchResults"></div><div class="actions"><button type="button" class="btn" id="searchClose">关闭</button></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* 数源管理端 A01–A19：仅供离线 UI/UX 评审。所有数据保存在当前页面内。 */
+(function () {
+'use strict';
+const $ = selector => document.querySelector(selector);
+const $$ = selector => Array.from(document.querySelectorAll(selector));
+const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const titles = Object.fromEntries($$('#screenJump option').map(option => [option.value, option.textContent.replace(/^A\d+\s*/, '')]));
+let toastTimer;
+function toast(message) {
+  const el = $('#toast'); el.textContent = message; el.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 3200);
+}
+function setStatus(selector, kind, message) {
+  const el = $(selector); el.classList.remove('good', 'warn', 'bad');
+  if (kind) el.classList.add(kind); el.textContent = message;
+}
+let drawerOrigin;
+function openDrawer(title, html) {
+  drawerOrigin = document.activeElement;
+  $('#drawerTitle').textContent = title;
+  $('#drawerBody').innerHTML = html;
+  $('#drawerOverlay').classList.add('open');
+  $('#drawerOverlay').setAttribute('aria-hidden', 'false');
+  $('#workShell').inert = true;
+  $('#screen-a01').inert = true;
+  $('#drawerClose').focus();
+}
+function closeDrawer() {
+  $('#drawerOverlay').classList.remove('open');
+  $('#drawerOverlay').setAttribute('aria-hidden', 'true');
+  $('#workShell').inert = false;
+  $('#screen-a01').inert = false;
+  if (drawerOrigin?.isConnected) drawerOrigin.focus();
+}
+$('#drawerClose').addEventListener('click', closeDrawer);
+$('#drawerDismiss').addEventListener('click', closeDrawer);
+$('#drawerOverlay').addEventListener('click', event => { if (event.target === $('#drawerOverlay')) closeDrawer(); });
+let confirmAction = null;
+function confirmPreview(title, message, action) {
+  $('#confirmTitle').textContent = title; $('#confirmText').textContent = message;
+  confirmAction = action || null; $('#confirmDialog').showModal();
+}
+$('#confirmCancel').addEventListener('click', () => $('#confirmDialog').close());
+$('#confirmProceed').addEventListener('click', () => { $('#confirmDialog').close(); const action = confirmAction; confirmAction = null; if (action) action(); });
+$('#confirmDialog').addEventListener('close', () => { confirmAction = null; });
+function showScreen(id) {
+  if (!titles[id]) return;
+  $$('.screen.active, .login.active').forEach(el => el.classList.remove('active'));
+  const login = id === 'a01';
+  $('#workShell').hidden = login;
+  const screen = $('#screen-' + id); screen.classList.add('active');
+  if (!login) $('#crumbName').textContent = titles[id];
+  $('#screenJump').value = id;
+  $$('#sidebar [data-screen]').forEach(button => button.classList.toggle('on', button.dataset.screen === id));
+  $('#sidebar').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded', 'false');
+  closeDrawer(); if ($('#searchDialog').open) $('#searchDialog').close();
+  window.scrollTo(0, 0); screen.focus({preventScroll:true});
+}
+$('#loginEnter').addEventListener('click', () => {
+  if (!$('#loginAcknowledge').checked) { $('#loginError').textContent = '请先确认这是本地 UI/UX 演示。'; $('#loginAcknowledge').focus(); return; }
+  $('#loginError').textContent = ''; showScreen('a02');
+});
+$('#loginAcknowledge').addEventListener('change', () => { $('#loginError').textContent = ''; });
+$('#screenJump').addEventListener('change', event => showScreen(event.target.value));
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-screen]'); if (button) showScreen(button.dataset.screen);
+});
+$('#menuBtn').addEventListener('click', () => { const open = $('#sidebar').classList.toggle('open'); $('#menuBtn').setAttribute('aria-expanded', String(open)); });
+$('#themeBtn').addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem('lm-admin-review-theme', theme); } catch (error) { /* file privacy mode */ }
+  toast(theme === 'dark' ? '已切换深色主题' : '已切换浅色主题');
+});
+function renderSearch() {
+  const query = $('#searchInput').value.trim().toLocaleLowerCase();
+  $('#searchResults').replaceChildren();
+  Object.entries(titles).filter(([id, name]) => id !== 'a01' && (!query || `${id} ${name}`.toLocaleLowerCase().includes(query))).forEach(([id, name]) => {
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'btn';
+    button.textContent = `${id.toUpperCase()} · ${name}`; button.addEventListener('click', () => showScreen(id));
+    $('#searchResults').appendChild(button);
+  });
+  if (!$('#searchResults').children.length) $('#searchResults').textContent = '没有匹配的管理页面。';
+}
+$('#searchBtn').addEventListener('click', () => { $('#searchInput').value = ''; renderSearch(); $('#searchDialog').showModal(); $('#searchInput').focus(); });
+$('#searchInput').addEventListener('input', renderSearch);
+$('#searchClose').addEventListener('click', () => $('#searchDialog').close());
+document.addEventListener('keydown', event => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && !event.target.closest?.('input,textarea,[contenteditable="true"]')) { event.preventDefault(); $('#searchBtn').click(); }
+  if (event.key === 'Escape' && $('#drawerOverlay').classList.contains('open')) closeDrawer();
+  if (event.key === 'Tab' && $('#drawerOverlay').classList.contains('open')) {
+    const focusable = $$('#drawerOverlay button:not(:disabled), #drawerOverlay a[href], #drawerOverlay input:not(:disabled), #drawerOverlay textarea:not(:disabled)');
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  }
+});
+
+/* A03 知识树：本地筛选与详情结构。 */
+function filterKnowledge() {
+  const query = $('#knowledgeSearch').value.trim().toLocaleLowerCase();
+  const state = $('#knowledgeFilter').value;
+  $$('#knowledgeRows tr').forEach(row => { row.hidden = !(row.dataset.name.toLocaleLowerCase().includes(query) && (state === 'all' || state === row.dataset.state)); });
+}
+$('#knowledgeSearch').addEventListener('input', filterKnowledge);
+$('#knowledgeFilter').addEventListener('change', filterKnowledge);
+$('#knowledgeRows').addEventListener('click', event => {
+  const button = event.target.closest('[data-knowledge]'); if (!button) return;
+  openDrawer(`${button.dataset.knowledge} · 知识点详情`, `<p>节点：<strong>${escapeHtml(button.dataset.knowledge)}</strong></p><div class="status">父子关系、题族、课程与发布状态应从真实引用计算。移动节点前需检查图谱边及学习路径。</div><button type="button" class="btn mt" data-screen="a04">查看图谱边 →</button>`);
+});
+$('#knowledgeImport').addEventListener('click', () => openDrawer('CSV 导入 · 设计预览', '<p>正式流程先预览列映射、重复键、父节点、循环和受影响引用，再确认导入。</p><div class="status warn">本稿不上传文件，也不写入知识点。</div>'));
+$('#knowledgeAdd').addEventListener('click', () => openDrawer('新建知识点 · 字段预览', '<p>名称、父节点、学段、唯一标识与发布状态应逐项校验。</p><div class="status warn">这是表单结构预览；本稿未创建节点。</div>'));
+
+/* A04 图谱：有向边与具体回路路径。 */
+const graphLabels = {equation:'等式性质',factor:'因式分解',quadratic:'二次方程',formula:'求根公式',application:'应用建模'};
+const graphEdges = [['equation','factor'],['factor','quadratic'],['quadratic','formula'],['quadratic','application']];
+let graphSource = null, graphCandidate = null, graphCycle = null;
+function graphPath(from, to, seen = new Set()) {
+  if (from === to) return [to];
+  seen.add(from);
+  for (const [source, target] of graphEdges) {
+    if (source !== from || seen.has(target)) continue;
+    const rest = graphPath(target, to, new Set(seen)); if (rest) return [from, ...rest];
+  }
+  return null;
+}
+function graphDraw() {
+  const lines = $('#graphLines'); lines.replaceChildren();
+  const cycleSegments = graphCycle ? graphCycle.slice(1).map((target,index) => [graphCycle[index],target]) : [];
+  const edgesToDraw = [...graphEdges, ...(graphCandidate ? [graphCandidate] : []), ...(graphCycle ? [cycleSegments[0]] : [])];
+  for (const [source, target] of edgesToDraw) {
+    const a = $(`[data-graph-node="${source}"]`), b = $(`[data-graph-node="${target}"]`);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', parseFloat(a.style.left) * 9); line.setAttribute('y1', parseFloat(a.style.top) * 5);
+    line.setAttribute('x2', parseFloat(b.style.left) * 9); line.setAttribute('y2', parseFloat(b.style.top) * 5);
+    const onCycle = cycleSegments.some(([a,b]) => a === source && b === target);
+    line.setAttribute('class', 'graph-line' + (onCycle ? ' cycle' : graphCandidate && source === graphCandidate[0] && target === graphCandidate[1] ? ' candidate' : ''));
+    lines.appendChild(line);
+  }
+  $$('.graph-node').forEach(node => {
+    node.classList.toggle('src', node.dataset.graphNode === graphSource);
+    node.classList.toggle('cycle', !!graphCycle?.includes(node.dataset.graphNode));
+  });
+  $('#graphCount').textContent = `已显示：5 节点 / ${graphEdges.length} 条边（当前页面示例）`;
+}
+function graphSelect(source, target) {
+  $('#graphCommit').disabled = true; graphCandidate = null; graphCycle = null;
+  if (source === target) { setStatus('#graphStatus','bad','起点与终点不能相同。请重新选择。'); graphSource = null; graphDraw(); return; }
+  if (graphEdges.some(([a,b]) => a === source && b === target)) { setStatus('#graphStatus','warn','这条依赖边已在本地工作稿中。'); graphSource = null; graphDraw(); return; }
+  const cycle = graphPath(target, source);
+  if (cycle) { graphCycle = [source, ...cycle]; setStatus('#graphStatus','bad',`3310 · 成环：${graphCycle.map(id => graphLabels[id]).join(' → ')}。画布已标红冲突路径并阻止添加。`); graphSource = null; graphDraw(); return; }
+  graphCandidate = [source, target]; graphSource = source; graphDraw(); $('#graphCommit').disabled = false;
+  setStatus('#graphStatus','good',`候选：${graphLabels[source]} → ${graphLabels[target]}。本地无环检查通过；服务端仍须复核。`);
+}
+$('#graphBoard').addEventListener('click', event => {
+  const button = event.target.closest('[data-graph-node]'); if (!button) return;
+  const id = button.dataset.graphNode;
+  if (!graphSource || graphCandidate) { graphSource = id; graphCandidate = graphCycle = null; $('#graphCommit').disabled = true; graphDraw(); setStatus('#graphStatus','','已选起点 '+graphLabels[id]+'；请再点终点。'); }
+  else graphSelect(graphSource, id);
+});
+$('#graphClear').addEventListener('click', () => { graphSource = graphCandidate = graphCycle = null; $('#graphCommit').disabled = true; graphDraw(); setStatus('#graphStatus','','已清除选择。选择起点，开始添加依赖。'); });
+$('#graphCycleDemo').addEventListener('click', () => graphSelect('formula','equation'));
+$('#graphCommit').addEventListener('click', () => { if (!graphCandidate) return; graphEdges.push(graphCandidate); graphSource = graphCandidate = null; $('#graphCommit').disabled = true; graphDraw(); setStatus('#graphStatus','good','候选边已加入当前页面的本地工作稿；没有保存到服务端。'); });
+graphDraw();
+
+/* A05–A08 课程、课时、题库与题目工作稿。 */
+$('#courseSearch').addEventListener('input', event => { const query = event.target.value.trim().toLocaleLowerCase(); $$('[data-course]').forEach(row => row.hidden = !row.textContent.toLocaleLowerCase().includes(query)); });
+$('#courseNew').addEventListener('click', () => openDrawer('新建课程 · 设计预览', '<p>课程名称、学段、章节、课时和发布策略形成课程树。</p><div class="status warn">此处仅展示新建入口；本稿不保存课程。</div>'));
+function lessonDirty() { $('#lessonPublish').disabled = true; setStatus('#lessonValidation','warn','工作稿已在页面内修改，未保存。请重新检查发布条件。'); }
+['adminLessonTitle','adminLessonBody','lessonPolicy','lessonQuestionCount','lessonThreshold'].forEach(id => { $('#' + id).addEventListener('input', lessonDirty); $('#' + id).addEventListener('change', lessonDirty); });
+$('#lessonValidate').addEventListener('click', () => {
+  const title = $('#adminLessonTitle').value.trim(), body = $('#adminLessonBody').value.trim();
+  const count = Number($('#lessonQuestionCount').value), threshold = Number($('#lessonThreshold').value);
+  $('#lessonPublish').disabled = true;
+  if (!title || !body) return setStatus('#lessonValidation','bad','请补全课时标题与正文摘要。');
+  if ($('#lessonPolicy').value === 'practice_required' && (!Number.isInteger(count) || count < 1 || !Number.isFinite(threshold) || threshold < 80 || threshold > 100)) return setStatus('#lessonValidation','bad','practice_required 需要至少 1 道已审核客观题，正确率门槛在 80%–100%。当前不可进入发布确认。');
+  if ($('#lessonPolicy').value === 'read_only') return setStatus('#lessonValidation','warn','纯阅读策略的本地字段可预览；需明确确认语义，并核对内容审核与在线版本。当前不开放发布确认。');
+  setStatus('#lessonValidation','warn','本地字段条件可预览；题目审核状态和资源引用未接真实服务，当前不开放发布确认。');
+});
+$('#lessonPreview').addEventListener('click', () => openDrawer('课时 · 学员态预览', `<h3>${escapeHtml($('#adminLessonTitle').value || '未命名课时')}</h3><p>${escapeHtml($('#adminLessonBody').value || '暂无正文')}</p><div class="status">完成策略：${escapeHtml($('#lessonPolicy').selectedOptions[0].textContent)}。这是工作稿预览，不是在线课时。</div>`));
+function filterQuestions() { const query = $('#questionSearch').value.trim().toLocaleLowerCase(), type = $('#questionType').value; $$('#questionRows tr').forEach(row => row.hidden = !(row.dataset.qname.toLocaleLowerCase().includes(query) && (type === 'all' || row.dataset.type === type))); }
+$('#questionSearch').addEventListener('input', filterQuestions); $('#questionType').addEventListener('change', filterQuestions);
+$('#questionDuplicate').addEventListener('click', () => openDrawer('题目查重 · 设计预览', '<p>正式查重应比较题干、答案、变式族与公开曝光。相似文本仅是线索，需人工复核。</p><div class="status warn">此处未运行查重，也未访问题库。</div>'));
+$('#questionRows').addEventListener('click', event => { const button = event.target.closest('[data-question-detail]'); if (button) openDrawer(`题目 #${escapeHtml(button.dataset.questionDetail)} · 详情`, '<p>工作稿质量与在线快照应分别呈现。</p><div class="status">已公开同族不得进入测评、晋级战、Boss 或挑战赛。解答题自评不能计入客观判分。</div>'); });
+function questionDirty() { $('#questionPublish').disabled = true; setStatus('#questionStatus','warn','工作稿已在页面内修改，未保存。请重新校验。'); }
+['adminQuestionStem','adminQuestionType','questionFamily','questionAnswer'].forEach(id => { $('#' + id).addEventListener('input', questionDirty); $('#' + id).addEventListener('change', questionDirty); });
+$('#questionValidate').addEventListener('click', () => {
+  $('#questionPublish').disabled = true;
+  if (!$('#adminQuestionStem').value.trim() || !$('#questionFamily').value.trim()) return setStatus('#questionStatus','bad','题干与稳定变式族 ID 必填。');
+  if ($('#adminQuestionType').value === 'subjective') return setStatus('#questionStatus','warn','解答题须配置评分量规与人工/自评边界；当前表单只有客观选项，不能提交审核或进入高约束试卷。');
+  if (!$('#questionAnswer').value) return setStatus('#questionStatus','bad','客观题需选择标准答案，再检查选项与判分配置。');
+  setStatus('#questionStatus','warn','本地基础字段可预览；选项有效性、题族曝光、解析与审核工作流未接服务端，当前不开放提交。');
+});
+$('#questionPreview').addEventListener('click', () => openDrawer('题面 · 工作稿预览', `<p><strong>${escapeHtml($('#adminQuestionStem').value || '题干未填写')}</strong></p><p>题型：${escapeHtml($('#adminQuestionType').selectedOptions[0].textContent)}<br>变式族：${escapeHtml($('#questionFamily').value || '未指定')}</p><div class="status">不展示标准答案；未形成真实试题或判分记录。</div>`));
+
+/* A09 组卷：用途、题型、曝光、反馈和题池容量。 */
+function paperDirty() { $('#paperPublish').disabled = true; setStatus('#paperStatus','warn','组卷规则已在本页修改，未保存。请重新预览抽题结果。'); }
+['paperPurpose','paperTarget','paperEligible','paperSubjective','paperPublicFamily','paperFeedback','paperAssist'].forEach(id => { $('#' + id).addEventListener('input', paperDirty); $('#' + id).addEventListener('change', paperDirty); });
+$('#paperValidate').addEventListener('click', () => {
+  const purpose = $('#paperPurpose').value, constrained = purpose !== 'practice';
+  const target = Number($('#paperTarget').value), eligible = Number($('#paperEligible').value);
+  $('#paperPublish').disabled = true;
+  if (!Number.isInteger(target) || target < 1 || !Number.isInteger(eligible) || eligible < 0) return setStatus('#paperStatus','bad','目标题数与可用题族数必须为有效整数。');
+  if (constrained && ($('#paperSubjective').checked || $('#paperPublicFamily').checked)) return setStatus('#paperStatus','bad','测评、晋级战、Boss 和挑战赛不得包含解答题或已公开同族题。');
+  if (constrained && ($('#paperFeedback').value !== 'after_handin' || $('#paperAssist').value !== 'locked')) return setStatus('#paperStatus','bad','高约束试卷需交卷后反馈，并限制 AI、答案和深钻辅助。');
+  if (eligible < target) return setStatus('#paperStatus','bad',`题池不足：目标 ${target} 个，示例可用 ${eligible} 个，缺 ${target - eligible} 个；不能用占位题补足。`);
+  setStatus('#paperStatus','warn','本地字段组合通过；可用题族数为手填示例，未核对真实审核、曝光、去重或难度分布，不能发布。');
+});
+
+/* A11 路径：稳定节点身份、顺序与引用编辑。发布始终受真实覆盖门禁限制。 */
+const pathNodes = [
+  {id:'PN-051',type:'lesson',title:'因式分解回顾',ref:'lesson-051',rule:'sequential',value:''},
+  {id:'PN-052',type:'quiz',title:'零因子律随堂练',ref:'quiz-012',rule:'sequential',value:''},
+  {id:'PN-053',type:'paper',title:'二次方程单元卷',ref:'',rule:'paper_pass',value:'score≥80'}
+];
+const pathTypeNames = {lesson:'课时',quiz:'练习组',paper:'试卷',assessment:'测评',topic:'专题',boss:'Boss'};
+let pathSelected = pathNodes[0].id, pathNext = 54;
+function pathDirty(message='本地路径已改动，未保存；真实资源覆盖仍待校验。') { $('#pathPreviewPublish').disabled = true; setStatus('#pathStatus','warn',message); }
+function pathRender() {
+  $('#pathCount').textContent = `${pathNodes.length} 个节点`;
+  $('#pathNodeList').innerHTML = pathNodes.map((node,index) => `<div class="node-card${node.id === pathSelected ? ' on' : ''}" data-path-id="${escapeHtml(node.id)}"><button type="button" class="asset" style="margin:0;border:0;padding:0" data-path-select="${escapeHtml(node.id)}"><strong>${String(index+1).padStart(2,'0')} · ${escapeHtml(node.title)}</strong><small>${escapeHtml(pathTypeNames[node.type])} · ${escapeHtml(node.id)} · ${escapeHtml(node.ref || '缺引用')}</small></button><div class="node-actions"><button type="button" data-path-move="up" aria-label="上移 ${escapeHtml(node.title)}" ${index === 0 ? 'disabled' : ''}>↑</button><button type="button" data-path-move="down" aria-label="下移 ${escapeHtml(node.title)}" ${index === pathNodes.length-1 ? 'disabled' : ''}>↓</button><button type="button" data-path-remove="1" aria-label="移除 ${escapeHtml(node.title)}">×</button></div></div>`).join('');
+  const node = pathNodes.find(item => item.id === pathSelected);
+  $('#pathSelectedId').textContent = node ? `${node.id} · ${pathTypeNames[node.type]}` : '选择一个节点';
+  $('#pathTitle').value = node?.title || ''; $('#pathRef').value = node?.ref || '';
+  $('#pathRule').value = node?.rule || 'sequential'; $('#pathRuleValue').value = node?.value || '';
+  $('#pathApply').disabled = !node;
+}
+$('#pathNodeList').addEventListener('click', event => {
+  const card = event.target.closest('[data-path-id]'); if (!card) return;
+  const id = card.dataset.pathId, index = pathNodes.findIndex(node => node.id === id);
+  if (event.target.closest('[data-path-remove]')) { pathNodes.splice(index,1); pathSelected = pathNodes[Math.min(index,pathNodes.length-1)]?.id || null; pathDirty('节点已从当前页面工作稿移除；历史引用未修改，也未保存。'); }
+  else if (event.target.closest('[data-path-move]')) { const direction = event.target.closest('[data-path-move]').dataset.pathMove === 'up' ? -1 : 1; const next = index + direction; if (next >= 0 && next < pathNodes.length) { [pathNodes[index],pathNodes[next]] = [pathNodes[next],pathNodes[index]]; pathDirty('节点顺序已在本页调整；稳定节点 ID 未改变。'); } }
+  else pathSelected = id;
+  pathRender();
+});
+$$('[data-path-add]').forEach(button => button.addEventListener('click', () => {
+  const type = button.dataset.pathAdd, id = 'PN-' + String(pathNext++).padStart(3,'0');
+  pathNodes.push({id,type,title:`新${pathTypeNames[type]}节点`,ref:'',rule:'sequential',value:''}); pathSelected = id; pathRender(); pathDirty('新节点已加入当前页面工作稿；请填写引用并检查覆盖。');
+}));
+['pathTitle','pathRef','pathRule','pathRuleValue'].forEach(id => {
+  const field = $('#'+id);
+  const update = () => {
+    const node = pathNodes.find(item => item.id === pathSelected); if (!node) return;
+    node.title = $('#pathTitle').value;
+    node.ref = $('#pathRef').value;
+    node.rule = $('#pathRule').value;
+    node.value = $('#pathRuleValue').value;
+    pathDirty('节点字段已在本地工作稿更新；点击“更新本地节点”刷新画布卡片。');
+  };
+  field.addEventListener('input', update); field.addEventListener('change', update);
+});
+$('#pathApply').addEventListener('click', () => {
+  const node = pathNodes.find(item => item.id === pathSelected); if (!node) return;
+  node.title = $('#pathTitle').value.trim() || `未命名${pathTypeNames[node.type]}`;
+  node.ref = $('#pathRef').value.trim(); node.rule = $('#pathRule').value; node.value = $('#pathRuleValue').value.trim();
+  pathRender(); pathDirty('节点属性已更新至本地工作稿；未保存，真实引用和覆盖待校验。');
+});
+$('#pathValidate').addEventListener('click', () => {
+  $('#pathPreviewPublish').disabled = true;
+  if (!pathNodes.length) return setStatus('#pathStatus','bad','路径至少需要一个节点。');
+  const missingTitle = pathNodes.filter(node => !node.title.trim());
+  if (missingTitle.length) return setStatus('#pathStatus','bad',`缺少节点标题：${missingTitle.map(node => node.id).join('、')}。`);
+  const missing = pathNodes.filter(node => !node.ref.trim());
+  if (missing.length) return setStatus('#pathStatus','bad',`缺少资源引用：${missing.map(node => node.id).join('、')}。请补全后重试。`);
+  const missingRule = pathNodes.filter(node => node.rule !== 'sequential' && !node.value.trim());
+  if (missingRule.length) return setStatus('#pathStatus','bad',`解锁规则缺少参数：${missingRule.map(node => node.id).join('、')}。`);
+  const ids = pathNodes.map(node => node.ref), repeated = ids.find((id,index) => ids.indexOf(id) !== index);
+  if (repeated) return setStatus('#pathStatus','bad',`资源引用 ${repeated} 重复；请检查是否造成自锁或重复学习节点。`);
+  setStatus('#pathStatus','warn','本地结构检查完成；题族覆盖、难度、前置可达与自锁循环需由真实资源清单校验，当前不能发布。');
+});
+pathRender();
+
+/* A12 推理链：四要素与稳定步骤 ID 的本地编辑。 */
+const chainSteps = [
+  {id:'ST-101',type:'工具选择',content:'观察方程两项与常数项，尝试因式分解。',warrant:'图谱：乘法展开的逆过程',motive:'寻找零因子律可用的形式',off:'不要贸然除以未知因子。',depends:[]},
+  {id:'ST-102',type:'等价变形',content:'将 x²−5x+6 写成 (x−2)(x−3)。',warrant:'代数恒等变形',motive:'把求根问题改成两个因子为零',off:'检查展开后的中间项。',depends:['ST-101']},
+  {id:'ST-103',type:'论证',content:'由零因子律得 x=2 或 x=3。',warrant:'图谱：零因子律',motive:'分别解两个一次方程',off:'两个解都需保留。',depends:['ST-102']},
+  {id:'ST-104',type:'回代检验',content:'把两个值分别代回原方程。',warrant:'',motive:'检验等价变形与计算',off:'避免只检验其中一个解。',depends:['ST-103']}
+];
+let chainSelected = chainSteps[0].id, chainNext = 105;
+function chainDirty(message='推理链已在本页修改，未保存。请重新校验四要素与依赖。') { $('#chainReview').disabled = true; setStatus('#chainStatus','warn',message); }
+function chainRender() {
+  $('#chainStepList').innerHTML = chainSteps.map((step,index) => `<div class="step-card${step.id === chainSelected ? ' on' : ''}" data-chain-id="${escapeHtml(step.id)}"><button type="button" class="asset" style="margin:0;border:0;padding:0" data-chain-select="${escapeHtml(step.id)}"><strong>${String(index+1).padStart(2,'0')} · ${escapeHtml(step.type)}</strong><small>${escapeHtml(step.id)} · ${escapeHtml(step.content.slice(0,24) || '待填写')}</small></button><div class="node-actions"><button type="button" data-chain-move="up" aria-label="上移 ${escapeHtml(step.id)}" ${index===0?'disabled':''}>↑</button><button type="button" data-chain-move="down" aria-label="下移 ${escapeHtml(step.id)}" ${index===chainSteps.length-1?'disabled':''}>↓</button><button type="button" data-chain-remove="1" aria-label="移除 ${escapeHtml(step.id)}">×</button></div></div>`).join('');
+  const step = chainSteps.find(item => item.id === chainSelected);
+  $('#chainCurrentId').textContent = step?.id || '未选步骤';
+  $('#chainType').value = step?.type || '工具选择';
+  [['chainContent','content'],['chainWarrant','warrant'],['chainMotive','motive'],['chainOff','off']].forEach(([id,key]) => { $('#'+id).value = step?.[key] || ''; });
+  $('#chainDepends').innerHTML = step ? chainSteps.filter(item => item.id !== step.id).map(item => `<label class="checkrow"><input type="checkbox" data-chain-dep="${escapeHtml(item.id)}" ${step.depends.includes(item.id) ? 'checked' : ''}><span>${escapeHtml(item.id)} · ${escapeHtml(item.content.slice(0,20) || '未填写')}</span></label>`).join('') || '<span class="small muted">首步没有前置依赖。</span>' : '<span class="small muted">请先选择步骤。</span>';
+  $('#chainApply').disabled = !step;
+  $('#chainPreview').innerHTML = chainSteps.map((item,index) => `<div class="status"><span class="pill neutral">${escapeHtml(item.id)}</span> <strong>${index+1}. ${escapeHtml(item.content || '未填写步骤')}</strong><br><span class="small">← ${escapeHtml(item.depends.join('、') || '起点')} · 依据：${escapeHtml(item.warrant || '缺失')} · 动机：${escapeHtml(item.motive || '缺失')}</span></div>`).join('') || '<div class="status bad">没有步骤。</div>';
+}
+$('#chainStepList').addEventListener('click', event => {
+  const card = event.target.closest('[data-chain-id]'); if (!card) return;
+  const id = card.dataset.chainId, index = chainSteps.findIndex(step => step.id === id);
+  if (event.target.closest('[data-chain-remove]')) { chainSteps.splice(index,1); chainSelected = chainSteps[Math.min(index,chainSteps.length-1)]?.id || null; chainDirty('步骤已从当前页面工作稿移除；历史步骤 ID 未重用。'); }
+  else if (event.target.closest('[data-chain-move]')) { const direction = event.target.closest('[data-chain-move]').dataset.chainMove === 'up' ? -1 : 1; const next = index+direction; if (next>=0 && next<chainSteps.length) { [chainSteps[index],chainSteps[next]] = [chainSteps[next],chainSteps[index]]; chainDirty('步骤已在本页重排；稳定步骤 ID 未改变。'); } }
+  else chainSelected = id;
+  chainRender();
+});
+$('#chainAdd').addEventListener('click', () => { const id = 'ST-' + chainNext++; const previous = chainSteps[chainSteps.length-1]?.id; chainSteps.push({id,type:'论证',content:'',warrant:'',motive:'',off:'',depends:previous?[previous]:[]}); chainSelected = id; chainRender(); chainDirty('空白步骤已加入本地工作稿，请补齐四要素。'); });
+$('#chainDepends').addEventListener('change', event => {
+  if (!event.target.matches('[data-chain-dep]')) return;
+  const step = chainSteps.find(item => item.id === chainSelected); if (!step) return;
+  step.depends = $$('#chainDepends [data-chain-dep]:checked').map(input => input.dataset.chainDep);
+  chainDirty('依赖步骤已在本地工作稿更新；点击“更新本地步骤”刷新链预览。');
+});
+['chainType','chainContent','chainWarrant','chainMotive','chainOff'].forEach(id => {
+  const field = $('#'+id);
+  const update = () => {
+    const step = chainSteps.find(item => item.id === chainSelected); if (!step) return;
+    step.type = $('#chainType').value;
+    [['chainContent','content'],['chainWarrant','warrant'],['chainMotive','motive'],['chainOff','off']].forEach(([key,property]) => { step[property] = $('#'+key).value; });
+    chainDirty('步骤字段已在本地工作稿更新；点击“更新本地步骤”刷新链预览。');
+  };
+  field.addEventListener('input', update); field.addEventListener('change', update);
+});
+$('#chainApply').addEventListener('click', () => { const step = chainSteps.find(item => item.id === chainSelected); if (!step) return; step.type = $('#chainType').value; [['chainContent','content'],['chainWarrant','warrant'],['chainMotive','motive'],['chainOff','off']].forEach(([id,key]) => { step[key] = $('#'+id).value.trim(); }); chainRender(); chainDirty('步骤四要素已更新至本地工作稿；未提交人工校对。'); });
+$('#chainValidate').addEventListener('click', () => {
+  $('#chainReview').disabled = true;
+  if (!chainSteps.length) return setStatus('#chainStatus','bad','至少需要一个有依据的步骤。');
+  const missing = chainSteps.filter(step => !step.content.trim() || !step.warrant.trim() || !step.motive.trim() || !step.off.trim());
+  if (missing.length) return setStatus('#chainStatus','bad',`四要素不完整：${missing.map(step => step.id).join('、')}。请补齐内容、依据、动机和岔路。`);
+  const isolated = chainSteps.slice(1).filter(step => !step.depends.length);
+  if (isolated.length) return setStatus('#chainStatus','bad',`孤步：${isolated.map(step => step.id).join('、')} 没有前置依赖。`);
+  const ids = chainSteps.map(step => step.id);
+  const broken = chainSteps.filter((step,index) => step.depends.some(dep => ids.indexOf(dep) < 0 || ids.indexOf(dep) >= index));
+  if (broken.length) return setStatus('#chainStatus','bad',`依赖无效或形成回指：${broken.map(step => step.id).join('、')}。请调整依赖或步骤顺序。`);
+  setStatus('#chainStatus','warn','四要素与依赖顺序的本地检查通过；图谱挂点、内容正确性与人工校对仍需真实审核，当前不能提交。');
+});
+chainRender();
+
+/* A16 社区：队列/上下文/理由，不记录真实审核动作。 */
+const moderationItems = {
+  pending:[{id:'post-887',title:'帖子 #887 · “求这道题的完整答案”',tag:'疑似索取答案',context:'演示学员 B 在一元二次方程讨论区提出问题。需核对是否包含正在作答的试题与参考答案。'},{id:'post-901',title:'回复 #901 · “先试零因子律”',tag:'待审',context:'演示学员 C 的回复含公式和引导性提示；应核查原帖与敏感词命中原因。'}],
+  reported:[{id:'report-313',title:'举报 #313 · 直接给出答案',tag:'待复核',context:'举报者称帖子直接暴露正在作答的题目答案。需核对原内容、题目曝光范围和举报证据。'}],
+  terms:[{id:'term-071',title:'敏感词规则 #071 · 直接求答案',tag:'规则示例',context:'敏感词只提供筛选线索；误报与上下文仍需人工复核。'}]
+};
+let moderationTab = 'pending', moderationSelected = null;
+function renderModeration() {
+  const labels = {pending:'待审核内容',reported:'举报内容',terms:'敏感词规则'};
+  $('#moderationListTitle').textContent = labels[moderationTab] + ' · 示例';
+  $('#moderationQueue').innerHTML = moderationItems[moderationTab].map(item => `<div class="asset" data-review-item="${escapeHtml(item.id)}"><div class="row between"><strong>${escapeHtml(item.title)}</strong><span class="pill warn">${escapeHtml(item.tag)}</span></div><p class="small muted" style="margin:5px 0">虚构演示数据 · 未连接社区服务</p><button type="button" class="btn small" data-review-detail="${escapeHtml(item.id)}">查看上下文</button></div>`).join('') || '<div class="status">当前本地示例队列为空。</div>';
+  moderationSelected = null; $('#moderationApprove').disabled = $('#moderationReject').disabled = true;
+  $('#moderationDetail').textContent = '选择左侧内容查看上下文、风险标签与历史记录。'; $('#moderationReason').value = '';
+}
+$('#moderationTabs').addEventListener('click', event => { const button = event.target.closest('[data-moderation-tab]'); if (!button) return; moderationTab = button.dataset.moderationTab; $$('#moderationTabs button').forEach(el => el.classList.toggle('on',el===button)); renderModeration(); setStatus('#moderationStatus','','已切换本地示例队列；没有读取社区数据。'); });
+$('#moderationQueue').addEventListener('click', event => { const button = event.target.closest('[data-review-detail]'); if (!button) return; moderationSelected = moderationItems[moderationTab].find(item => item.id === button.dataset.reviewDetail); if (!moderationSelected) return; $('#moderationDetail').textContent = moderationSelected.context; $('#moderationApprove').disabled = $('#moderationReject').disabled = moderationTab === 'terms'; setStatus('#moderationStatus','warn','请结合上下文与证据做决定。此页操作只改变本地演示队列，不生成真实审核或操作日志。'); });
+$('#moderationPolicy').addEventListener('click', () => openDrawer('社区处理原则 · 设计预览','<p>保留原帖上下文、命中依据、处理理由、申诉路径和服务端审计记录。敏感词命中不能自动等同违规。</p><div class="status">本稿仅演示信息结构，不处理社区内容。</div>'));
+$('#moderationApprove').addEventListener('click', () => { if (!moderationSelected) return; confirmPreview('通过内容 · 本地演示',`即将在当前页面内移除 ${moderationSelected.id}。不会处理真实社区内容或写入审计日志。`, () => { moderationItems[moderationTab] = moderationItems[moderationTab].filter(item => item.id !== moderationSelected.id); renderModeration(); setStatus('#moderationStatus','good','已从本地演示队列移除；没有执行真实审核。'); }); });
+$('#moderationReject').addEventListener('click', () => { if (!moderationSelected) return; const reason = $('#moderationReason').value.trim(); if (!reason) { setStatus('#moderationStatus','bad','驳回需要填写处理理由。'); $('#moderationReason').focus(); return; } confirmPreview('驳回内容 · 本地演示',`理由：${reason}。确认后仅改变当前页面示例，不写入社区或审计服务。`, () => { moderationItems[moderationTab] = moderationItems[moderationTab].filter(item => item.id !== moderationSelected.id); renderModeration(); setStatus('#moderationStatus','good','已从本地演示队列移除；理由未保存到服务端。'); }); });
+renderModeration();
+
+/* A10/A13/A14/A15/A17/A18/A19: 本地交互演示。假定与主稿位于同一 IIFE。 */
+const extraEscapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const extraSetStatus = (selector, kind, message) => {
+  const el = $(selector);
+  if (!el) return;
+  el.classList.remove('good', 'warn', 'bad');
+  if (kind) el.classList.add(kind);
+  el.textContent = message;
+};
+
+/* A10 · 测评：静态规则校验只反映本稿字段，不等于题库/发布校验。 */
+$('#a10Validate')?.addEventListener('click', () => {
+  const name = $('#a10Name').value.trim();
+  const mode = $('#a10Mode').value;
+  const feedback = $('#a10Feedback').value;
+  const assistance = $('#a10Assist').value;
+  $('#a10Publish').disabled = true;
+  if (!name) {
+    extraSetStatus('#a10Status', 'bad', '本地字段校验未通过：请填写测评名称。题库与发布门禁尚未验证。');
+    $('#a10Name').focus();
+  } else if (mode === 'assessment' && feedback !== 'on_submit') {
+    extraSetStatus('#a10Status', 'bad', '本地规则校验未通过：入学测评应在交卷后反馈。当前未进行题库校验。');
+    $('#a10Feedback').focus();
+  } else if (mode === 'assessment' && assistance !== 'restricted') {
+    extraSetStatus('#a10Status', 'bad', '本地规则校验未通过：入学测评须限制 AI、答案、深钻及公式摘要辅助。');
+    $('#a10Assist').focus();
+  } else {
+    extraSetStatus('#a10Status', 'warn', '本地字段组合可预览；审核客观题、公开同族排除与领域覆盖未接真实题库，仍不可发布。');
+  }
+});
+['a10Name','a10Mode','a10Feedback','a10Assist','a10PlacementRule'].forEach(id => {
+  $('#' + id)?.addEventListener('input', () => {
+    $('#a10Publish').disabled = true;
+    extraSetStatus('#a10Status', 'warn', '工作稿字段已在页面内改动；请重新校验。未保存，也未改变进行中的测评规则。');
+  });
+});
+$('#a10Preview')?.addEventListener('click', () => {
+  const name = extraEscapeHtml($('#a10Name').value.trim() || '未命名测评');
+  const feedback = $('#a10Feedback').value === 'on_submit' ? '交卷后反馈' : '逐题即时反馈';
+  const assistance = extraEscapeHtml($('#a10Assist').selectedOptions[0].textContent);
+  openDrawer('开考说明 · 本地预览', `<div class="stack"><p><strong>${name}</strong></p><p>反馈：${feedback}<br>辅助：${assistance}</p><div class="status warn">正式开考页还需列明时限、恢复、计分规则，并由服务端冻结快照。这里没有创建 attempt。</div><p class="small muted">入学测评仅对已覆盖领域形成局部建议；跳过或退出后仍应回到原学习目标。</p></div>`);
+});
+
+/* A13 · 顺序可本地调整，节点 ref 与身份不变；题池/路径验证保持待检查。 */
+const extraTopicList = $('#screen-a13 section[aria-label="专题节点序列"]');
+const extraTopicCards = () => Array.from(extraTopicList?.children || []).filter(el => el.classList.contains('card'));
+const extraTopicRenumber = () => extraTopicCards().forEach((card, index) => {
+  const pill = card.querySelector('.pill');
+  const type = pill.textContent.split(' · ').slice(1).join(' · ');
+  pill.textContent = `${String(index + 1).padStart(2, '0')} · ${type}`;
+  card.querySelectorAll('[data-a13-move]').forEach((button, position) => {
+    button.dataset.a13Move = `${index + 1}:${position === 0 ? -1 : 1}`;
+    button.disabled = (position === 0 && index === 0) || (position === 1 && index === extraTopicCards().length - 1);
+  });
+});
+extraTopicList?.addEventListener('click', event => {
+  const button = event.target.closest('[data-a13-move]');
+  if (!button) return;
+  const card = button.closest('.card');
+  const cards = extraTopicCards();
+  const index = cards.indexOf(card);
+  const direction = Number(button.dataset.a13Move.split(':')[1]);
+  if (index < 0 || index + direction < 0 || index + direction >= cards.length) return;
+  if (direction < 0) extraTopicList.insertBefore(card, cards[index - 1]);
+  else extraTopicList.insertBefore(cards[index + 1], card);
+  extraTopicRenumber();
+  $('#a13Publish').disabled = true;
+  extraSetStatus('#a13Status', 'warn', '本地顺序已调整；节点 ref 与历史身份未变。前置、题池和真实资源仍需重新校验。');
+});
+extraTopicRenumber();
+['a13Title','a13Next'].forEach(id => $('#' + id)?.addEventListener('input', () => {
+  $('#a13Publish').disabled = true;
+  extraSetStatus('#a13Status', 'warn', '工作稿属性已在本页改动；未保存或发布。请重新检查资源与题池。');
+}));
+$('#a13Validate')?.addEventListener('click', () => {
+  $('#a13Publish').disabled = true;
+  if (!$('#a13Title').value.trim()) {
+    extraSetStatus('#a13Status', 'bad', '本地字段校验未通过：请填写专题名称。');
+    $('#a13Title').focus();
+    return;
+  }
+  extraSetStatus('#a13Status', 'warn', '本地字段与顺序可预览；挑战独立题池、前置可达和在线资源版本未接服务端校验，不可发布。');
+});
+$('#a13Preview')?.addEventListener('click', () => {
+  const items = extraTopicCards().map(card => `<li>${extraEscapeHtml(card.querySelector('strong').textContent)} <span class="small muted">${extraEscapeHtml(card.querySelector('.small').textContent)}</span></li>`).join('');
+  openDrawer('专题旅程 · 本地预览', `<p class="small muted">此顺序仅用于页面演示；发布前必须验证引用、前置与挑战题池。</p><ol>${items}</ol><div class="status warn">资源缺失应显示内容筹备中，不能伪装成学员能力未解锁。</div>`);
+});
+
+/* A14 · 赛事始终阻止发布，异常只引导人工复核。 */
+['a14Duration','a14Feedback','a14Assist'].forEach(id => $('#' + id)?.addEventListener('change', () => {
+  $('#a14Publish').disabled = true;
+  extraSetStatus('#a14Status', 'warn', '赛事工作稿在本页已调整；未保存。发布与开赛需重新验证题族和规则快照。');
+}));
+$('#a14Validate')?.addEventListener('click', () => {
+  $('#a14Publish').disabled = true;
+  extraSetStatus('#a14Status', 'warn', '本地规则字段可预览；公开同族排除、训练题池独立性和开赛快照尚未验证，不可发布。');
+});
+$('#a14ReviewFlag')?.addEventListener('click', () => openDrawer('用时异常 · 复核说明', '<p>学习者 B 的演示用时被标记为“偏短”。这只是筛选线索，应结合题目、答题时间序列与人工复核记录判断。</p><div class="status warn">平台无法据此断言作弊，也无法识别站外帮助。本稿不修改成绩或榜单。</div>'));
+$('#a14Refresh')?.addEventListener('click', () => toast('榜单是固定演示数据，未请求真实排名'));
+
+/* A15 · 仅在三条虚构样例中筛选、切换详情。 */
+const extraDemoUsers = {
+  A: {name:'学习者 A · U-014', progress:'3 / 8 节点完成', note:'因式分解课时已完成；求根公式待学习。'},
+  B: {name:'学习者 B · U-027', progress:'5 / 8 节点完成', note:'最近一次客观练习已提交；具体掌握度仍取合格证据。'},
+  C: {name:'学习者 C · U-031', progress:'1 / 8 节点完成', note:'近期暂无新提交；不能推断为能力不足。'}
+};
+let extraActiveUser = 'A';
+const extraUserRows = () => $$('#screen-a15 tbody tr').filter(row => !!row.querySelector('[data-a15-user]'));
+const extraFilterUsers = () => {
+  const query = $('#a15Search').value.trim().toLocaleLowerCase();
+  let visible = 0;
+  extraUserRows().forEach(row => { const match = row.textContent.toLocaleLowerCase().includes(query); row.hidden = !match; if (match) visible += 1; });
+  if (query) toast(`本地演示筛选：${visible} 条匹配`);
+};
+$('#a15Search')?.addEventListener('input', extraFilterUsers);
+$('#screen-a15')?.addEventListener('click', event => {
+  const button = event.target.closest('[data-a15-user]');
+  if (!button) return;
+  extraActiveUser = button.dataset.a15User;
+  const user = extraDemoUsers[extraActiveUser];
+  $('#a15DetailName').textContent = user.name;
+  $('#a15Progress').textContent = user.progress;
+  openDrawer('学员详情 · 虚构演示', `<p><strong>${extraEscapeHtml(user.name)}</strong></p><p>${extraEscapeHtml(user.progress)}</p><p>${extraEscapeHtml(user.note)}</p><div class="status">课时完成、客观掌握证据和主观自评分别展示。没有加载任何真实个人信息。</div>`);
+});
+$('#a15History')?.addEventListener('click', () => {
+  const user = extraDemoUsers[extraActiveUser];
+  openDrawer('学习记录 · 虚构演示', `<p><strong>${extraEscapeHtml(user.name)}</strong></p><p>${extraEscapeHtml(user.note)}</p><div class="status">真实历史需要资源版本、题族、判分和积分事件；本稿没有读取账户流水。</div>`);
+});
+
+/* A17 · 服务与供给说明，不读取密钥、不发请求。 */
+$('#a17TestProvider')?.addEventListener('click', () => openDrawer('Provider 连接测试 · 设计预览', '<p>正式流程应由有权限的服务端发起测试，返回连接状态、耗时和错误码；凭据永不回显到管理页面。</p><div class="status warn">当前为本地原型，没有请求 Provider，也没有“测试通过”结果。</div>'));
+$('#a17Usage')?.addEventListener('click', () => openDrawer('AI 用量口径 · 设计预览', '<p>用量按服务端请求及任务状态统计，区分成功、失败与待人工校对。用量高低不能代替内容质量判断。</p><div class="status">页面中的三日数字为固定演示值。</div>'));
+$('#a17Schedule')?.addEventListener('click', () => openDrawer('每日一题排期门禁', '<p>公开题及同族必须在发布和开卷时排除出测评、晋级战、Boss 与挑战赛题池。</p><div class="status warn">候选题需要审核、族身份和覆盖检查；此处没有安排真实排期。</div>'));
+
+/* A18 · 本地统计维度与时间窗口切换，数字明确为虚构示例。 */
+const extraMetrics = {
+  learning: {
+    title:'知识点观察', note:'客观得分来自已判分记录；解答题自评单列；AI 建议断链不计入推理能力。',
+    columns:['节点','合格证据数','状态'], footnote:'n=0 显示“尚未测量”；n<5 显示“样本不足”。缺内容、前置未解锁与能力判断分别统计。',
+    cards:[['已判分客观提交','1,284','按提交事件去重，不把自评计入客观判分。'],['有效掌握证据','846','排除已曝光同族、辅助作答和同族窗口内后续提交。'],['待校对内容','13','工作稿队列，不等于线上可见内容数量。']],
+    rows:[['因式分解','18','可展示估计'],['求根公式','3','样本不足'],['根的分布','0','尚未测量']]
+  },
+  content: {
+    title:'内容供给观察', note:'候选、已审核与在线快照是三种不同口径；待审工作稿不对学员可见。',
+    columns:['内容类型','工作稿示例数','状态'], footnote:'缺卡、待审和已发布应分别统计；工作稿数量不能充当线上可用量。',
+    cards:[['新增候选内容','32','只统计进入工作稿的候选。'],['人工校对完成','11','通过校对仍不等于发布。'],['待校对内容','13','队列样例，不代表线上可见量。']],
+    rows:[['概念四卡','8','2 条缺卡'],['公式七区','3','1 条待审'],['推理链','2','均未发布']]
+  },
+  operations: {
+    title:'运营观察', note:'访问与作答量说明活动规模，不能直接证明学习效果或业务验收。',
+    columns:['入口','访问量示例','口径'], footnote:'入口访问为活动指标；学习完成、掌握证据和内容可用性需另看对应指标。',
+    cards:[['访问会话','9,240','演示流量，不等于独立学习者。'],['作答启动','1,540','启动不等于已提交或已判分。'],['待处理审核','15','演示队列，不等于真实 SLA。']],
+    rows:[['课程入口','3,820','访问量'],['题库入口','2,410','访问量'],['知识图谱','1,180','访问量']]
+  }
+};
+const extraRenderMetrics = () => {
+  const dimension = $('#a18Dimension').value;
+  const range = $('#a18Range').value;
+  const data = extraMetrics[dimension];
+  const cards = Array.from($('#screen-a18 .grid3.mb').children);
+  cards.forEach((card, index) => {
+    const values = data.cards[index];
+    card.querySelector('.small.muted').textContent = `${values[0]} · 示例`;
+    const number = Number(values[1].replace(/,/g, ''));
+    const isBacklog = /待校对内容|待处理审核/.test(values[0]);
+    card.querySelector('h2').textContent = range === '30' && !isBacklog ? (number * 4).toLocaleString('zh-CN') : values[1];
+    card.querySelector('p').textContent = values[2];
+  });
+  const observation = $('#screen-a18 section[aria-label="知识点样例统计"]');
+  observation.querySelector('h2').textContent = data.title;
+  observation.querySelectorAll('thead th').forEach((cell, index) => { cell.textContent = data.columns[index]; });
+  observation.querySelector('p.small').textContent = data.footnote;
+  const body = observation.querySelector('tbody');
+  body.replaceChildren();
+  data.rows.forEach(values => {
+    const row = document.createElement('tr');
+    values.forEach((value,index) => {
+      const cell = document.createElement('td');
+      const scaled = range === '30' && dimension !== 'content' && index === 1 ? Number(value.replace(/,/g,'')) * 4 : null;
+      cell.textContent = scaled === null ? value : scaled.toLocaleString('zh-CN');
+      if (dimension === 'learning' && index === 2 && range === '30') {
+        const count = Number(values[1].replace(/,/g,'')) * 4;
+        cell.textContent = count === 0 ? '尚未测量' : count < 5 ? '样本不足' : '可展示估计';
+      }
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+  $('#screen-a18 section[aria-label="数据口径"] .status').textContent = data.note;
+  extraSetStatus('#a18Status', '', `固定演示数据 · 近 ${range} 天 · ${$('#a18Dimension').selectedOptions[0].textContent}；流量与提交按示例区间变化，待审库存保持当前值；未查询线上统计。`);
+};
+['a18Range','a18Dimension'].forEach(id => $('#' + id)?.addEventListener('change', extraRenderMetrics));
+$('#a18Export')?.addEventListener('click', () => openDrawer('统计导出 · 设计预览', '<p>正式导出需锁定统计区间、维度、口径版本与权限，并由服务端生成文件或任务记录。</p><div class="status warn">这里没有创建 CSV，也没有生成服务端导出任务。</div>'));
+
+/* A19 · 设置仅预览差异；日志筛选仅筛虚构行。 */
+$('#a19SaveSettings')?.addEventListener('click', () => {
+  const threshold = extraEscapeHtml($('#a19Threshold').selectedOptions[0].textContent);
+  openDrawer('配置差异 · 本地预览', `<p>审核提醒阈值拟调整为：<strong>${threshold}</strong></p><div class="status warn">正式保存需要权限、二次确认和服务端审计。本稿没有写入配置，也没有生成日志。</div>`);
+});
+const extraFilterLogs = () => {
+  const query = $('#a19LogSearch').value.trim().toLocaleLowerCase();
+  const rows = $$('#screen-a19 section[aria-label="操作日志示例"] tbody tr');
+  let visible = 0;
+  rows.forEach(row => { const match = row.textContent.toLocaleLowerCase().includes(query); row.hidden = !match; if (match) visible += 1; });
+  toast(`虚构日志筛选：${visible} 条匹配`);
+};
+$('#a19LogSearch')?.addEventListener('input', extraFilterLogs);
+$('#a19LogFilter')?.addEventListener('click', extraFilterLogs);
+
+})();
+
+</script>
+</body></html>

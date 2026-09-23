@@ -1,0 +1,63 @@
+{
+  "pages": [
+    { "path": "pages/start/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/onboarding/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/login/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/verify/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/wechat/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/home/index", "style": { "navigationStyle": "custom", "enablePullDownRefresh": true } },
+    { "path": "pages/paths/index", "style": { "navigationStyle": "custom", "enablePullDownRefresh": true } },
+    { "path": "pages/practice/index", "style": { "navigationStyle": "custom", "enablePullDownRefresh": true } },
+    { "path": "pages/community/index", "style": { "navigationStyle": "custom", "enablePullDownRefresh": true } },
+    { "path": "pages/me/index", "style": { "navigationStyle": "custom", "enablePullDownRefresh": true } },
+    { "path": "pages/learn/course/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/learn/lesson/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/learn/deepdive/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/learn/graph/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/learn/node/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/learn/library/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/attempt/paper/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/attempt/report/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/attempt/wrongbook/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/attempt/break/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/path/ladder/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/path/adventure/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/path/topic/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/path/assessment/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/path/assessment-report/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/plan/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/stats/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/weekly/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/formulas/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/formula/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/game/checkin/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/game/points/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/game/rank/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/social/compose/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/social/post/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/social/ai/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/system/notices/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/system/search/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/system/settings/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/system/export/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/system/deletion/index", "style": { "navigationStyle": "custom" } }
+  ],
+  "globalStyle": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F6F8FC",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#65758E",
+    "selectedColor": "#2F6BFF",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/paths/index", "text": "路径" },
+      { "pagePath": "pages/practice/index", "text": "做题" },
+      { "pagePath": "pages/community/index", "text": "社区" },
+      { "pagePath": "pages/me/index", "text": "我的" }
+    ]
+  }
+}

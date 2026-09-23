@@ -166,6 +166,15 @@ export function trendPoints(values: number[], width: number, height: number): st
     .join(" ");
 }
 
+/** 缺日期、缺时长或不足 5 个连续自然日时，不把离散样本连成趋势。 */
+export function canPlotDailyTrend(days: Array<{ date: string; minutes: number | null }>): boolean {
+  if (days.length < 5 || days.some((day) => day.minutes === null || day.minutes < 0)) return false;
+  const times = days.map((day) => Date.parse(day.date + "T00:00:00Z"));
+  return times.every((time, index) => Number.isFinite(time) && (
+    index === 0 || time - times[index - 1]! === 24 * 60 * 60 * 1000
+  ));
+}
+
 export function trendMaxMin(values: number[]): { max: number; min: number } {
   const list = (values ?? []).filter((v) => Number.isFinite(v));
   if (list.length === 0) {

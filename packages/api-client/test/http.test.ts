@@ -151,6 +151,19 @@ describe("api-client HTTP（业务解包 + 401 单飞刷新）", () => {
       });
     await expect(mk(403).request({ method: "GET", path: "/a" })).rejects.toMatchObject({ code: 2004 });
     await expect(mk(500).request({ method: "GET", path: "/a" })).rejects.toMatchObject({ code: 5000 });
+    await expect(mk(404).request({ method: "GET", path: "/a" })).rejects.toMatchObject({ code: 5004 });
+    await expect(mk(429).request({ method: "GET", path: "/a" })).rejects.toMatchObject({ code: 1004 });
+  });
+
+  it("HTTP 200 缺少规范 code/data 时拒绝，避免把接口缺失或 HTML 当成功", async () => {
+    for (const json of [undefined, null, "<html>not found</html>", {}, { code: 0 }, { code: "0", data: {} }]) {
+      const c = createHttpClient({
+        baseUrl: "http://x", transport: async () => ({ status: 200, json }),
+        getAccess: () => null, onAccess: () => {}
+      });
+      await expect(c.request({ method: "POST", path: "/api/app/v1/attempts/1/submit" }))
+        .rejects.toMatchObject({ code: 5004 });
+    }
   });
 
   it("query 构建：空值省略、编码正确（经 URL 断言）", async () => {

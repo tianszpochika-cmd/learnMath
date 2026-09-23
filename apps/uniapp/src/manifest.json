@@ -1,0 +1,10 @@
+{
+  "name": "数源 MathOrigin",
+  "appid": "",
+  "description": "数之源 · 每一步都讲清楚为什么",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": { "title": "数源 MathOrigin", "router": { "mode": "hash" } },
+  "mp-weixin": { "appid": "" }
+}

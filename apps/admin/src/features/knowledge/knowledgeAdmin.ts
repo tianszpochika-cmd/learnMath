@@ -65,6 +65,7 @@ export function parseKnowledgeCsv(csv: string): CsvParseResult {
   }
   const lines = csv.split(/\r?\n/, -1);
   let headerDone = false;
+  let indexes = { path: -1, name: -1, difficulty: -1, description: -1 };
   const seen = new Set<string>();
   for (let i = 0; i < lines.length; i++) {
     const lineNo = i + 1;
@@ -78,15 +79,12 @@ export function parseKnowledgeCsv(csv: string): CsvParseResult {
       if (idxPath === -1 || idxName === -1) {
         return { drafts, errors: [{ line: lineNo, reason: "表头必须包含 path,name 两列" }], ok: false };
       }
+      indexes = { path: idxPath, name: idxName, difficulty: lower.indexOf("difficulty"), description: lower.indexOf("description") };
       headerDone = true;
       continue;
     }
-    const idxPath = 0;
-    const idxName = 1;
-    const idxDiff = 2;
-    const idxDesc = 3;
-    const pathRaw = (cols[idxPath] ?? "").trim();
-    const name = (cols[idxName] ?? "").trim();
+    const pathRaw = (cols[indexes.path] ?? "").trim();
+    const name = (cols[indexes.name] ?? "").trim();
     if (!name) {
       errors.push({ line: lineNo, reason: "name 为空" });
       continue;
@@ -111,7 +109,7 @@ export function parseKnowledgeCsv(csv: string): CsvParseResult {
     }
     if (!pathOk) continue;
     let difficulty = 3;
-    const dRaw = (cols[idxDiff] ?? "").trim();
+    const dRaw = (indexes.difficulty < 0 ? "" : cols[indexes.difficulty] ?? "").trim();
     if (dRaw) {
       if (!/^-?\d+$/.test(dRaw)) {
         errors.push({ line: lineNo, reason: `difficulty 非整数: ${dRaw}` });
@@ -133,7 +131,7 @@ export function parseKnowledgeCsv(csv: string): CsvParseResult {
       parentPath: segments,
       name,
       difficulty,
-      description: (cols[idxDesc] ?? "").trim(),
+      description: (indexes.description < 0 ? "" : cols[indexes.description] ?? "").trim(),
       line: lineNo,
     });
   }

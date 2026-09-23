@@ -12,6 +12,9 @@
   "dependencies": {
     "@learnmath/api-client": "workspace:*",
     "@learnmath/shared": "workspace:*",
+    "@tiptap/pm": "^2.14.0",
+    "@tiptap/starter-kit": "^2.14.0",
+    "@tiptap/vue-3": "^2.14.0",
     "element-plus": "^2.14.4",
     "pinia": "^2.3.1",
     "vue": "^3.5.41",

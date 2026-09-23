@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canPlotDailyTrend,
   csvFilename,
   delta,
   deltaNullable,
@@ -16,6 +17,16 @@ import {
   weakestProfile,
   weekSummary,
 } from "./statsUi";
+
+describe("真实日期趋势门槛", () => {
+  const five = [1, 2, 3, 4, 5].map((day) => ({ date: `2026-09-0${day}`, minutes: day * 10 }));
+  it("至少五个连续日期且每一天有明确时长", () => {
+    expect(canPlotDailyTrend(five)).toBe(true);
+    expect(canPlotDailyTrend(five.slice(1))).toBe(false);
+    expect(canPlotDailyTrend([...five.slice(0, 4), { date: "2026-09-07", minutes: 50 }])).toBe(false);
+    expect(canPlotDailyTrend([...five.slice(0, 4), { date: "2026-09-05", minutes: null }])).toBe(false);
+  });
+});
 
 describe("周汇总与环比（镜像后端 StatsAggregation）", () => {
   const thisWeek = [

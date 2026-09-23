@@ -55,6 +55,11 @@ export interface FormulaDetail {
   applications: string | null;
   family: FamilyRelRow[] | null;
   variants: VariantRow2[] | null;
+  domain?: number | null;
+  tier?: number | null;
+  quality?: number | null;
+  conditionSummary?: string | null;
+  drillTypes?: DrillType[];
 }
 
 export function sectionFromQuery(raw: unknown): SectionKey {
@@ -82,8 +87,8 @@ export function missingSections(f: FormulaDetail | null | undefined): string[] {
         if (!nonEmpty(f.origin)) out.push(label);
         return nonEmpty(f.origin);
       case "symbols":
-        if (!f.symbols || f.symbols.length === 0) out.push(label);
-        return Boolean(f.symbols && f.symbols.length);
+        if (!f.symbols?.length || f.symbols.some((symbol) => symbolProblem(symbol))) out.push(label);
+        return Boolean(f.symbols?.length && !f.symbols.some((symbol) => symbolProblem(symbol)));
       case "derivation":
         if (!f.hasDerivation) out.push(label);
         return f.hasDerivation;
@@ -174,7 +179,7 @@ export function proofBadge(status: number): string {
 }
 
 export function citableAsTheorem(status: number): boolean {
-  return status !== 4;
+  return status === 1 || status === 2;
 }
 
 // ---------- 小练三型（有多少显示多少） ----------
@@ -192,11 +197,9 @@ export function drillTypeLabel(t: DrillType): string {
 }
 
 export function drillAvailability(f: FormulaDetail | null | undefined): DrillType[] {
-  const out: DrillType[] = [];
-  if (nonEmpty(f?.conditions)) out.push("CONDITION_JUDGE");
-  if (f?.variants && f.variants.length > 0) out.push("VARIANT_RECOGNIZE");
-  if (nonEmpty(f?.applications)) out.push("APPLICATION_MATCH");
-  return out;
+  // A section being present does not prove that any reviewed question exists.
+  // Only availability explicitly returned by the learning API may create entry points.
+  return [...new Set(f?.drillTypes ?? [])];
 }
 
 // ---------- 变形与家族 ----------
@@ -277,7 +280,7 @@ export function formulaCard(f: FormulaDetail): FormulaCardView {
     latex: f.latex,
     badge: proofBadge(f.proofStatus),
     citable: citableAsTheorem(f.proofStatus),
-    conditionLine: conditionBar(f).summary,
+    conditionLine: f.conditionSummary?.trim() || conditionBar(f).summary,
     drillCount: drillAvailability(f).length,
   };
 }

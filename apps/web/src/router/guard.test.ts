@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveAfterLogin, resolveGuard } from "./guard";
+import { readResumeToken, resolveAfterLogin, resolveGuard, resolveResumeTarget } from "./guard";
 
 describe("登录守卫（BR-09 前端语义）", () => {
   it("开放重定向防护：仅站内相对路径放行", () => {
@@ -13,6 +13,8 @@ describe("登录守卫（BR-09 前端语义）", () => {
     expect(resolveAfterLogin("https://evil.com")).toBe("/");
     expect(resolveAfterLogin("http://evil.com")).toBe("/");
     expect(resolveAfterLogin("javascript:alert(1)")).toBe("/");
+    expect(resolveAfterLogin("/login?redirect=/plans")).toBe("/");
+    expect(resolveAfterLogin("/plans\\evil")).toBe("/");
   });
 
   it("未登录访问受保护页 → 跳登录并携带 redirect", () => {
@@ -57,5 +59,25 @@ describe("登录守卫（BR-09 前端语义）", () => {
         isAuthenticated: () => false,
       }),
     ).toBeNull();
+  });
+
+  it("已登录并带 resumeToken 时保留登录页，让页面先兑换目标", () => {
+    expect(resolveGuard(
+      { name: "login", meta: {}, fullPath: "/login?resumeToken=opaque", query: { resumeToken: "opaque" } } as never,
+      { isAuthenticated: () => true }
+    )).toBeNull();
+    expect(readResumeToken("opaque_token.1")).toBe("opaque_token.1");
+    expect(readResumeToken("bad\nvalue")).toBeNull();
+    expect(readResumeToken(["a", "b"])).toBeNull();
+  });
+
+  it("兑换响应只映射已实现的站内目标，不执行外链或不存在的活动路由", () => {
+    expect(resolveResumeTarget({ targetType: "formula", targetId: 12 })).toBe("/formulas/12");
+    expect(resolveResumeTarget({ targetType: "node", targetId: "node-3" })).toBe("/graph/node/node-3");
+    expect(resolveResumeTarget({ targetType: "question", targetId: 4 })).toBe("/deepdive/question/4");
+    expect(resolveResumeTarget({ targetType: "event", targetId: 5 })).toBeNull();
+    expect(resolveResumeTarget({ targetType: "path", slug: "graph" })).toBeNull();
+    expect(resolveResumeTarget({ targetType: "formula", targetId: "//evil" })).toBeNull();
+    expect(resolveResumeTarget({ targetType: "formula", url: "https://evil.example" })).toBeNull();
   });
 });

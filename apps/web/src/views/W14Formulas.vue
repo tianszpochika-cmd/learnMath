@@ -1,566 +1,216 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  FORMULA_SECTIONS,
-  buildAliasIndex,
-  conditionBar,
-  drillAvailability,
-  drillTypeLabel,
-  errorVariants,
-  formulaCard,
-  formulaDeepdivePath,
-  legalVariants,
-  lookupAlias,
-  missingSections,
-  proofBadge,
-  relLabel,
-  sectionFromQuery,
-  sectionMissing,
-  symbolProblem,
-  type FormulaDetail,
-  type SectionKey,
-} from "../features/formula/formulaUi";
+import { FORMULA_SECTIONS, conditionBar, drillAvailability, drillTypeLabel, errorVariants, formulaCard, formulaDeepdivePath, legalVariants, missingSections, proofBadge, relLabel, sectionFromQuery, sectionMissing, symbolProblem, type DrillType, type FormulaDetail, type SectionKey } from "../features/formula/formulaUi";
+import type { FormulaPathSummary } from "../features/formula/formulaProjection";
+import { createFormulaApi } from "../services/formulas";
 
-/** W14 公式馆 列表 + 详情（16W14 · 七区/条件红条/小练三型/typed 深钻）。 */
+/** W14: published formula projections only; exercises are server-created attempts. */
 const route = useRoute();
 const router = useRouter();
+const api = createFormulaApi();
+const domains = ["算术", "代数", "几何", "三角", "数列", "概率统计", "微积分", "线性代数", "复变", "数论", "其他"];
+const PAGE_SIZE = 12;
 
-const isDetail = computed(() => Boolean(route.params.id));
-const tab = ref<SectionKey>(sectionFromQuery(route.query.section));
-
-const list: FormulaDetail[] = [
-  {
-    id: 7,
-    name: "勾股定理",
-    aliases: ["毕达哥拉斯定理", "商高定理"],
-    latex: "a² + b² = c²",
-    proofStatus: 1,
-    origin: "古希腊人用面积拼图证明：把四个直角三角形拼进正方形，用面积守恒倒出关系。",
-    symbols: [
-      { symbol: "a", meaning: "直角边 a", rangeNote: "正实数" },
-      { symbol: "b", meaning: "直角边 b", rangeNote: "正实数" },
-      { symbol: "c", meaning: "斜边", rangeNote: "正实数，c 为最长边" },
-      { symbol: "θ", meaning: "任意锐角", rangeNote: "无量纲" },
-    ],
-    hasDerivation: true,
-    conditions: "仅直角三角形（∠C=90°）。边长为正实数。",
-    applications: "① 不可达测距（河宽/山高）② 直角坐标距离 ③ 拱桥与结构校核",
-    family: [
-      { toFormulaId: 8, relType: 1, note: "任意三角形 → 余弦定理" },
-      { toFormulaId: 9, relType: 6, note: "常与面积法搭配" },
-    ],
-    variants: [
-      { legal: true, expression: "c = √(a²+b²)", note: "求斜边正位" },
-      { legal: false, expression: "a²+b²=c² 对任意三角形成立", note: "缺 −2ab·cosC 修正项" },
-    ],
-  },
-  {
-    id: 12,
-    name: "求根公式",
-    aliases: ["根号公式"],
-    latex: "x = (−b ± √(b²−4ac)) / 2a",
-    proofStatus: 2,
-    origin: "巴比伦泥板上的配方法雏形；阿拉伯代数学家完成一般形式。",
-    symbols: [
-      { symbol: "a", meaning: "二次项系数", rangeNote: "a ≠ 0" },
-      { symbol: "Δ", meaning: "判别式 b²−4ac", rangeNote: "实数域 Δ≥0 才有解" },
-    ],
-    hasDerivation: true,
-    conditions: "a ≠ 0；实数解需 Δ ≥ 0。",
-    applications: "一元二次方程通用求解、顶点坐标推导",
-    family: [{ toFormulaId: 13, relType: 3, note: "与配方法等价" }],
-    variants: [
-      { legal: true, expression: "x = −b/2a ± √Δ /(2a)", note: "拆分式" },
-      { legal: false, expression: "x = (−b ± √(b²−4ac)) / 2a 中 a=0", note: "违反前提" },
-    ],
-  },
-  {
-    id: 15,
-    name: "黎曼猜想（ζ 函数）",
-    aliases: ["Riemann Hypothesis"],
-    latex: "ζ(s) = 0 的非平凡零点 Re(s) = 1/2",
-    proofStatus: 4,
-    origin: null,
-    symbols: null,
-    hasDerivation: false,
-    conditions: null,
-    applications: null,
-    family: null,
-    variants: null,
-  },
-];
-
-const aliasIdx = buildAliasIndex(list);
-const query = ref("");
-const hitId = lookupAlias(aliasIdx, query.value);
-
-const current = computed<FormulaDetail>(() => {
-  if (isDetail.value) {
-    const id = Number(route.params.id);
-    return list.find((f) => f.id === id) ?? list[0];
-  }
-  return list[0];
+const isDetail = computed(() => route.params.id !== undefined);
+const detailId = computed(() => {
+  const raw = String(route.params.id ?? "");
+  const id = Number(raw);
+  return /^[1-9]\d*$/.test(raw) && Number.isSafeInteger(id) ? id : null;
 });
+const tab = computed<SectionKey>(() => sectionFromQuery(route.query.section));
 
-const cards = computed(() => list.map((f) => formulaCard(f)));
-const missing = computed(() => missingSections(current.value));
-const bar = computed(() => conditionBar(current.value));
-const drills = computed(() => drillAvailability(current.value));
-const errs = computed(() => errorVariants(current.value));
-const oks = computed(() => legalVariants(current.value));
+const searchInput = ref("");
+const keyword = ref("");
+const domain = ref<number | null>(null);
+const tier = ref<number | null>(null);
+const proofStatus = ref<number | null>(null);
+const quality = ref<number | null>(null);
+const list = ref<FormulaDetail[]>([]);
+const listPage = ref(0);
+const listTotal = ref<number | null>(null);
+const listHasMore = ref(false);
+const listBusy = ref(false);
+const listError = ref("");
+let listRun = 0;
 
-function setTab(k: SectionKey): void {
-  tab.value = k;
-  void router.replace({ query: { ...route.query, section: k } });
-}
-function searchGo(): void {
-  const id = lookupAlias(aliasIdx, query.value);
-  if (id !== null) {
-    void router.push(`/formulas/${id}`);
+const detail = ref<FormulaDetail | null>(null);
+const paths = ref<FormulaPathSummary[]>([]);
+const detailBusy = ref(false);
+const detailError = ref("");
+const pathsError = ref("");
+const drillBusy = ref<DrillType | null>(null);
+const drillError = ref("");
+const copyStatus = ref("");
+let detailRun = 0;
+
+const cards = computed(() => list.value.map(formulaCard));
+const conditions = computed(() => conditionBar(detail.value));
+const detailWithPaths = computed(() => detail.value ? { ...detail.value, hasDerivation: detail.value.hasDerivation || paths.value.length > 0 } : null);
+const missing = computed(() => missingSections(detailWithPaths.value));
+const drills = computed(() => drillAvailability(detail.value));
+const legalForms = computed(() => legalVariants(detail.value));
+const errorForms = computed(() => errorVariants(detail.value));
+const domainName = (value: number | null | undefined) => value && domains[value - 1] ? domains[value - 1] : "领域未标注";
+const explanation = (error: unknown) => error instanceof Error && error.message ? error.message : "请求暂时失败，请稍后重试。";
+
+async function loadList(reset = false): Promise<void> {
+  if (!reset && (listBusy.value || !listHasMore.value)) return;
+  const run = reset ? ++listRun : listRun;
+  const nextPage = reset ? 1 : listPage.value + 1;
+  if (reset) { list.value = []; listPage.value = 0; listTotal.value = null; listHasMore.value = false; }
+  listBusy.value = true;
+  listError.value = "";
+  try {
+    const result = await api.list({ keyword: keyword.value, domain: domain.value, tier: tier.value,
+      proofStatus: proofStatus.value, quality: quality.value, page: nextPage, size: PAGE_SIZE });
+    if (run !== listRun || isDetail.value) return;
+    const seen = new Set(list.value.map((item) => item.id));
+    list.value = [...list.value, ...result.items.filter((item) => !seen.has(item.id))];
+    listPage.value = result.page;
+    listTotal.value = result.total;
+    listHasMore.value = result.hasMore;
+  } catch (error) {
+    if (run === listRun) listError.value = explanation(error);
+  } finally {
+    if (run === listRun) listBusy.value = false;
   }
 }
-function sectionHas(k: SectionKey): boolean {
-  return !sectionMissing(k, current.value);
+
+function search(): void {
+  keyword.value = searchInput.value.trim();
+  void loadList(true);
 }
+
+async function loadDetail(id: number | null): Promise<void> {
+  const run = ++detailRun;
+  detail.value = null;
+  paths.value = [];
+  detailError.value = "";
+  pathsError.value = "";
+  drillError.value = "";
+  copyStatus.value = "";
+  if (!id) { detailError.value = "公式编号无效。"; return; }
+  detailBusy.value = true;
+  try {
+    const result = await api.detail(id);
+    if (run !== detailRun) return;
+    detail.value = result;
+    if (!result) return;
+    try { paths.value = await api.paths(id); }
+    catch (error) { if (run === detailRun) pathsError.value = explanation(error); }
+  } catch (error) {
+    if (run === detailRun) detailError.value = explanation(error);
+  } finally {
+    if (run === detailRun) detailBusy.value = false;
+  }
+}
+
+async function selectTab(next: SectionKey): Promise<void> {
+  await router.replace({ query: { ...route.query, section: next } });
+  await nextTick();
+  document.getElementById("formula-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function startDrill(type: DrillType): Promise<void> {
+  if (!detail.value || !drills.value.includes(type) || drillBusy.value) return;
+  drillBusy.value = type;
+  drillError.value = "";
+  try {
+    const attemptId = await api.drill(detail.value.id, type);
+    await router.push(`/paper/${attemptId}`);
+  } catch (error) {
+    drillError.value = explanation(error);
+  } finally { drillBusy.value = null; }
+}
+
+async function copyExpression(): Promise<void> {
+  if (!detail.value?.latex) return;
+  try { await navigator.clipboard.writeText(detail.value.latex); copyStatus.value = "公式已复制"; }
+  catch { copyStatus.value = "复制失败，请选择式子手动复制。"; }
+}
+
+watch(() => route.params.id, (value) => {
+  if (value === undefined) { if (!list.value.length) void loadList(true); }
+  else void loadDetail(detailId.value);
+}, { immediate: true });
+watch([domain, tier, proofStatus, quality], () => { if (!isDetail.value) void loadList(true); });
 </script>
 
 <template>
-  <!-- 列表态 -->
-  <div v-if="!isDetail" class="fm pad">
-    <div class="head">
-      <span class="bk" @click="router.push('/do')">‹</span>
-      <h1>公式馆</h1>
-      <div class="search">
-        <input v-model="query" placeholder="搜公式/别名（如：毕达哥拉斯 → 直达）" @keyup.enter="searchGo" />
-        <button class="btn" @click="searchGo">搜索</button>
+  <main class="formula-page">
+    <header class="hero">
+      <div class="hero-inner">
+        <button class="back-link" type="button" @click="router.push(isDetail ? '/formulas' : '/')">← {{ isDetail ? '返回公式馆' : '学习首页' }}</button>
+        <p class="eyebrow">MATHORIGIN / FORMULA ATLAS</p>
+        <h1>{{ isDetail ? detail?.name || '公式详情' : '公式馆' }}</h1>
+        <p>{{ isDetail ? '看懂式子、成立条件与推导依据，再决定怎样应用。' : '从已发布的公式出发，沿着条件、推导与应用继续学习。' }}</p>
+        <span class="hero-mark" aria-hidden="true">∑</span>
       </div>
-      <div class="chips">
-        <span class="chip">代数</span><span class="chip grey">几何·三角</span><span class="chip grey">分析</span>
+    </header>
+
+    <div v-if="!isDetail" class="content">
+      <div class="section-head"><div><span class="eyebrow">BROWSE / 探索</span><h2>按名称或别名寻找公式</h2></div><span class="count">{{ listTotal === null ? '仅显示已取得的发布内容' : `共 ${listTotal} 条结果` }}</span></div>
+      <form class="search" @submit.prevent="search">
+        <label class="sr-only" for="formula-search">搜索公式正名或别名</label>
+        <span aria-hidden="true">⌕</span><input id="formula-search" v-model="searchInput" type="search" placeholder="输入公式正名或别名" />
+        <button type="submit">搜索</button>
+      </form>
+      <div class="filters" aria-label="公式筛选">
+        <label>领域<select v-model="domain"><option :value="null">全部领域</option><option v-for="(name, index) in domains" :key="name" :value="index + 1">{{ name }}</option></select></label>
+        <label>层级<select v-model="tier"><option :value="null">全部层级</option><option v-for="n in 5" :key="n" :value="n">Tier {{ n }}</option></select></label>
+        <label>证明状态<select v-model="proofStatus"><option :value="null">全部状态</option><option v-for="n in 4" :key="n" :value="n">{{ proofBadge(n) }}</option></select></label>
+        <label>来源<select v-model="quality"><option :value="null">全部来源</option><option :value="1">人工整理</option><option :value="2">AI 整理</option></select></label>
       </div>
-    </div>
-
-    <div class="grid3">
-      <div v-for="c in cards" :key="c.id" class="card fcard" @click="router.push('/formulas/' + c.id)">
-        <div class="fhead">
-          <b>{{ c.name }}</b>
-          <span class="badge" :class="{ bad: !c.citable }">{{ c.badge }}</span>
-        </div>
-        <div class="latex">{{ c.latex }}</div>
-        <p v-if="c.conditionLine" class="cond">{{ c.conditionLine }}</p>
-        <p v-else class="cond miss">条件待补全</p>
-        <div class="fmeta">
-          <span class="chip grey">小练 {{ c.drillCount }}/3 型</span>
-          <span class="arrow">›</span>
-        </div>
+      <p class="filter-note">正名与别名搜索、分页及筛选结果由公式馆接口决定；未发布版本不会展示。</p>
+      <div v-if="listError" class="state error" role="alert"><strong>公式列表暂不可用</strong><p>{{ listError }}</p><button type="button" @click="loadList(true)">重试</button></div>
+      <div v-else-if="listBusy && !list.length" class="state" role="status">正在读取已发布公式…</div>
+      <div v-else-if="!list.length" class="state"><strong>{{ listHasMore ? '当前页没有可展示的已发布公式' : '没有符合条件的已发布公式' }}</strong><p>{{ listHasMore ? '可继续加载后续结果。' : '可以更换关键词或筛选条件，再试一次。' }}</p></div>
+      <div v-if="list.length" class="formula-grid">
+        <RouterLink v-for="card in cards" :key="card.id" class="formula-card" :to="`/formulas/${card.id}`">
+          <div class="card-top"><span class="card-category">{{ domainName(list.find((item) => item.id === card.id)?.domain) }}</span><span class="proof-badge" :class="{ caution: !card.citable }">{{ card.badge }}</span></div>
+          <h3>{{ card.name }}</h3>
+          <div class="formula-text" :title="card.latex">{{ card.latex || '表达式待补全' }}</div>
+          <p class="condition-preview">{{ card.conditionLine || '成立条件待补全' }}</p>
+          <div class="card-bottom"><span>{{ card.drillCount ? `${card.drillCount} 型小练可选` : '小练尚未确认可用' }}</span><span aria-hidden="true">↗</span></div>
+        </RouterLink>
       </div>
-    </div>
-    <p class="mut">别名索引命中 → 直达（F1 题面可点同源）；proof=4 红紫徽标不可作定理引用（F3）</p>
-  </div>
-
-  <!-- 详情态 -->
-  <div v-else class="fm pad">
-    <div class="head">
-      <span class="bk" @click="router.push('/formulas')">‹</span>
-      <h1>{{ current.name }}</h1>
-      <span class="badge" :class="{ bad: current.proofStatus === 4 }">{{ proofBadge(current.proofStatus) }}</span>
-      <span class="chip grey">别名：{{ current.aliases.join("、") || "—" }}</span>
-      <button class="btn ghost" style="margin-left: auto" @click="router.push(formulaDeepdivePath(current.id))">
-        推导深钻 →
-      </button>
+      <div v-if="list.length || listHasMore" class="pager"><span>已显示 {{ list.length }}{{ listTotal === null ? '' : ` / ${listTotal}` }} 条</span><button v-if="listHasMore" type="button" :disabled="listBusy" @click="loadList()">{{ listBusy ? '正在加载…' : '加载更多公式' }}</button><span v-else>已到当前结果末尾</span></div>
     </div>
 
-    <!-- 条件红条（首屏锚点） -->
-    <div v-if="bar.anchor" class="condbar">
-      ⚠ <b>成立条件摘要：</b>{{ bar.summary }}
-      <span class="anchor">完整条件与误用边界 ↓</span>
-    </div>
-    <div v-else class="condbar miss">⚠ 条件待补全（七区缺口：{{ missing.join("、") || "无" }}）</div>
+    <div v-else class="content detail-content">
+      <div v-if="detailBusy" class="state" role="status">正在读取已发布公式与推导摘要…</div>
+      <div v-else-if="detailError || !detail" class="state error" role="alert"><strong>这条公式暂不可查看</strong><p>{{ detailError || '尚无可展示的已发布版本。' }}</p><button type="button" @click="loadDetail(detailId)">重试读取</button><RouterLink to="/formulas">返回公式馆</RouterLink></div>
+      <template v-else>
+        <div class="detail-meta"><span>{{ domainName(detail.domain) }}</span><span>{{ detail.tier ? `Tier ${detail.tier}` : '层级未标注' }}</span><span v-if="detail.quality === 2">AI 整理 · 已发布内容</span><span v-else-if="detail.quality === 1">人工整理</span><span class="proof-badge" :class="{ caution: detail.proofStatus >= 3 || detail.proofStatus < 1 }">{{ proofBadge(detail.proofStatus) }}</span></div>
+        <div v-if="detail.proofStatus === 3 || detail.proofStatus === 4" class="proof-warning" role="note"><strong>{{ detail.proofStatus === 4 ? '尚未证明，请勿当作定理引用' : '经验拟合，请核对适用范围' }}</strong><p>使用前请查看来源与完整成立条件，避免将结论推广到未经验证的情形。</p></div>
+        <div class="expression-panel"><span class="expression-label">FORMULA / {{ detail.name }}</span><div class="expression">{{ detail.latex || '表达式待补全' }}</div><button type="button" :disabled="!detail.latex" @click="copyExpression">复制式子</button><span v-if="copyStatus" class="copy-note" role="status">{{ copyStatus }}</span></div>
+        <div class="conditions-bar"><strong>成立条件摘要</strong><p>{{ detail.conditionSummary || conditions.summary || '已发布版本的成立条件待补全，使用前请核对完整条件。' }}</p><button v-if="detail.conditions" type="button" @click="selectTab('conditions')">查看完整条件与误用边界 ↓</button></div>
+        <p v-if="detail.aliases.length" class="aliases">别名：{{ detail.aliases.join(' · ') }}</p>
 
-    <div class="biglatex">{{ current.latex }}</div>
-
-    <nav class="tabs">
-      <button
-        v-for="s in FORMULA_SECTIONS"
-        :key="s.key"
-        :class="{ on: tab === s.key, miss: !sectionHas(s.key) }"
-        @click="setTab(s.key)"
-      >
-        {{ s.label }}<i v-if="!sectionHas(s.key)">!</i>
-      </button>
-    </nav>
-
-    <!-- 七区分栏 -->
-    <section class="card">
-      <template v-if="tab === 'origin'">
-        <b>起源</b>
-        <p class="body">{{ current.origin || "待补全" }}</p>
-      </template>
-
-      <template v-else-if="tab === 'symbols'">
-        <b>符号表（含义 / 定义域·单位 · BR-08 最低要求）</b>
-        <table class="tbl">
-          <thead><tr><th>符号</th><th>含义</th><th>定义域 / 单位</th><th>状态</th></tr></thead>
-          <tbody>
-            <tr v-for="s in current.symbols ?? []" :key="s.symbol">
-              <td class="sym">{{ s.symbol }}</td>
-              <td>{{ s.meaning }}</td>
-              <td>{{ s.rangeNote }}</td>
-              <td>
-                <span v-if="symbolProblem(s)" class="badge bad">{{ symbolProblem(s) }}</span>
-                <span v-else class="badge ok">✓</span>
-              </td>
-            </tr>
-            <tr v-if="!current.symbols || current.symbols.length === 0">
-              <td colspan="4" class="mut">符号表待补全</td>
-            </tr>
-          </tbody>
-        </table>
-      </template>
-
-      <template v-else-if="tab === 'derivation'">
-        <b>推导链</b>
-        <p v-if="current.hasDerivation" class="body">
-          推导以「subject=formula 的深钻链」承载（solution_path + 四要素步），点右上「推导深钻」进入完整五玩。
-        </p>
-        <p v-else class="mut">推导链待补全（missing derivation）</p>
-      </template>
-
-      <template v-else-if="tab === 'conditions'">
-        <b>完整条件与误用边界</b>
-        <p class="body">{{ current.conditions || "待补全" }}</p>
-        <template v-if="errs.length">
-          <div class="sect">常见误用（红笔区 · 不进首屏正位）</div>
-          <div v-for="v in errs" :key="v.expression" class="errvar">
-            <s>{{ v.expression }}</s><span class="mut">{{ v.note }}</span>
-          </div>
-        </template>
-      </template>
-
-      <template v-else-if="tab === 'applications'">
-        <b>应用</b>
-        <p class="body">{{ current.applications || "待补全" }}</p>
-      </template>
-
-      <template v-else-if="tab === 'family'">
-        <b>家族关系</b>
-        <div v-for="r in current.family ?? []" :key="r.toFormulaId + '-' + r.relType" class="relrow">
-          <span class="chip">{{ relLabel(r.relType) }}</span>
-          <span>→ 公式 #{{ r.toFormulaId }}</span>
-          <span class="mut">{{ r.note }}</span>
-        </div>
-        <p v-if="!current.family || current.family.length === 0" class="mut">家族关系待补全</p>
-      </template>
-
-      <template v-else-if="tab === 'variants'">
-        <b>合法变形（正位）</b>
-        <div v-for="v in oks" :key="v.expression" class="legalvar">
-          <code>{{ v.expression }}</code><span class="mut">{{ v.note }}</span>
-        </div>
-        <div v-if="oks.length === 0" class="mut">变形待补全</div>
-        <div v-if="errs.length" class="sect">误用变形（红笔）</div>
-        <div v-for="v in errs" :key="'e' + v.expression" class="errvar">
-          <s>{{ v.expression }}</s><span class="mut">{{ v.note }}</span>
+        <div class="learning-layout">
+          <section id="formula-content" class="learning-main">
+            <div class="section-head"><div><span class="eyebrow">SEVEN PARTS / 完整研习</span><h2>逐层理解这条公式</h2></div><span class="count">{{ 7 - missing.length }} / 7 区有已发布内容</span></div>
+            <nav class="tabs" aria-label="公式研习七区"><button v-for="section in FORMULA_SECTIONS" :key="section.key" type="button" :class="{ active: tab === section.key }" :aria-current="tab === section.key ? 'page' : undefined" @click="selectTab(section.key)">{{ section.label }}<span v-if="sectionMissing(section.key, detailWithPaths)" class="tab-missing">待补</span></button></nav>
+            <article class="chapter">
+              <template v-if="tab === 'origin'"><span class="chapter-index">01 / ORIGIN</span><h3>它从哪里来</h3><p class="body-copy">{{ detail.origin || '起源内容待补全。' }}</p></template>
+              <template v-else-if="tab === 'symbols'"><span class="chapter-index">02 / SYMBOLS</span><h3>读懂每个符号</h3><div v-if="detail.symbols?.length" class="table-wrap"><table><thead><tr><th>符号</th><th>含义</th><th>定义域 / 单位</th></tr></thead><tbody><tr v-for="symbol in detail.symbols" :key="symbol.symbol"><td class="symbol">{{ symbol.symbol }}</td><td>{{ symbol.meaning || '待补全' }}</td><td>{{ symbol.rangeNote || '待补全' }}<small v-if="symbolProblem(symbol)">{{ symbolProblem(symbol) }}</small></td></tr></tbody></table></div><p v-else class="empty-copy">符号表待补全。</p></template>
+              <template v-else-if="tab === 'derivation'"><span class="chapter-index">03 / DERIVATION</span><h3>推导链</h3><p class="body-copy">这里仅展示已发布推导的标题与版本摘要。完整推导须由学习端核验当前作答的辅助权限。</p><div v-if="paths.length" class="path-list"><div v-for="path in paths" :key="path.id" class="path-row"><strong>{{ path.title }}</strong><span>{{ [path.quality, path.version ? `版本 ${path.version}` : ''].filter(Boolean).join(' · ') || '已发布摘要' }}</span></div></div><p v-else class="empty-copy">{{ pathsError ? `推导摘要暂不可读取：${pathsError}` : '该公式的已发布推导摘要待补全。' }}</p><RouterLink v-if="paths.length" class="deep-link" :to="formulaDeepdivePath(detail.id)">打开完整推导 ↗</RouterLink><p class="permission-note">完整推导页由学习端权限校验；当前作答策略不允许时，以服务端提示为准。</p></template>
+              <template v-else-if="tab === 'conditions'"><span class="chapter-index">04 / CONDITIONS</span><h3>完整条件与误用边界</h3><p class="body-copy">{{ detail.conditions || '完整成立条件待补全。' }}</p><div v-if="errorForms.length" class="variant-list"><h4>常见误用</h4><div v-for="form in errorForms" :key="form.expression" class="variant invalid"><code>{{ form.expression }}</code><span>{{ form.note || '误用原因待补全' }}</span></div></div></template>
+              <template v-else-if="tab === 'applications'"><span class="chapter-index">05 / APPLICATION</span><h3>它能解决什么</h3><p class="body-copy">{{ detail.applications || '应用内容待补全。' }}</p></template>
+              <template v-else-if="tab === 'family'"><span class="chapter-index">06 / FAMILY</span><h3>放回公式家族</h3><div v-if="detail.family?.length" class="family-list"><RouterLink v-for="relation in detail.family" :key="`${relation.toFormulaId}-${relation.relType}`" :to="`/formulas/${relation.toFormulaId}`"><span>{{ relLabel(relation.relType) }}</span><strong>公式 #{{ relation.toFormulaId }}</strong><small>{{ relation.note }}</small><b aria-hidden="true">↗</b></RouterLink></div><p v-else class="empty-copy">家族关系待补全。</p></template>
+              <template v-else><span class="chapter-index">07 / VARIANTS</span><h3>合法变形与常见错误</h3><div v-if="legalForms.length" class="variant-list"><h4>合法变形</h4><div v-for="form in legalForms" :key="form.expression" class="variant"><code>{{ form.expression }}</code><span>{{ form.note }}</span></div></div><div v-if="errorForms.length" class="variant-list"><h4>误用形式</h4><div v-for="form in errorForms" :key="form.expression" class="variant invalid"><code>{{ form.expression }}</code><span>{{ form.note }}</span></div></div><p v-if="!legalForms.length && !errorForms.length" class="empty-copy">变形内容待补全。</p></template>
+            </article>
+          </section>
+          <aside class="practice-panel"><span class="eyebrow">PRACTICE / 标准作答</span><h2>用一道题确认理解</h2><p>小练由服务端创建真实作答，成绩和错题以作答服务为准。</p><div v-if="drills.length" class="drill-list"><button v-for="type in drills" :key="type" type="button" :disabled="Boolean(drillBusy)" @click="startDrill(type)"><span>{{ drillTypeLabel(type) }}</span><b>{{ drillBusy === type ? '创建中…' : '开始小练 ↗' }}</b></button></div><p v-else class="empty-copy">当前没有服务端确认可用的小练类型。</p><p v-if="drillError" class="drill-error" role="alert">{{ drillError }}</p><p class="practice-note">当前作答策略可能限制公式推导或另开练习；以服务端返回为准。</p></aside>
         </div>
       </template>
-    </section>
-
-    <!-- 小练三型（有多少显示多少） -->
-    <div class="drillbar">
-      <span class="sect" style="margin: 0">小练（{{ drills.length }}/3 型可用）</span>
-      <button v-for="t in drills" :key="t" class="btn" @click="router.push('/paper/9001')">
-        试做·{{ drillTypeLabel(t) }}
-      </button>
-      <span v-if="drills.length === 0" class="mut">小练未配（不硬凑入口）</span>
-      <button class="btn ghost" style="margin-left: auto" @click="router.push('/paper/9001')">试做第 1 题（题面公开）</button>
     </div>
-    <p class="mut">七区完整度缺口：{{ missing.length ? missing.join("、") : "无（全部可达）" }} · 官网仅展示公开摘要（V3）</p>
-  </div>
+  </main>
 </template>
 
 <style scoped>
-.pad {
-  padding: 22px 32px 48px;
-  max-width: 1160px;
-  margin: 0 auto;
-}
-.head {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.bk {
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.head h1 {
-  font-size: 24px;
-}
-.search {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-  max-width: 420px;
-}
-.search input {
-  flex: 1;
-  height: 40px;
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  padding: 0 14px;
-  outline: none;
-  font-size: 14.5px;
-}
-.search input:focus {
-  border-color: var(--brand);
-}
-.chips {
-  display: flex;
-  gap: 8px;
-}
-.chip {
-  font-size: 12.5px;
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  border-radius: 99px;
-  padding: 4px 13px;
-  font-weight: 600;
-}
-.chip.grey {
-  background: #f1f5f9;
-  color: #64748b;
-}
-.grid3 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 16px;
-}
-.fcard {
-  cursor: pointer;
-}
-.fcard:hover {
-  border-color: var(--brand);
-}
-.fhead {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.badge {
-  font-size: 11.5px;
-  font-weight: 800;
-  border-radius: 7px;
-  padding: 3px 9px;
-  background: #ecfdf5;
-  color: #047857;
-}
-.badge.bad {
-  background: #f3e8ff;
-  color: #7c3aed;
-}
-.badge.ok {
-  background: #ecfdf5;
-  color: #047857;
-}
-.latex {
-  font-family: var(--font-math);
-  font-style: italic;
-  font-size: 22px;
-  text-align: center;
-  background: #f8fafc;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 20px 10px;
-  margin-top: 10px;
-}
-.cond {
-  font-size: 12.5px;
-  color: #b91c1c;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 7px 10px;
-  margin-top: 10px;
-}
-.cond.miss {
-  color: var(--ink3);
-  background: #f8fafc;
-  border-style: dashed;
-}
-.fmeta {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-}
-.arrow {
-  margin-left: auto;
-  color: var(--ink3);
-}
-.condbar {
-  background: #fef2f2;
-  border: 1.5px solid #fecaca;
-  color: #991b1b;
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-top: 14px;
-  font-size: 14.5px;
-}
-.condbar .anchor {
-  float: right;
-  font-size: 12.5px;
-  color: var(--brand);
-  font-weight: 700;
-}
-.condbar.miss {
-  color: var(--ink3);
-  background: #f8fafc;
-  border-style: dashed;
-}
-.biglatex {
-  font-family: var(--font-math);
-  font-style: italic;
-  font-size: 34px;
-  text-align: center;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 30px 14px;
-  margin-top: 14px;
-}
-.tabs {
-  display: flex;
-  gap: 7px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-.tabs button {
-  padding: 8px 15px;
-  border-radius: 9px;
-  border: 1px solid var(--line);
-  background: #fff;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--ink3);
-  cursor: pointer;
-}
-.tabs button.on {
-  background: var(--brand-soft);
-  border-color: var(--brand);
-  color: var(--brand-deep);
-}
-.tabs button i {
-  font-style: normal;
-  color: var(--warn);
-  font-weight: 900;
-  margin-left: 3px;
-}
-.card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-top: 12px;
-}
-.body {
-  font-size: 15px;
-  line-height: 1.9;
-  margin-top: 8px;
-}
-.tbl {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  font-size: 14px;
-}
-.tbl th {
-  text-align: left;
-  color: var(--ink3);
-  font-size: 12.5px;
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--line);
-}
-.tbl td {
-  padding: 9px 6px;
-  border-bottom: 1px solid #f1f3f7;
-}
-.sym {
-  font-family: var(--font-math);
-  font-style: italic;
-  font-weight: 700;
-  font-size: 16px;
-}
-.sect {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--ink3);
-  margin: 14px 0 8px;
-}
-.errvar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  background: #fef2f2;
-  border: 1px dashed #fecaca;
-  border-radius: 9px;
-  padding: 9px 12px;
-  margin-top: 8px;
-  font-size: 14px;
-}
-.legalvar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  background: #f8fafc;
-  border-radius: 9px;
-  padding: 9px 12px;
-  margin-top: 8px;
-  font-size: 14px;
-}
-.relrow {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 9px 0;
-  border-top: 1px solid #f1f3f7;
-  font-size: 14px;
-}
-.drillbar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 16px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.btn {
-  border: none;
-  border-radius: 11px;
-  background: var(--grad);
-  color: #fff;
-  font-weight: 700;
-  height: 38px;
-  padding: 0 18px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.btn.ghost {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-.mut {
-  color: var(--ink3);
-  font-size: 13px;
-  margin-top: 10px;
-}
-@media (max-width: 960px) {
-  .grid3 {
-    grid-template-columns: 1fr;
-  }
-}
+.formula-page{min-height:100vh;background:var(--bg);color:var(--ink)}.hero{position:relative;overflow:hidden;background:#14244b;color:#fff}.hero-inner{position:relative;max-width:1220px;min-height:230px;margin:auto;padding:31px 32px 44px}.hero-inner:after{content:"";position:absolute;right:-120px;top:-250px;width:540px;height:540px;border:1px solid #ffffff35;border-radius:50%;box-shadow:0 0 0 60px #ffffff0a,0 0 0 124px #ffffff09}.back-link{position:relative;z-index:1;border:0;background:none;color:#c8d7f5;font-size:13px}.eyebrow{display:block;color:var(--primary);font-size:11px;font-weight:850;letter-spacing:.17em}.hero .eyebrow{margin-top:25px;color:#9fbaff}.hero h1{position:relative;z-index:1;margin:7px 0 6px;font:700 clamp(30px,4vw,46px)/1.25 var(--serif)}.hero p{position:relative;z-index:1;max-width:600px;color:#d3def4;font-size:14px}.hero-mark{position:absolute;right:120px;bottom:0;color:#ffffff20;font:130px/.85 Georgia,serif}.content{max-width:1220px;margin:auto;padding:34px 32px 70px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:17px}.section-head h2{margin-top:5px;font:700 clamp(21px,2.4vw,27px) var(--serif)}.count{color:var(--muted);font-size:12px}.search{display:flex;align-items:center;gap:10px;min-height:58px;padding:6px 8px 6px 17px;border:1.5px solid var(--primary);border-radius:15px;background:var(--paper);box-shadow:var(--shadow)}.search span{font-size:27px;color:var(--primary)}.search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);font-size:15px}.search button,.pager button,.state button{min-height:40px;padding:8px 18px;border:0;border-radius:9px;background:var(--grad);color:#fff;font-weight:750}.filters{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}.filters label{display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--muted);font-size:12px}.filters select{max-width:170px;border:0;background:var(--paper);color:var(--ink);font-weight:700;outline:0}.filter-note{margin:10px 1px 0;color:var(--muted);font-size:12px}.formula-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin-top:25px}.formula-card{display:flex;min-height:290px;flex-direction:column;padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--paper);box-shadow:var(--shadow);text-decoration:none;transition:transform .2s,border-color .2s}.formula-card:hover{transform:translateY(-3px);border-color:var(--primary)}.card-top,.card-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px}.card-category{color:var(--primary);font-size:11px;font-weight:800;letter-spacing:.08em}.proof-badge{display:inline-block;padding:5px 9px;border-radius:99px;background:var(--good-bg);color:var(--good);font-size:11px;font-weight:800}.proof-badge.caution{background:var(--warning-bg);color:var(--warning)}.formula-card h3{margin:18px 0 10px;font-size:19px}.formula-text{display:grid;place-items:center;min-height:76px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font:600 22px/1.4 var(--math);white-space:pre-wrap;overflow-wrap:anywhere;text-align:center}.condition-preview{margin:12px 0 18px;color:var(--danger);font-size:12px;line-height:1.6}.card-bottom{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.card-bottom span:last-child{color:var(--primary);font-size:20px}.pager{display:flex;justify-content:center;align-items:center;gap:17px;margin-top:27px;color:var(--muted);font-size:12px}.pager button:disabled{opacity:.55}.state{display:flex;align-items:flex-start;flex-direction:column;gap:8px;margin-top:25px;padding:28px;border:1px solid var(--line);border-radius:16px;background:var(--paper);line-height:1.7}.state p{color:var(--muted)}.state.error{border-color:var(--danger)}.state a{color:var(--primary)}.detail-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px}.detail-meta>span:not(.proof-badge){padding:5px 10px;border-radius:99px;background:var(--soft);color:var(--body);font-size:12px;font-weight:700}.proof-warning{margin:12px 0;padding:15px 18px;border:1px solid var(--warning);border-radius:13px;background:var(--warning-bg);color:var(--warning)}.proof-warning p{font-size:12px;margin-top:5px}.expression-panel{position:relative;padding:29px;border:1px solid var(--line);border-radius:19px;background:var(--paper);box-shadow:var(--shadow)}.expression-label,.chapter-index{color:var(--primary);font-size:11px;font-weight:850;letter-spacing:.15em}.expression{padding:26px 5px;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;font:600 clamp(25px,4vw,42px)/1.4 var(--math)}.expression-panel button{padding:8px 13px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--ink);font-weight:700}.expression-panel button:disabled{opacity:.5}.copy-note{margin-left:12px;color:var(--muted);font-size:12px}.conditions-bar{margin-top:14px;padding:16px 20px;border-left:5px solid var(--danger);border-radius:0 11px 11px 0;background:var(--danger-bg);color:var(--ink)}.conditions-bar strong{color:var(--danger)}.conditions-bar p{margin:4px 0;line-height:1.7}.conditions-bar button{border:0;background:none;color:var(--danger);font-size:13px;font-weight:800;text-decoration:underline}.aliases{margin-top:12px;color:var(--muted);font-size:12px}.learning-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px;margin-top:36px;align-items:start}.learning-main{min-width:0;scroll-margin-top:25px}.tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}.tabs button{min-height:39px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--body);font-size:12px;font-weight:750}.tabs button.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-deep)}.tab-missing{margin-left:5px;color:var(--warning);font-size:10px}.chapter{min-height:270px;padding:26px;border:1px solid var(--line);border-radius:17px;background:var(--paper)}.chapter h3{margin:7px 0 13px;font:700 23px var(--serif)}.body-copy{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9}.empty-copy{color:var(--muted);font-size:13px;line-height:1.8}.chapter .empty-copy{margin-top:12px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted)}td small{display:block;color:var(--warning);font-size:11px}.symbol{font:700 17px var(--math)}.path-list,.variant-list,.family-list{display:grid;gap:9px;margin-top:15px}.path-row,.variant{display:flex;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.path-row span,.variant span{color:var(--muted);font-size:12px}.permission-note,.practice-note{margin-top:17px;color:var(--muted);font-size:12px;line-height:1.7}.deep-link{display:inline-block;margin-top:14px;padding:9px 13px;border-radius:9px;background:var(--primary-soft);color:var(--primary-deep);font-size:13px;font-weight:800;text-decoration:none}.variant-list h4{font-size:13px}.variant code{white-space:pre-wrap;overflow-wrap:anywhere;font:15px var(--math)}.variant.invalid{border-color:var(--danger);background:var(--danger-bg)}.variant.invalid code{color:var(--danger)}.family-list a{display:flex;align-items:center;gap:11px;padding:13px;border:1px solid var(--line);border-radius:10px;text-decoration:none}.family-list a:hover{border-color:var(--primary)}.family-list a span{color:var(--primary);font-size:12px}.family-list a small{color:var(--muted)}.family-list a b{margin-left:auto;color:var(--primary)}.practice-panel{position:sticky;top:20px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--paper);box-shadow:var(--shadow)}.practice-panel h2{margin:6px 0;font:700 20px var(--serif)}.practice-panel>p{color:var(--muted);font-size:12px;line-height:1.7}.drill-list{display:grid;gap:8px;margin-top:17px}.drill-list button{display:flex;justify-content:space-between;gap:8px;min-height:48px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);text-align:left}.drill-list button:hover{border-color:var(--primary)}.drill-list button:disabled{opacity:.6}.drill-list b{color:var(--primary);font-size:12px}.practice-panel .drill-error{margin-top:13px;color:var(--danger)}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:950px){.formula-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.learning-layout{grid-template-columns:1fr}.practice-panel{position:static}}
+@media(max-width:620px){.hero-inner{min-height:210px;padding:22px 18px 35px}.hero-mark{right:10px;font-size:90px}.content{padding:25px 16px 50px}.section-head{align-items:start;flex-direction:column}.formula-grid{grid-template-columns:1fr}.formula-card{min-height:250px}.filters label{flex:1 1 45%}.filters select{min-width:0;width:100%}.expression-panel{padding:20px}.expression{padding:21px 0}.chapter{padding:19px}.pager{flex-wrap:wrap}.path-row,.variant{flex-direction:column}}
 </style>

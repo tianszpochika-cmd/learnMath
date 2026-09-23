@@ -48,6 +48,8 @@ export interface BreakEvidenceView {
   solutionPathId: number | null;
   chainVersion: number | null;
   minimalChainSteps: number[];
+  warrantNodeSnapshot?: number[];
+  stepDetails?: Array<{ id: number; content: string }>;
 }
 
 /** 快照可回放（有链 id 且有最小步骤）。 */

@@ -1,5 +1,6 @@
 import { createMemoryHistory, createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { ensureAuthSession } from "../services/client";
 import { resolveGuard } from "./guard";
 
 /**
@@ -29,6 +30,7 @@ export const routes: RouteRecordRaw[] = [
   { path: "/community/ask", name: "ask", component: () => import("../views/W15Community.vue"), meta: { requiresAuth: true, title: "发帖" } },
   { path: "/rank", name: "rank", component: () => import("../views/W16Rank.vue"), meta: { requiresAuth: true, title: "排行榜" } },
   { path: "/me/settings", name: "settings", component: () => import("../views/W17Me.vue"), meta: { requiresAuth: true, title: "设置" } },
+  { path: "/me/account", name: "account", component: () => import("../views/W17Me.vue"), meta: { requiresAuth: true, title: "账户" } },
   { path: "/me/notifications", name: "notifications", component: () => import("../views/W17Me.vue"), meta: { requiresAuth: true, title: "通知" } },
   { path: "/search", name: "search", component: () => import("../views/W18Search.vue"), meta: { requiresAuth: true, title: "搜索" } },
 ];
@@ -44,11 +46,12 @@ export const router = createRouter({
  * 注册于模块级：首次导航发生在 app.use(router) 时，pinia 已先行安装（main.ts 顺序保证）；
  * 单测只 import routes，不触发导航，故无全局态依赖。
  */
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore();
+  if (!auth.accessToken && auth.refreshToken) await ensureAuthSession();
   const redirect = resolveGuard(to as never, { isAuthenticated: () => auth.isAuthenticated });
   if (typeof document !== "undefined" && typeof to.meta.title === "string") {
     document.title = `${to.meta.title} · 数源 MathOrigin`;
   }
-  return redirect as never;
+  return redirect ?? true;
 });

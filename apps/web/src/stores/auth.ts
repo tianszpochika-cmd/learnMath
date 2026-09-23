@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 
 /**
- * 认证态（05 §7 · BR-09：登录后走 resolveAfterLogin(redirect) 回目标）。
+ * 认证态（05 §7）。access 只保留在内存；refresh 持久化以供新标签恢复。
  * token 持久化在 localStorage（刷新保留）；登出清空。
  */
 interface AuthState {
@@ -47,13 +47,23 @@ function persist(state: AuthState): void {
   }
 }
 
+/** Remove only this account's unsubmitted BR-07 drafts on logout. */
+export function clearUserDrafts(storage: Pick<Storage, "length" | "key" | "removeItem">, userId: string | null): void {
+  if (!userId) return;
+  const prefix = "lm.draft:" + userId + ":";
+  for (let index = storage.length - 1; index >= 0; index -= 1) {
+    const key = storage.key(index);
+    if (key?.startsWith(prefix)) storage.removeItem(key);
+  }
+}
+
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => load(),
   getters: {
-    isAuthenticated: (s): boolean => Boolean(s.accessToken || s.refreshToken),
+    isAuthenticated: (s): boolean => Boolean(s.accessToken),
   },
   actions: {
-    setSession(p: { accessToken: string; refreshToken: string; userId: string }) {
+    setSession(p: { accessToken: string; refreshToken: string; userId: string | null }) {
       this.accessToken = p.accessToken;
       this.refreshToken = p.refreshToken;
       this.userId = p.userId;
@@ -63,6 +73,10 @@ export const useAuthStore = defineStore("auth", {
       this.accessToken = token;
     },
     clear() {
+      const previousUserId = this.userId;
+      if (typeof window !== "undefined") {
+        try { clearUserDrafts(window.localStorage, previousUserId); } catch { /* 存储不可用 */ }
+      }
       this.accessToken = null;
       this.refreshToken = null;
       this.userId = null;

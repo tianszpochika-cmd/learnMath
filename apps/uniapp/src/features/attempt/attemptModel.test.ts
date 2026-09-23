@@ -1,0 +1,17 @@
+import { describe, expect, it } from "vitest";
+import { attemptView, countdown, draftKey, kindOf, objectiveLabel, parseDraft, recovery, remainingMs, writeAllowed } from "./attemptModel";
+import { evidenceOf, mayCountProfile, statusLabel, wrongRows } from "./wrongbookModel";
+const raw={attemptId:"a-9",state:"in_progress",mode:"exam",feedbackMode:"on_submit",assistancePolicy:"restricted",revision:2,serverNow:"2026-09-23T00:00:00Z",deadlineAt:"2026-09-23T00:05:00Z",questions:[{seq:1,stem:"原题",type:"choice",options:[{key:"A",text:"甲"},{key:"B",text:"乙"}],draft:"A",answer:"B",analysis:"不应提前出现"}]};
+describe("mobile attempt BR03/04/07",()=>{
+  it("keeps unreleased grading and analysis hidden before submit",()=>{const a=attemptView(raw)!;expect(a.questions[0].analysis).toBe("");expect(a.questions[0].judgement).toBeNull();expect(a.questions[0].draft).toBe("A");expect(writeAllowed(a,a.questions[0],remainingMs(a,0))).toBe(true);expect(remainingMs(a,300000)).toBe(0);expect(countdown(0)).toBe("已到期");});
+  it("requires server revision and a valid question to write",()=>{const a=attemptView({...raw,revision:undefined})!;expect(writeAllowed(a,a.questions[0],null)).toBe(false);expect(attemptView({...raw,questions:[{seq:1,stem:"",type:"choice"}]})).toBeNull();});
+  it("recognizes numeric question kinds and blocks unsupported multiple choice encoding",()=>{expect(kindOf("5")).toBe("essay");const a=attemptView({...raw,questions:[{...raw.questions[0],type:2}]})!;expect(a.questions[0].kind).toBe("multi");expect(writeAllowed(a,a.questions[0],null)).toBe(false);});
+  it("isolates local drafts and never silently merges",()=>{expect(draftKey("user-1","a-9",1)).toBe("lm.mobile.draft:user-1:a-9:1");expect(parseDraft({value:"x",baseRevision:1,updatedAt:1})).toEqual({value:"x",baseRevision:1,updatedAt:1});expect(recovery("server",2,{value:"local",baseRevision:1,updatedAt:1},true)).toBe("compare");expect(recovery("server",2,{value:"local",baseRevision:1,updatedAt:1},false)).toBe("copy-only");});
+  it("shows no fabricated objective score for a subjective paper",()=>{const a=attemptView({...raw,state:"finalized",objectiveEarned:0,objectivePossible:0,objectiveRate:null})!;expect(objectiveLabel(a)).toBe("本卷无客观成绩");});
+  it("formats the server objective rate without grading questions locally",()=>{const a=attemptView({...raw,state:"finalized",objectiveEarned:8,objectivePossible:10,objectiveRate:0.8})!;expect(objectiveLabel(a)).toBe("80% · 8/10");});
+  it("keeps submitted state pending until scoring is ready",()=>{const a=attemptView({...raw,state:"submitted",questions:[{...raw.questions[0],analysis:"私密解析",judgement:"correct"}]})!;expect(objectiveLabel(a)).toBe("客观判分处理中");expect(a.questions[0].analysis).toBe("");});
+});
+describe("mobile wrongbook BR05",()=>{
+  it("keeps suggested and observed evidence separate",()=>{const suggested=evidenceOf({status:"suggested",source:"ai",stepId:3})!;const observed=evidenceOf({status:"observed",source:"prediction",stepId:3})!;expect(statusLabel(suggested.status)).toContain("待确认");expect(mayCountProfile(suggested)).toBe(false);expect(mayCountProfile(observed)).toBe(true);});
+  it("shows only actual remedies and preserves historical step IDs",()=>{const e=evidenceOf({status:"self_reported",chainVersion:2,stepId:14,minimalChainSteps:[{stepId:14,text:"原步骤"}],remedies:[{questionId:8,title:"重练"}]})!;expect(e.steps).toEqual([{stepId:14,text:"原步骤"}]);expect(e.remedies).toHaveLength(1);expect(wrongRows({items:[{questionId:8,title:"错题",breakEvidence:e}]})).toHaveLength(1);});
+});

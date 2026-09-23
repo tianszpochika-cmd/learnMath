@@ -1,5 +1,6 @@
 import { createMemoryHistory, createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { useAdminAuthStore } from "../stores/auth";
+import { ensureAdminSession } from "../services/client";
 import { menuRouteNames } from "../features/adminShell";
 
 /**
@@ -36,19 +37,19 @@ export const router = createRouter({
 });
 
 /** 守卫：模块级注册（pinia 先装，main.ts 顺序保证）；title 同步。 */
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAdminAuthStore();
-  if (to.meta.requiresAuth === true && !auth.isAuthenticated) {
-    return { name: "login", query: { redirect: to.fullPath } } as never;
+  if (to.meta.requiresAuth === true && !await ensureAdminSession()) {
+    return { name: "login", query: { redirect: to.fullPath } };
   }
-  if (to.name === "login" && auth.isAuthenticated) {
+  if (to.name === "login" && (auth.isAuthenticated || (auth.refreshToken && await ensureAdminSession()))) {
     const redirect = typeof to.query.redirect === "string" ? to.query.redirect : "/dashboard";
     return redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/dashboard";
   }
   if (typeof document !== "undefined" && typeof to.meta.title === "string") {
     document.title = `${to.meta.title} · 数源管理端`;
   }
-  return null as never; // 放行（NavigationGuardReturn 类型收敛，与 web 同款）
+  return true;
 });
 
 export { menuRouteNames };

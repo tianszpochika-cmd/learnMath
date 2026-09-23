@@ -1,312 +1,64 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
-import { useRouter } from "vue-router";
-import {
-  objectiveView,
-  selfAssessProgress,
-  selfAssessNote,
-  selfValueLabel,
-  selfValueRef,
-  type SelfValue,
-} from "../features/attempt/attemptUi";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { objectiveView } from "../features/attempt/attemptUi";
+import { readAttempt, sendAttemptAction, type AttemptView } from "../services/attempts";
 
-/** W09 成绩报告（16W09 · 20 §4 客观-自评拆分；结算权威=服务端，本页展示投影）。 */
-const router = useRouter();
+const route = useRoute();
+const attemptId = computed(() => String(route.params.id || ""));
+const report = ref<AttemptView | null>(null);
+const loading = ref(true);
+const busySeq = ref<number | null>(null);
+const error = ref("");
+const notice = ref("");
+const score = computed(() => objectiveView(report.value?.objectiveEarned ?? 0, report.value?.objectivePossible ?? 0, report.value?.objectiveRate ?? null));
+const essays = computed(() => report.value?.items.filter((item) => item.type.toUpperCase() === "ESSAY") ?? []);
+const finished = computed(() => Boolean(report.value && ["submitted", "pending_self_assess", "finalized"].includes(report.value.status.toLowerCase())));
 
-const objective = reactive({ earned: 8, possible: 10, rate: 80 });
-const view = computed(() => objectiveView(objective.earned, objective.possible, objective.rate));
-
-const wrongList = reactive([
-  { id: 1024, title: "#1024 因式分解基础", broken: true, reason: "断在 S2 · 缺依据" },
-  { id: 1102, title: "#1102 十字相乘", broken: false, reason: "不会" },
-]);
-
-// 自评区（解答题 2 道）
-const selfValues = reactive<SelfValue[]>(["unrated", "unrated"]);
-const progress = computed(() => selfAssessProgress([...selfValues]));
-const note = selfAssessNote();
-
-const PURE_ESSAY_DEMO = ref(false); // 切换演示：纯解答卷展示
-const essayView = computed(() =>
-  PURE_ESSAY_DEMO.value ? objectiveView(0, 0, null) : view.value,
-);
-
-function setSelf(i: number, v: SelfValue): void {
-  selfValues[i] = v;
+async function load() {
+  loading.value = true;
+  error.value = "";
+  try { report.value = await readAttempt(attemptId.value); }
+  catch (cause) { report.value = null; error.value = cause instanceof Error ? cause.message : "报告暂时无法读取。"; }
+  finally { loading.value = false; }
 }
+
+async function assess(seq: number, value: 0 | 1 | 2 | 3) {
+  if (!report.value || !finished.value || busySeq.value !== null) return;
+  busySeq.value = seq;
+  notice.value = "";
+  error.value = "";
+  try {
+    await sendAttemptAction(attemptId.value, "self-assess", {
+      seq,
+      assess: value,
+      expectedRevision: report.value.revision,
+      requestId: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${seq}`,
+    });
+    await load();
+    notice.value = "自评已由服务端确认。客观成绩不会因此重新结算。";
+  } catch (cause) { error.value = cause instanceof Error ? cause.message : "自评尚未保存，请重试。"; }
+  finally { busySeq.value = null; }
+}
+
+watch(attemptId, () => { void load(); });
+onMounted(() => { void load(); });
 </script>
 
 <template>
-  <div class="report pad">
-    <header class="head">
-      <span class="bk" @click="router.push('/paper/9001')">‹</span>
-      <h1>成绩报告</h1>
-      <span class="chip">每日一练 · 2026-09-15</span>
-      <div class="acts">
-        <button class="btn ghost" @click="router.push('/wrongbook')">去错题本</button>
-        <button class="btn gray" @click="PURE_ESSAY_DEMO = !PURE_ESSAY_DEMO">
-          {{ PURE_ESSAY_DEMO ? "切回客观卷" : "演示纯解答卷" }}
-        </button>
-      </div>
-    </header>
-
-    <!-- 客观区（拆分展示） -->
-    <div class="grid4">
-      <div class="card score" :class="{ muted: essayView.muted }">
-        <b>{{ essayView.main }}</b>
-        <span class="mut">{{ essayView.sub ? "客观 " + essayView.sub : "客观分不适用" }}</span>
-      </div>
-      <div class="card score"><b>11:24</b><span class="mut">用时</span></div>
-      <div class="card score"><b>2</b><span class="mut">错题已入本</span></div>
-      <div class="card score"><b>{{ progress.answered }}/{{ progress.total }}</b><span class="mut">自评进度</span></div>
-    </div>
-
-    <div class="grid2">
-      <section class="card">
-        <div class="sect">知识点分布（点条形跳图谱）</div>
-        <div v-for="d in [{ n: '因式分解', v: 90 }, { n: '判别式', v: 62 }, { n: '根的分布', v: 45 }]" :key="d.n" class="dist">
-          <span class="mut">{{ d.n }} {{ d.v }}%</span>
-          <div class="bar"><i :style="{ width: d.v + '%' }" /></div>
-        </div>
-        <div class="sect">错题清单</div>
-        <div v-for="w in wrongList" :key="w.id" class="wrongrow" @click="router.push('/wrongbook')">
-          <b>{{ w.title }}</b>
-          <span class="tag" :class="w.broken ? 'bad' : 'warn2'">{{ w.reason }}</span>
-          <span class="ar">›</span>
-        </div>
-      </section>
-
-      <section>
-        <div class="card">
-          <div class="sect" style="margin-top: 0">自评区（解答题 · {{ progress.label }}）</div>
-          <div v-for="(v, i) in selfValues" :key="i" class="selfrow">
-            <span class="qname">解答题 {{ i + 1 }}</span>
-            <span class="selfval" :class="v">{{ selfValueLabel(v) }}{{ selfValueRef(v) !== null ? " · 参考 " + selfValueRef(v) : "" }}</span>
-            <div class="selfbtns">
-              <button :class="{ on: v === 'cannot' }" @click="setSelf(i, 'cannot')">不会</button>
-              <button :class="{ on: v === 'partial' }" @click="setSelf(i, 'partial')">半会</button>
-              <button :class="{ on: v === 'can' }" @click="setSelf(i, 'can')">会</button>
-              <button :class="{ on: v === 'skipped' }" @click="setSelf(i, 'skipped')">暂不评价</button>
-            </div>
-          </div>
-          <p v-if="progress.canResume" class="resume">📄 报告可恢复自评：{{ progress.label }} · 继续完成剩余题目</p>
-          <p class="mut">{{ note }}</p>
-        </div>
-
-        <div class="card mt">
-          <div class="sect" style="margin-top: 0">AI 归因（无 Key=规则模板 01-U-45）</div>
-          <p class="mut">「根的分布」错题集中：建议回补前置 <b style="color: var(--brand)">不等式性质</b>。</p>
-          <button class="btn ghost" style="margin-top: 10px" @click="router.push('/graph')">去补先修</button>
-        </div>
-      </section>
-    </div>
+  <div class="report-page">
+    <header class="report-hero"><RouterLink to="/wrongbook" class="back">← 错题本</RouterLink><p class="eyebrow">LEARNING REPORT · 学习报告</p><h1>看清结果，再决定下一步</h1><p>客观成绩与解答题自评分开展示；所有结果以服务端作答报告为准。</p></header>
+    <p v-if="loading" class="state" role="status">正在读取本次作答报告…</p>
+    <section v-else-if="!report" class="state" role="alert"><h2>报告暂不可用</h2><p>{{ error || "尚未取得服务端报告。" }}</p><button type="button" @click="load">重试</button></section>
+    <section v-else-if="!finished" class="state"><h2>作答尚未结束</h2><p>报告与解析会在服务端确认交卷后展示。当前不会提前显示正确答案。</p><RouterLink :to="'/paper/' + encodeURIComponent(attemptId)">返回作答 →</RouterLink></section>
+    <main v-else class="report-main">
+      <div class="summary-grid"><section class="summary-card primary-card"><span>客观部分</span><strong>{{ score.main }}</strong><p>{{ score.sub || "这次没有适用的客观分数" }}</p></section><section class="summary-card"><span>待自评解答题</span><strong>{{ report.pendingSelfAssess }}</strong><p>自评仅记录主观学习状态，不并入客观准确率</p></section><section class="summary-card"><span>报告状态</span><strong class="status-label">{{ report.status }}</strong><p>交卷状态由服务端维护</p></section></div>
+      <div class="report-grid"><section class="content-card"><p class="eyebrow">REFLECTION</p><h2>解答题自评</h2><p class="intro">按自己的实际理解选择；可以暂不评价。修改自评不会重复结算客观事件。</p><div v-if="essays.length" class="essay-list"><article v-for="item in essays" :key="item.seq" class="essay"><h3>第 {{ item.seq }} 题</h3><p>{{ item.stem }}</p><div class="choices" role="group" :aria-label="`第 ${item.seq} 题自评`"><button v-for="choice in [{ value: 0, label: '不会' }, { value: 1, label: '半会' }, { value: 2, label: '会' }, { value: 3, label: '暂不评价' }] as const" :key="choice.value" type="button" :class="{ selected: item.selfAssess === choice.value }" :disabled="busySeq !== null" @click="assess(item.seq, choice.value)">{{ choice.label }}</button></div></article></div><p v-else class="empty">服务端未返回可自评的解答题。若报告仍提示待自评，请稍后刷新或联系支持。</p><p v-if="notice" class="feedback" role="status">{{ notice }}</p><p v-if="error" class="error" role="alert">{{ error }}</p></section><aside class="next-card"><p class="eyebrow">NEXT STEP</p><h2>从证据继续学</h2><p>错题本展示服务端保存的错因与断链快照；先核对具体证据，再决定是否重练。</p><RouterLink to="/wrongbook">查看错题与断链 →</RouterLink><RouterLink to="/graph">回到知识图谱 →</RouterLink></aside></div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.pad {
-  padding: 24px 32px 48px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-.head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.head h1 {
-  font-size: 24px;
-}
-.bk {
-  font-size: 22px;
-  cursor: pointer;
-  color: var(--ink3);
-}
-.acts {
-  margin-left: auto;
-  display: flex;
-  gap: 10px;
-}
-.chip {
-  font-size: 12.5px;
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  border-radius: 99px;
-  padding: 3px 12px;
-  font-weight: 600;
-}
-.grid4 {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 16px;
-}
-.card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 16px;
-}
-.score {
-  text-align: center;
-}
-.score b {
-  display: block;
-  font-size: 32px;
-  background: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.score.muted b {
-  background: none;
-  color: var(--ink2);
-  font-size: 19px;
-  line-height: 1.5;
-}
-.mut {
-  color: var(--ink3);
-  font-size: 13px;
-}
-.grid2 {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
-}
-.sect {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--ink3);
-  margin: 14px 0 10px;
-}
-.dist {
-  margin-top: 10px;
-}
-.bar {
-  height: 9px;
-  background: #e5e7eb;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-top: 5px;
-}
-.bar i {
-  display: block;
-  height: 100%;
-  background: var(--grad);
-}
-.wrongrow {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 11px 4px;
-  border-top: 1px solid #f1f3f7;
-  cursor: pointer;
-}
-.tag {
-  font-size: 11px;
-  font-weight: 800;
-  border-radius: 6px;
-  padding: 2px 8px;
-}
-.tag.bad {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-.tag.warn2 {
-  background: #fef3c7;
-  color: #b45309;
-}
-.ar {
-  margin-left: auto;
-  color: var(--ink3);
-}
-.selfrow {
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 12px;
-  margin-top: 10px;
-}
-.selfrow {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px;
-}
-.qname {
-  font-weight: 700;
-  font-size: 14.5px;
-}
-.selfval {
-  text-align: right;
-  font-size: 13px;
-  color: var(--ink3);
-}
-.selfval.unrated {
-  color: var(--warn);
-  font-weight: 700;
-}
-.selfval.cannot {
-  color: var(--bad);
-  font-weight: 700;
-}
-.selfval.can {
-  color: var(--ok);
-  font-weight: 700;
-}
-.selfbtns {
-  grid-column: 1 / -1;
-  display: flex;
-  gap: 8px;
-}
-.selfbtns button {
-  flex: 1;
-  height: 34px;
-  border-radius: 9px;
-  border: 1px solid var(--line);
-  background: #fff;
-  cursor: pointer;
-  font-size: 13.5px;
-}
-.selfbtns button.on {
-  border-color: var(--brand);
-  background: var(--brand-soft);
-  color: var(--brand);
-  font-weight: 700;
-}
-.resume {
-  background: var(--brand-soft);
-  color: var(--brand-deep);
-  border-radius: 9px;
-  padding: 9px 13px;
-  font-size: 13px;
-  margin-top: 12px;
-}
-.mt {
-  margin-top: 16px;
-}
-.btn {
-  border: none;
-  border-radius: 11px;
-  background: var(--grad);
-  color: #fff;
-  font-weight: 700;
-  height: 38px;
-  padding: 0 18px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.btn.ghost {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-.btn.gray {
-  background: #eef0f4;
-  color: var(--ink2);
-}
-@media (max-width: 960px) {
-  .grid2,
-  .grid4 {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+.report-page{min-height:100vh;background:var(--bg,#f5f7fb);color:var(--ink,#14213b)}.report-hero{padding:42px max(24px,calc((100vw - 1180px)/2));background:linear-gradient(125deg,#102245,#253a71);color:white}.back{display:inline-block;margin-bottom:25px;color:#cfddff}.eyebrow{margin:0 0 8px;color:var(--brand,#4e7bff);font-size:11px;font-weight:850;letter-spacing:.17em}.report-hero .eyebrow{color:#9bb8ff}.report-hero h1{margin:0;font:700 clamp(28px,4vw,45px)/1.25 var(--serif,Georgia,serif)}.report-hero>p:last-child{color:#cfdbf3;line-height:1.8}.report-main{max-width:1180px;margin:auto;padding:30px 24px 60px}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.summary-card,.content-card,.next-card,.state{border:1px solid var(--line,#e0e5ed);border-radius:18px;background:var(--card,#fff);padding:24px}.summary-card span{display:block;color:var(--ink3,#64748b);font-size:13px;font-weight:700}.summary-card strong{display:block;margin:12px 0;font:700 42px var(--serif,Georgia,serif)}.summary-card p{margin:0;color:var(--ink3);font-size:13px;line-height:1.6}.primary-card{border-color:#adc4ff;background:var(--brand-soft,#edf3ff)}.summary-card .status-label{font:800 18px var(--sans,system-ui);overflow-wrap:anywhere}.report-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(270px,1fr);gap:18px;margin-top:18px}.content-card h2,.next-card h2,.state h2{margin:0 0 9px;font:700 27px var(--serif,Georgia,serif)}.intro,.next-card p{color:var(--ink3);line-height:1.7}.essay{padding:22px 0;border-top:1px solid var(--line)}.essay h3{margin:0 0 8px;font-size:15px}.essay p{white-space:pre-wrap;line-height:1.7}.choices{display:flex;flex-wrap:wrap;gap:8px}.choices button,.state button{min-height:42px;padding:8px 13px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);cursor:pointer}.choices button.selected{border-color:var(--brand);background:var(--brand-soft);color:var(--brand);font-weight:800}.choices button:disabled{opacity:.6}.next-card{align-self:start}.next-card a,.state a{display:block;margin-top:16px;color:var(--brand);font-weight:800}.empty{padding:22px;background:var(--soft);border-radius:10px;color:var(--ink3)}.feedback{padding:12px;background:#eaf5ec;color:#23713d;border-radius:9px}.error{padding:12px;background:#fff0ef;color:#a53535;border-radius:9px}.state{max-width:650px;margin:35px auto;line-height:1.7}
+@media(max-width:760px){.summary-grid{grid-template-columns:1fr 1fr}.report-grid{grid-template-columns:1fr}.report-hero{padding:28px 22px}}@media(max-width:510px){.summary-grid{grid-template-columns:1fr}.report-main{padding:16px}.summary-card strong{font-size:34px}}
 </style>

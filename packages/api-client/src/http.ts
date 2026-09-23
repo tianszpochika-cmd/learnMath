@@ -125,12 +125,22 @@ export function createHttpClient(opts: HttpClientOptions): HttpClient {
     if (res.status >= 500) {
       throw new ApiError(5000);
     }
-    if (unwrap && res.json && typeof res.json === "object" && res.json !== null) {
-      const body = res.json as { code?: number; message?: string; data?: T };
-      if (typeof body.code === "number" && body.code !== 0) {
-        throw new ApiError(body.code, body.message);
+    if (res.status === 429) {
+      throw new ApiError(1004);
+    }
+    if (res.status < 200 || res.status >= 300) {
+      throw new ApiError(5004, `接口请求失败（HTTP ${res.status}）`);
+    }
+    if (unwrap) {
+      const body = res.json;
+      if (!body || typeof body !== "object" || Array.isArray(body) ||
+        !Number.isInteger((body as { code?: unknown }).code) ||
+        !Object.prototype.hasOwnProperty.call(body, "data")) {
+        throw new ApiError(5004, "接口响应格式不完整");
       }
-      return body.data as T;
+      const envelope = body as { code: number; message?: string; data: T };
+      if (envelope.code !== 0) throw new ApiError(envelope.code, envelope.message);
+      return envelope.data;
     }
     return res.json as T;
   }

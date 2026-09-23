@@ -16,6 +16,8 @@ publicHoistPattern:
   - '*@vue/devtools-api*'
 
 overrides:
+  # Nuxt 3.21 需要 schema 3；较新的 CLI 3.33+ 已将 peer 升到 schema 4。
+  'nuxt>@nuxt/cli': 3.32.0
   # 与 cloudstudy 相同的兼容/安全钉扎（uniapp 与 Nuxt 工具链通用）
   express>path-to-regexp: 0.1.13
   '@dcloudio/uni-nvue-styler>postcss': 8.5.23

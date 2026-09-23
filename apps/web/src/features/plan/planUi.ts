@@ -248,9 +248,9 @@ export function conflictBanner(s: SuggestionUi, currentRevision: number): string
   return `计划已被修改（建议基于 v${s.basePlanRevision}，当前 v${currentRevision}）——请查看差异后确认`;
 }
 
-/** undo 可用（版本未变且无新增学习证据；BR-10）。 */
-export function undoEnabled(revisionAtApply: number, currentRevision: number, hasNewEvidence: boolean): boolean {
-  return revisionAtApply === currentRevision && !hasNewEvidence;
+/** 本地条件只能进一步收窄按钮；服务端显式许可仍是必要条件。 */
+export function undoEnabled(revisionAtApply: number, currentRevision: number, hasNewEvidence: boolean, serverAllowed = false): boolean {
+  return serverAllowed && revisionAtApply === currentRevision && !hasNewEvidence;
 }
 
 /** 校准建议可见性（placement=pending 且首次 ≥10 条有效证据；不自动覆盖）。 */

@@ -40,14 +40,19 @@ function persist(s: AdminAuthState): void {
 export const useAdminAuthStore = defineStore("admin-auth", {
   state: (): AdminAuthState => load(),
   getters: {
-    isAuthenticated: (s): boolean => Boolean(s.accessToken || s.refreshToken),
+    // A persisted refresh token is only a chance to recover a session.
+    // The router verifies it with the management domain before entry.
+    isAuthenticated: (s): boolean => Boolean(s.accessToken),
   },
   actions: {
-    setSession(p: { accessToken: string; refreshToken: string; adminName: string }) {
+    setSession(p: { accessToken: string; refreshToken: string; adminName: string | null }) {
       this.accessToken = p.accessToken;
       this.refreshToken = p.refreshToken;
       this.adminName = p.adminName;
       persist(this.$state);
+    },
+    setAccess(token: string | null) {
+      this.accessToken = token;
     },
     clear() {
       this.accessToken = null;

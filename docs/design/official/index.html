@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数源 MathOrigin — 官网高保真原型 2.0（6 视图 · 暗色 · ⌘K · mega-menu）</title>
-<meta name="description" content="learnMath 官网 UI 原型 2.0：数理理性风 × 蓝紫渐变 × 全衬线标题 × 暗色双主题（docs/13 v2.0 + docs/14 v2.0 · 决策 U1-U4 / V1-V6）">
+<title>数源 MathOrigin — 官网 UI/UX 交互评审稿</title>
+<meta name="description" content="数源 MathOrigin 官网交互评审稿：基于已确认的品牌、六路径与三内核；页面内容为设计示例，尚未连接线上服务。">
 <script>
 /* V3 防闪烁：head 同步主题 */
 (function(){try{var t=localStorage.getItem('lm-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
@@ -35,7 +35,7 @@
   --c-primary:#7DA3FF; --c-p600:#5B87FF; --c-p700:#9BB4FF; --c-p50:#16213F; --c-p100:#1D2C55;
   --grad-action:linear-gradient(135deg,#5B87FF 0%,#9B6BFF 100%);
   --grad-text:linear-gradient(120deg,#7DA3FF,#A78BFA);
-  --ink9:#F8FAFC; --ink7:#CBD5E1; --ink5:#94A3B8; --ink4:#64748B;
+  --ink9:#F8FAFC; --ink7:#CBD5E1; --ink5:#94A3B8; --ink4:#8190A6;
   --bg:#0B1220; --card:#111827; --alt:#0F172A; --deep:#060B16; --line:#1E293B;
   --p1:#7DA3FF; --p2:#34D399; --p3:#A78BFA; --p4:#FBBF24; --p5:#F472B6; --p6:#FB923C;
   --sh-card:0 1px 2px rgba(0,0,0,.4);
@@ -94,6 +94,23 @@ a{color:inherit;text-decoration:none}
 #themeBtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--alt);cursor:pointer;font-size:15px;transition:transform .3s var(--ease)}
 #themeBtn:hover{transform:rotate(20deg)}
 .burger{display:none;font-size:22px;background:none;border:none;cursor:pointer;color:var(--ink9)}
+.prototype-note{position:fixed;left:16px;bottom:16px;z-index:90;max-width:min(390px,calc(100vw - 32px));padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink5);box-shadow:var(--sh-card);font-size:12px;line-height:1.5}
+.prototype-note button{border:0;background:none;color:var(--ink5);font-size:16px;line-height:1;cursor:pointer;margin-left:8px;vertical-align:middle}
+.mobile-menu{display:none;position:fixed;z-index:49;top:64px;left:0;right:0;bottom:0;overflow:auto;background:var(--card);padding:24px var(--gutter) 44px}
+.mobile-menu[hidden]{display:none!important}
+.mobile-menu h2{font-size:14px;color:var(--ink4);letter-spacing:.08em;margin:22px 0 8px}
+.mobile-menu a,.mobile-menu button{display:block;width:100%;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink9);text-align:left;font:600 19px var(--font-serif);cursor:pointer}
+.mobile-menu .menu-cta{padding:13px 18px;border:0;border-radius:var(--r-btn);background:var(--grad-action);color:#fff;text-align:center;font:600 16px var(--font-sans);margin-top:26px}
+.mobile-menu .menu-help{color:var(--ink5);font-size:13px;margin-top:16px}
+body.menu-open{overflow:hidden}
+.intent-dialog{width:min(520px,calc(100vw - 32px));border:1px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink7);padding:30px;box-shadow:0 24px 70px #0003;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+.intent-dialog::backdrop{background:rgba(2,6,23,.6);backdrop-filter:blur(4px)}
+.intent-dialog h2{font-size:26px;margin:6px 0 10px}
+.intent-dialog p{font-size:14.5px;color:var(--ink5)}
+.intent-steps{display:grid;gap:8px;margin:22px 0;padding:0;list-style:none}
+.intent-steps li{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;background:var(--alt)}
+.intent-actions{display:flex;gap:10px;flex-wrap:wrap}
+.intent-dialog .close{position:absolute;right:18px;top:12px;background:none;border:0;color:var(--ink5);font-size:24px;cursor:pointer}
 
 /* ============ ⌘K（14 §4.2） ============ */
 #cmdk{position:fixed;inset:0;z-index:100;background:rgba(2,6,23,.55);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
@@ -104,11 +121,12 @@ a{color:inherit;text-decoration:none}
 .cmdk-res{max-height:52vh;overflow:auto;padding:10px}
 .cmdk-grp{font-size:11.5px;letter-spacing:.1em;color:var(--ink4);font-weight:700;padding:10px 10px 4px}
 .cmdk-item{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:15px;color:var(--ink7)}
-.cmdk-item:hover{background:color-mix(in srgb,var(--c-primary) 9%,transparent);color:var(--ink9)}
+.cmdk-item{width:100%;border:0;background:transparent;text-align:left;font-family:var(--font-sans)}
+.cmdk-item:hover,.cmdk-item.selected{background:color-mix(in srgb,var(--c-primary) 9%,transparent);color:var(--ink9)}
 .cmdk-item .ic{width:26px;height:26px;border-radius:7px;background:var(--alt);display:grid;place-items:center;font-size:13px;flex:none}
 .cmdk-item .desc{font-size:12.5px;color:var(--ink4);margin-left:auto}
 .cmdk-empty{padding:22px;text-align:center;color:var(--ink5);font-size:14.5px}
-.chip{display:inline-block;background:var(--alt);border:1px solid var(--line);border-radius:99px;padding:4px 14px;font-size:13px;margin:4px;cursor:pointer}
+.chip{display:inline-block;background:var(--alt);border:1px solid var(--line);border-radius:99px;padding:4px 14px;font:13px var(--font-sans);margin:4px;cursor:pointer}
 .chip:hover{border-color:var(--c-primary);color:var(--c-primary)}
 
 /* ============ Hero ============ */
@@ -275,11 +293,12 @@ footer a:hover{color:var(--c-primary)}
 .foot-bottom{border-top:1px solid var(--line);margin-top:44px;padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--ink5)}
 .foot-qr{width:88px;height:88px;border-radius:8px;background:repeating-conic-gradient(var(--alt) 0 25%,var(--bg) 0 50%) 0 0/14px 14px;display:grid;place-items:center;font-size:11px;color:var(--ink5);text-align:center}
 .status-badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
-.status-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);animation:blink2 2.4s infinite}
+.status-badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink4)}
 @keyframes blink2{50%{opacity:.4}}
 
 /* ============ 视图 ============ */
 .view{display:none}.view.active{display:block}
+.view[tabindex="-1"]:focus{outline:none}
 
 /* 路径页 */
 .pathhero{position:relative;padding:88px 0 56px;background:var(--deep);color:var(--ink4);overflow:hidden;border-left:6px solid var(--pc,var(--c-primary))}
@@ -319,10 +338,14 @@ footer a:hover{color:var(--c-primary)}
 .gl-badge{font-size:12px;font-weight:700;border-radius:99px;padding:3px 14px;background:color-mix(in srgb,var(--p2) 14%,var(--card));color:var(--p2)}
 .gl-share{font-size:13px;border:1px solid var(--line);border-radius:99px;padding:3px 14px;cursor:pointer;background:var(--card);color:var(--ink5)}
 .gl-tabs{display:flex;gap:6px;margin:26px 0 0;border-bottom:2px solid var(--line)}
-.gl-tab{padding:12px 22px;font-size:15.5px;font-weight:600;cursor:pointer;color:var(--ink5);border-bottom:3px solid transparent;margin-bottom:-2px;font-family:var(--font-serif)}
+.gl-tab{padding:12px 22px;font-size:15.5px;font-weight:600;cursor:pointer;color:var(--ink5);border:0;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:var(--font-serif);background:transparent}
 .gl-tab.on{color:var(--ink9);border-image:none;border-color:transparent;border-bottom-color:var(--c-primary)}
 .gl-panel{display:none;padding:30px 0 6px;min-height:220px}
 .gl-panel.on{display:block;animation:fade .3s var(--ease)}
+.gl-panel[hidden]{display:none}
+.fx-choices{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.fx-choices label{display:inline-flex;align-items:center;gap:4px;min-width:56px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px;cursor:pointer}
+.fx-choices label:has(input:checked){border-color:var(--c-primary);background:var(--c-p50);color:var(--ink9)}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .gl-panel h3{margin-bottom:12px}
 .gl-panel p{max-width:760px;color:var(--ink7)}
@@ -422,10 +445,18 @@ footer a:hover{color:var(--c-primary)}
   .stats .grid4{grid-template-columns:repeat(2,1fr);gap:36px}
   .foot-grid{grid-template-columns:1fr 1fr}
   .fit-grid{grid-template-columns:1fr}
-  .nav-links{display:none}.burger{display:block;margin-left:auto}
+  .nav-links,.nav-cta .login,.nav-cta>.btn{display:none}.burger{display:block;margin-left:auto}.mobile-menu:not([hidden]){display:block}
+  .nav .container{gap:12px}.nav-cta{margin-left:auto}.nav-cta .kbd{padding:5px 8px}
   section{padding:72px 0}
   .tools-grid{grid-template-columns:1fr}
   .daily,.nl{grid-template-columns:1fr}
+  .tl-scroll{display:grid;gap:0;overflow:visible;padding:20px 0 20px 24px;cursor:auto}
+  .tl-scroll::before{left:10px;right:auto;top:0;bottom:0;width:2px;height:auto}
+  .tl-node{width:100%;text-align:left;display:grid;grid-template-columns:minmax(90px,130px) 1fr;gap:10px;align-items:center;padding:12px 0 12px 16px}
+  .tl-node .yr{position:static;transform:none;grid-column:1}
+  .tl-node .dia{position:absolute;left:-23px;top:calc(50% - 10px);margin:0}
+  .tl-card{margin:0}
+  #ai>.container{grid-template-columns:1fr!important}
   .ladder{flex-direction:column}.ladder .rung{border-radius:0!important}.ladder .rung::after{content:"↓";right:auto;left:50%;top:auto;bottom:-14px;transform:translateX(-50%)}
 }
 @media (max-width:767px){
@@ -433,11 +464,20 @@ footer a:hover{color:var(--c-primary)}
   .hero{min-height:auto}
   .foot-grid{grid-template-columns:1fr}
   .opts{grid-template-columns:1fr}
+  .nav{height:60px}.nav .logo{font-size:15px}.nav .logo .mark{width:30px;height:30px}
+  .nav-cta{gap:6px}.nav-cta .kbd{font-size:0}.nav-cta .kbd::after{content:"⌕";font-size:21px;line-height:1}.mobile-menu{top:60px}
+  .hero .container{padding-top:52px;padding-bottom:80px}.hero-stage{padding:15px;aspect-ratio:auto;min-height:340px}
+  .hero-cta .btn{width:100%}.daily{padding:22px}.daily .cd{display:flex;justify-content:center}
+  .nl{padding:24px}.nl form{flex-wrap:wrap}.nl input{width:100%}
+  #plot{aspect-ratio:4/3}.tl-node{grid-template-columns:1fr;gap:4px}
+  .gl-tabs{overflow:auto}.gl-tab{white-space:nowrap;padding:10px 14px}
+  .prototype-note{left:8px;bottom:8px;max-width:calc(100vw - 16px);font-size:11px;padding:6px 9px}
 }
 </style>
 </head>
 <body>
 <div id="progress" aria-hidden="true"></div>
+<aside class="prototype-note" role="note">官网 UI/UX 交互评审稿 · 页面内容为示例 · 尚未连接线上服务<button type="button" aria-label="收起评审提示" onclick="this.parentElement.remove()">×</button></aside>
 
 <!-- ================= 导航 ================= -->
 <nav class="nav" id="nav" aria-label="主导航">
@@ -449,11 +489,11 @@ footer a:hover{color:var(--c-primary)}
         <div class="mega wide">
           <h5>六条路径</h5>
           <a href="#" data-view="path"><span class="dot" style="background:var(--p1)"></span>系统课程</a>
-          <a href="#"><span class="dot" style="background:var(--p2)"></span>知识图谱</a>
-          <a href="#"><span class="dot" style="background:var(--p3)"></span>测评计划</a>
-          <a href="#"><span class="dot" style="background:var(--p4)"></span>阶梯刷题</a>
-          <a href="#"><span class="dot" style="background:var(--p5)"></span>专题研习</a>
-          <a href="#"><span class="dot" style="background:var(--p6)"></span>闯关挑战</a>
+          <a href="#" data-preview="知识图谱路径详情"><span class="dot" style="background:var(--p2)"></span>知识图谱</a>
+          <a href="#" data-preview="测评计划路径详情"><span class="dot" style="background:var(--p3)"></span>测评计划</a>
+          <a href="#" data-preview="阶梯刷题路径详情"><span class="dot" style="background:var(--p4)"></span>阶梯刷题</a>
+          <a href="#" data-preview="专题研习路径详情"><span class="dot" style="background:var(--p5)"></span>专题研习</a>
+          <a href="#" data-preview="闯关挑战路径详情"><span class="dot" style="background:var(--p6)"></span>闯关挑战</a>
           <h5>学习引擎</h5>
           <a href="#cores">推理链深钻</a><a href="#cores">概念四卡</a><a href="#" data-view="formula">公式馆</a><a href="#ai">AI 导师</a>
           <h5>更多</h5>
@@ -481,12 +521,23 @@ footer a:hover{color:var(--c-primary)}
     <div class="nav-cta">
       <button class="kbd" id="kBtn" aria-label="搜索">🔍 ⌘K</button>
       <button id="themeBtn" aria-label="切换主题">🌙</button>
-      <a class="login" href="#">登录</a>
-      <button class="btn btn-primary btn-md">免费开始</button>
-      <button class="burger" aria-label="菜单" onclick="alert('原型：移动端全屏抽屉（mega 分组大字版）')">☰</button>
+      <a class="login" href="#" data-intent="登录并继续学习">登录</a>
+      <button class="btn btn-primary btn-md" data-intent="免费开始学习">免费开始</button>
+      <button class="burger" id="menuBtn" aria-label="打开菜单" aria-controls="mobileMenu" aria-expanded="false">☰</button>
     </div>
   </div>
 </nav>
+<div class="mobile-menu" id="mobileMenu" hidden aria-label="移动端导航">
+  <h2>产品</h2>
+  <a href="#" data-view="home" data-section="paths">六条学习路径</a><a href="#" data-view="home" data-section="cores">三大学习内核</a>
+  <h2>公开资源</h2>
+  <a href="#" data-view="glossary">词条百科</a><a href="#" data-view="formula">公式馆</a>
+  <a href="#" data-view="home" data-section="daily">每日一题</a><a href="#" data-view="timeline">数学年表</a><a href="#" data-view="tools">学习工具</a>
+  <h2>了解数源</h2>
+  <a href="#" data-view="home" data-section="method">学习理念</a><a href="#" data-view="home" data-section="blog">内容示例</a>
+  <button class="menu-cta" data-intent="免费开始学习">免费开始学习</button>
+  <p class="menu-help">公开内容可直接阅读；进入学习端时保留当前目标。</p>
+</div>
 
 <!-- ================= 视图 1：首页（12 模块） ================= -->
 <main id="view-home" class="view active">
@@ -499,10 +550,10 @@ footer a:hover{color:var(--c-primary)}
         <h1>每一步，<br>都讲清楚<span class="em">为什么</span></h1>
         <p class="sub">同一知识体系，六条到达路径。盯着一道题，看透整体推理逻辑——每步凭什么合法、为什么想到、还能怎样推。</p>
         <div class="hero-cta">
-          <button class="btn btn-primary btn-lg">免费开始学习</button>
-          <button class="btn btn-outline btn-lg">下载 App</button>
+          <button class="btn btn-primary btn-lg" data-intent="免费开始学习">预览学习入口</button>
+          <a class="btn btn-outline btn-lg" href="#" data-view="glossary">先读公开词条</a>
         </div>
-        <p class="trust">上线集 <b>3,000+</b> 精选题 · <b>600+</b> 公式全解 · <b>100+</b> 词条百科 · <b>6</b> 条学习路径</p>
+        <p class="trust">产品设计：<b>6</b> 条学习路径 · <b>3</b> 大学习内核 · 公开内容可直接阅读</p>
       </div>
       <div class="hero-stage" aria-hidden="true">
         <div class="corner">∑</div>
@@ -529,11 +580,11 @@ footer a:hover{color:var(--c-primary)}
       </div>
       <div class="paths-grid">
         <a class="card path-card reveal" style="--pc:var(--p1)" href="#" data-view="path"><div class="icon">▤</div><h3>系统课程</h3><span class="fit">适合：喜欢按部就班的你</span><p class="desc">章节化循序渐进，课时完成即随堂检验，进度环一路点亮。</p><span class="go">开始这条路径</span></a>
-        <a class="card path-card reveal" style="--pc:var(--p2)" href="#"><div class="icon">◈</div><h3>知识图谱</h3><span class="fit">适合：想看清全貌的你</span><p class="desc">知识点 DAG 自由漫游，颜色即掌握度，前置关系一目了然。</p><span class="go">开始这条路径</span></a>
-        <a class="card path-card reveal" style="--pc:var(--p3)" href="#"><div class="icon">◎</div><h3>测评计划</h3><span class="fit">适合：想要定制路线的你</span><p class="desc">三分钟定级定位，生成每周计划，连续达标自动加速。</p><span class="go">开始这条路径</span></a>
-        <a class="card path-card reveal" style="--pc:var(--p4)" href="#"><div class="icon">▟</div><h3>阶梯刷题</h3><span class="fit">适合：以战代练的你</span><p class="desc">L1→L5 逐级解锁，80% 正确率晋级，每日一练对抗遗忘。</p><span class="go">开始这条路径</span></a>
-        <a class="card path-card reveal" style="--pc:var(--p5)" href="#"><div class="icon">❏</div><h3>专题研习</h3><span class="fit">适合：想深钻一块的你</span><p class="desc">数论、证明方法…主题式单元，从导读走到小论文。</p><span class="go">开始这条路径</span></a>
-        <a class="card path-card reveal" style="--pc:var(--p6)" href="#"><div class="icon">♜</div><h3>闯关挑战</h3><span class="fit">适合：好胜心驱动的你</span><p class="desc">关卡地图、Boss 战、星级与段位，每周榜单见真章。</p><span class="go">开始这条路径</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p2)" href="#" data-preview="知识图谱路径详情"><div class="icon">◈</div><h3>知识图谱</h3><span class="fit">适合：想看清全貌的你</span><p class="desc">沿前置关系探索知识点；掌握度颜色基于有效学习证据。</p><span class="go">查看路径方向</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p3)" href="#" data-preview="测评计划路径详情"><div class="icon">◎</div><h3>测评计划</h3><span class="fit">适合：想要定制路线的你</span><p class="desc">测评给出建议起点；后续调整先展示建议，由你确认应用。</p><span class="go">查看路径方向</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p4)" href="#" data-preview="阶梯刷题路径详情"><div class="icon">▟</div><h3>阶梯刷题</h3><span class="fit">适合：以战代练的你</span><p class="desc">L1→L5 逐级挑战；有效证据达标后开放晋级战。</p><span class="go">查看路径方向</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p5)" href="#" data-preview="专题研习路径详情"><div class="icon">❏</div><h3>专题研习</h3><span class="fit">适合：想深钻一块的你</span><p class="desc">围绕一个主题串联导读、概念、证明与应用。</p><span class="go">查看路径方向</span></a>
+        <a class="card path-card reveal" style="--pc:var(--p6)" href="#" data-preview="闯关挑战路径详情"><div class="icon">♜</div><h3>闯关挑战</h3><span class="fit">适合：好胜心驱动的你</span><p class="desc">关卡、星级与段位，让练习有明确的下一站。</p><span class="go">查看路径方向</span></a>
       </div>
     </div>
   </section>
@@ -568,7 +619,7 @@ footer a:hover{color:var(--c-primary)}
     <div class="container reveal">
       <div class="daily">
         <div>
-          <div class="d-eyebrow">DAILY · 每日一题 <span style="color:var(--ink4)">（解析完全公开 · 每日 00:00 换题）</span></div>
+          <div class="d-eyebrow">DAILY · 每日一题 <span style="color:var(--ink4)">（题目示例 · 解析完全公开）</span></div>
           <h3>设 f(x) = x² − 2x + 1，则 f(x) 在 [0, 2] 上的最小值为？</h3>
           <div class="opts" id="dailyOpts">
             <button class="opt" data-a="1">A. 0</button>
@@ -584,7 +635,7 @@ footer a:hover{color:var(--c-primary)}
           <p style="margin-top:12px;font-size:13.5px;color:var(--ink4)">解锁完整推理链<strong>五玩</strong>（预测下一步/顺逆对照/多解）→ 注册后在学习端继续</p>
         </div>
         <div class="cd">
-          <div class="cd-ring" id="cdRing"><div class="cd-txt"><span id="cdTxt">--:--:--</span><small>距明日新题</small></div></div>
+          <div class="cd-ring" id="cdRing"><div class="cd-txt"><span id="cdTxt">--:--:--</span><small>倒计时样式</small></div></div>
         </div>
       </div>
     </div>
@@ -605,16 +656,16 @@ footer a:hover{color:var(--c-primary)}
     </div>
   </section>
 
-  <!-- ⑥ 数据背书 -->
-  <section class="stats" aria-label="平台数据">
+  <!-- ⑥ 产品结构：固定设计要素，不作上线数据背书 -->
+  <section class="stats" aria-label="产品设计结构">
     <div class="container">
       <div class="grid4">
-        <div class="reveal"><div class="stat-num" data-target="3000" data-suffix="+">0</div><div class="stat-label">精选题目（含推理链）</div></div>
-        <div class="reveal"><div class="stat-num" data-target="600" data-suffix="+">0</div><div class="stat-label">公式全解（起源·推导·条件）</div></div>
-        <div class="reveal"><div class="stat-num" data-target="100" data-suffix="+">0</div><div class="stat-label">词条百科（四卡公开）</div></div>
         <div class="reveal"><div class="stat-num" data-target="6" data-suffix="">0</div><div class="stat-label">条学习路径</div></div>
+        <div class="reveal"><div class="stat-num" data-target="3" data-suffix="">0</div><div class="stat-label">个学习内核</div></div>
+        <div class="reveal"><div class="stat-num" data-target="4" data-suffix="">0</div><div class="stat-label">张概念理解卡</div></div>
+        <div class="reveal"><div class="stat-num" data-target="1" data-suffix="">0</div><div class="stat-label">套共享知识体系</div></div>
       </div>
-      <p class="note">上线集口径 · <b>持续扩充中</b><a class="rss" href="#">订阅 RSS →</a></p>
+      <p class="note">以上为<b>已确认的产品结构</b>，不是已上线内容数量。</p>
     </div>
   </section>
 
@@ -650,9 +701,9 @@ footer a:hover{color:var(--c-primary)}
       <div class="pick-grid">
         <div class="card pick cont reveal" id="contCard" data-view="glossary" style="display:none"><span class="kind">CONTINUE · 继续探索</span><h4 id="contTitle">正弦函数</h4><p>你上次读到这里——接龙下一站已备好。</p><span class="go">继续 →</span></div>
         <div class="card pick reveal" data-view="glossary"><span class="kind">词条 · 概念起源</span><h4>正弦函数</h4><p>从古希腊弦表到尼罗河测量：它不是灵感，是被现实逼出来的工具。</p><span class="go">读词条 →</span></div>
-        <div class="card pick reveal" data-view="glossary"><span class="kind">词条 · 概念起源</span><h4>对数</h4><p>开普勒时代的天文学家，为了少乘几次长数而发明的"降维打击"。</p><span class="go">读词条 →</span></div>
+        <div class="card pick reveal" data-preview="对数词条"><span class="kind">词条 · 规划选题</span><h4>对数</h4><p>如何把乘法转成加法？这张词条卡将从计算需求进入概念。</p><span class="go">查看选题方向 →</span></div>
         <div class="card pick reveal" data-view="formula"><span class="kind fx">公式 · 条件红条</span><h4>勾股定理</h4><p>⚠ 仅直角三角形：a²+b²=c²。任意三角形请走余弦定理。</p><span class="go">看推导 →</span></div>
-        <div class="card pick reveal" data-view="formula"><span class="kind fx">公式 · 家族关系</span><h4>求根公式</h4><p>判别式为什么长那样？配方法的第三步给出答案。</p><span class="go">看推导 →</span></div>
+        <div class="card pick reveal" data-preview="求根公式详情"><span class="kind fx">公式 · 规划选题</span><h4>求根公式</h4><p>判别式从哪里来？未来的详情页将展示配方法推导。</p><span class="go">查看选题方向 →</span></div>
         <div class="card pick reveal" data-view="timeline"><span class="kind">年表 · 起源故事</span><h4>1665 · 牛顿</h4><p>鼠疫年代的乡下，微积分在隔离期长了出来。</p><span class="go">逛年表 →</span></div>
       </div>
     </div>
@@ -673,11 +724,11 @@ footer a:hover{color:var(--c-primary)}
   <!-- ⑩ 学员说 -->
   <section id="voices">
     <div class="container">
-      <div class="sec-head reveal"><div class="sec-eyebrow">VOICES · 产品理念</div><h2>我们相信的学习</h2></div>
+      <div class="sec-head reveal"><div class="sec-eyebrow">LEARNING MOMENTS · 场景示例</div><h2>我们想呈现的三个学习瞬间</h2></div>
       <div class="grid3">
-        <div class="card quote-card reveal"><p>把一道题盯穿，胜过刷一百道题的皮。推理链让我第一次知道"答案是怎么被想到的"。</p><div class="who">—— 内测学习者 · 方法论金句</div></div>
-        <div class="card quote-card reveal"><p>先讲它为什么被发明，再给我定义——三角函数终于不再是硬背的表格。</p><div class="who">—— 概念四卡 · 设计初衷</div></div>
-        <div class="card quote-card reveal"><p>解完数字要回到现实：河宽 85 米，而不是 85。回代这一步，才是建模的完成。</p><div class="who">—— 应用五步 · 第⑤步</div></div>
+        <div class="card quote-card reveal"><p>一道题做错时，先找到推理从哪一步断开，再决定补哪一段。</p><div class="who">场景示例 · 推理链深钻</div></div>
+        <div class="card quote-card reveal"><p>遇到新概念，先看它要解决什么问题，再进入正式定义。</p><div class="who">场景示例 · 概念四卡</div></div>
+        <div class="card quote-card reveal"><p>算出结果后，带着单位回到真实情境，检查答案是否合理。</p><div class="who">场景示例 · 应用五步</div></div>
       </div>
     </div>
   </section>
@@ -685,11 +736,11 @@ footer a:hover{color:var(--c-primary)}
   <!-- ⑪ 下载中心 -->
   <section id="download" class="sec-alt">
     <div class="container">
-      <div class="sec-head reveal"><div class="sec-eyebrow">GET STARTED · 立即开始</div><h2>三端随选，学在何处都一样</h2></div>
+      <div class="sec-head reveal"><div class="sec-eyebrow">GET STARTED · 学习入口</div><h2>从公开探索，走向完整学习</h2><p>官网稿件先展示入口设计；正式下载地址将在对应客户端发布后提供。</p></div>
       <div class="dl-grid">
-        <div class="card dl-card reveal"><h3>网页版 · 即开即学</h3><p style="font-size:14.5px;color:var(--ink5)">大屏深钻与图谱，浏览器直接体验</p><button class="btn btn-primary btn-lg">H5 立即体验</button></div>
-        <div class="card dl-card reveal"><h3>微信小程序</h3><div class="qr" aria-hidden="true">小程序码<br>占位</div><span class="soon">扫码即用</span></div>
-        <div class="card dl-card reveal"><h3>App / 更多端</h3><div class="qr" aria-hidden="true">支付宝 / 抖音<br>码占位</div><span class="soon">iOS · Android 即将上线</span></div>
+        <div class="card dl-card reveal"><h3>Web 学习端</h3><p style="font-size:14.5px;color:var(--ink5)">大屏学习流程已有单独交互稿，正式入口待发布。</p><a class="btn btn-primary btn-lg" href="../web/index.html">查看学习端设计稿</a></div>
+        <div class="card dl-card reveal"><h3>小程序</h3><div class="qr" aria-hidden="true">小程序码<br>发布后展示</div><span class="soon">客户端规划中</span></div>
+        <div class="card dl-card reveal"><h3>App / 更多端</h3><div class="qr" aria-hidden="true">下载二维码<br>发布后展示</div><span class="soon">客户端规划中</span></div>
       </div>
     </div>
   </section>
@@ -698,20 +749,20 @@ footer a:hover{color:var(--c-primary)}
   <section id="blog" style="padding-top:0">
     <div class="container">
       <div class="nl reveal" style="margin-bottom:64px">
-        <div><h3>每周一封 · 数学与世界</h3><p>概念的起源、公式的故事、方法的门道——G6 内容管道同源周报，随时可退订。</p></div>
+        <div><h3>每周一封 · 数学与世界</h3><p>概念的起源、公式的故事、方法的门道。订阅与退订将在正式服务接入后开放。</p></div>
         <form id="nlForm">
           <input type="email" placeholder="you@example.com" required aria-label="邮箱">
-          <button class="btn btn-primary btn-md" type="submit">订阅</button>
-          <span class="ok" id="nlOk">✓ 已订阅</span>
+          <button class="btn btn-primary btn-md" type="submit">预览订阅反馈</button>
+          <span class="ok" id="nlOk" role="status">界面演示：订阅成功态，未发送邮箱</span>
         </form>
       </div>
-      <div class="sec-head reveal"><div class="sec-eyebrow">BLOG · 数学与世界</div><h2>最近在写</h2></div>
+      <div class="sec-head reveal"><div class="sec-eyebrow">BLOG · 数学与世界</div><h2>内容选题预览</h2></div>
       <div class="grid3">
-        <a class="card reveal" href="#"><div class="blog-cover">sin</div><div class="blog-body"><span class="meta">概念起源 · 2026-09</span><h3>三角函数为什么存在？</h3><p>从古希腊弦表到尼罗河测量：它不是灵感，是被现实逼出来的工具。</p></div></a>
-        <a class="card reveal" href="#"><div class="blog-cover">e<sup>iπ</sup></div><div class="blog-body"><span class="meta">公式故事 · 2026-09</span><h3>欧拉恒等式是怎么来的</h3><p>五个常数为何能挤进一个等式——跟着推导链走一遍指数与旋转的合流。</p></div></a>
-        <a class="card reveal" href="#"><div class="blog-cover">Δ</div><div class="blog-body"><span class="meta">解题方法 · 2026-09</span><h3>应用题怎么找等量关系</h3><p>把生活话翻译成方程的五步：读题标注、设元、列模、求解、回代。</p></div></a>
+        <a class="card reveal" href="#" data-preview="三角函数为什么存在？文章"><div class="blog-cover">sin</div><div class="blog-body"><span class="meta">概念起源 · 选题示例</span><h3>三角函数为什么存在？</h3><p>从测量问题出发，理解角度与边长比例为什么值得研究。</p></div></a>
+        <a class="card reveal" href="#" data-preview="欧拉恒等式文章"><div class="blog-cover">e<sup>iπ</sup></div><div class="blog-body"><span class="meta">公式故事 · 选题示例</span><h3>欧拉恒等式是怎么来的</h3><p>跟着指数与旋转的联系，逐步走向这个等式。</p></div></a>
+        <a class="card reveal" href="#" data-preview="应用题文章"><div class="blog-cover">Δ</div><div class="blog-body"><span class="meta">解题方法 · 选题示例</span><h3>应用题怎么找等量关系</h3><p>把情境翻译成方程：标注、设元、列模、求解、回代。</p></div></a>
       </div>
-      <div style="text-align:center;margin-top:40px"><button class="btn btn-outline btn-md">查看全部文章</button></div>
+      <div style="text-align:center;margin-top:40px"><button class="btn btn-outline btn-md" data-preview="博客列表">预览博客列表规划</button></div>
     </div>
   </section>
 
@@ -719,8 +770,8 @@ footer a:hover{color:var(--c-primary)}
     <div class="container">
       <div class="cta-band reveal">
         <h2>从一道题的「为什么」开始</h2>
-        <p style="color:var(--ink5);margin:14px 0 28px">注册即用 · 六路径全开放 · 无需绑卡</p>
-        <button class="btn btn-primary btn-lg">免费开始学习</button>
+        <p style="color:var(--ink5);margin:14px 0 28px">先公开阅读，再按目标进入学习端</p>
+        <button class="btn btn-primary btn-lg" data-intent="从一道题开始学习">预览注册衔接</button>
       </div>
     </div>
   </section>
@@ -733,7 +784,7 @@ footer a:hover{color:var(--c-primary)}
       <div class="crumb"><a href="#" data-view="home">首页</a> / 路径 / 系统课程</div>
       <h1>系统课程路径</h1>
       <p class="tagline">按部就班的走法：章节化课程 + 随堂检验，适合喜欢"一课一课来"的学习节奏。</p>
-      <button class="btn btn-primary btn-lg">开始这条路径</button>
+      <button class="btn btn-primary btn-lg" data-intent="系统课程路径">预览开始路径</button>
     </div>
   </header>
   <section>
@@ -741,7 +792,7 @@ footer a:hover{color:var(--c-primary)}
       <div class="sec-eyebrow">WHY · 为什么需要</div>
       <h2 style="margin-bottom:20px">零散刷题的人，缺一张"地图"</h2>
       <p class="drop" style="color:var(--ink7)">很多学习者不是不努力，而是不知道自己站在知识地图的哪里：前面的前置没补，后面的例题硬啃，错题反复错在同一个位置。系统课程路径把知识展开成有顺序的路——每一课时都标好了前置与去处，随堂练即时检验，进度环替你记住走到了哪。</p>
-      <p style="margin-top:16px;color:var(--ink5)">路径内所有作答都会回写<strong>掌握度</strong>：你在课程里学的，会在图谱、阶梯与错题本里同步显现。</p>
+      <p style="margin-top:16px;color:var(--ink5)">符合规则的<strong>客观有效证据</strong>会用于更新掌握度；课时完成与掌握度分别展示。</p>
     </div>
   </section>
   <section class="sec-alt" style="padding-top:64px;padding-bottom:64px">
@@ -754,15 +805,15 @@ footer a:hover{color:var(--c-primary)}
     <div class="container">
       <div class="sec-head reveal"><div class="sec-eyebrow">HOW · 怎么走</div><h2>三步开始</h2></div>
       <div class="steps3">
-        <div class="step3 reveal"><div class="n serif">1</div><h3>选课入学</h3><p>从推荐课程进入，首课自带定位测评起点，30 秒进入第一课时。</p></div>
+        <div class="step3 reveal"><div class="n serif">1</div><h3>选课入学</h3><p>从推荐课程进入；测评可以先做，也可以跳过并从建议起点开始。</p></div>
         <div class="step3 reveal"><div class="n serif">2</div><h3>学练循环</h3><p>课时阅读 + 心跳计时，随堂练逐题即时反馈，错题自动入本。</p></div>
-        <div class="step3 reveal"><div class="n serif">3</div><h3>点亮进度</h3><p>完成条件达成即解锁下一课时，进度环与掌握度同步成长。</p></div>
+        <div class="step3 reveal"><div class="n serif">3</div><h3>点亮进度</h3><p>达到课时完成条件后记录进度；掌握度仍按有效证据独立计算。</p></div>
       </div>
     </div>
   </section>
   <section class="sec-alt">
     <div class="container">
-      <div class="sec-head reveal"><div class="sec-eyebrow">PREVIEW · 真实界面</div><h2>路径里长什么样</h2></div>
+      <div class="sec-head reveal"><div class="sec-eyebrow">PREVIEW · 界面占位</div><h2>路径页要呈现的三种界面</h2></div>
       <div class="gallery">
         <div class="shot reveal">课时页（左内容 · 右随堂练）</div>
         <div class="shot reveal">逐题反馈（依据 + 解析）</div>
@@ -776,7 +827,7 @@ footer a:hover{color:var(--c-primary)}
       <div class="faq">
         <details open><summary>和其他五条路径冲突吗？</summary><p>不冲突。所有路径共享同一套掌握度与错题本，你完全可以课程为主、图谱为辅穿插使用。</p></details>
         <details><summary>课程内容从哪来？覆盖什么范围？</summary><p>由平台按知识图谱持续编写：从接触数字到深研数学不做学段边界，按域滚动扩充。</p></details>
-        <details><summary>没测评能直接开始吗？</summary><p>可以。测评是推荐项，跳过会按默认起点给计划，首次练习后自动校准。</p></details>
+        <details><summary>没测评能直接开始吗？</summary><p>可以。测评是推荐项；跳过后使用默认建议起点。积累足够有效证据后展示校准建议，由你确认是否调整。</p></details>
       </div>
     </div>
   </section>
@@ -784,8 +835,8 @@ footer a:hover{color:var(--c-primary)}
     <div class="container">
       <div class="pathcta reveal" style="--pc:var(--p1)">
         <h2>准备好一步一步走了吗？</h2>
-        <p style="color:var(--ink5);margin:12px 0 26px">注册后从第一课时开始 · 进度全端同步</p>
-        <button class="btn btn-primary btn-lg">开始这条路径 · 免费</button>
+        <p style="color:var(--ink5);margin:12px 0 26px">设计流程：带着当前路径目标进入登录注册，回来继续原目标</p>
+        <button class="btn btn-primary btn-lg" data-intent="系统课程路径">预览路径衔接</button>
       </div>
     </div>
   </section>
@@ -799,23 +850,23 @@ footer a:hover{color:var(--c-primary)}
       <div class="gl-badges">
         <span class="gl-badge">领域 · 三角学</span>
         <span class="gl-badge" style="background:color-mix(in srgb,var(--p3) 14%,var(--card));color:var(--p3)">tier 1 基础</span>
-        <button class="gl-share" onclick="toast('已复制词条链接（分享卡见 14 §8 ShareCard）')">分享</button>
+        <button class="gl-share" data-preview="词条分享卡">分享</button>
       </div>
       <h1>正弦函数（sine）</h1>
       <p style="max-width:680px;color:var(--ink5);margin-top:10px">概念四卡的公开版：先看它从哪里来，再看它怎么写。</p>
 
       <div class="gl-tabs" role="tablist">
-        <div class="gl-tab on" data-gl="0">起源</div>
-        <div class="gl-tab" data-gl="1">现实</div>
-        <div class="gl-tab" data-gl="3">能力地图</div>
-        <div class="gl-tab" data-gl="2">抽象阶梯</div>
+        <button type="button" class="gl-tab on" data-gl="0" role="tab" aria-selected="true" aria-controls="gl-0">起源</button>
+        <button type="button" class="gl-tab" data-gl="1" role="tab" aria-selected="false" aria-controls="gl-1">现实</button>
+        <button type="button" class="gl-tab" data-gl="3" role="tab" aria-selected="false" aria-controls="gl-3">能力地图</button>
+        <button type="button" class="gl-tab" data-gl="2" role="tab" aria-selected="false" aria-controls="gl-2">抽象阶梯</button>
       </div>
-      <div class="gl-panel on" data-gl="0">
+      <div class="gl-panel on" id="gl-0" data-gl="0" role="tabpanel">
         <h3>被现实逼出来的工具</h3>
         <p>当长度难以直接测量时，可以先研究角度与边长比例。在相似直角三角形中，同一锐角的对边与斜边之比不变；正弦将这一比例表达为角度的函数。</p>
         <p style="font-size:13px;color:var(--ink4);margin-top:10px">本页是教学动机示例；数学史的具体人物、年代与出处由内容审核后另行发布。</p>
       </div>
-      <div class="gl-panel" data-gl="1">
+      <div class="gl-panel" id="gl-1" data-gl="1" role="tabpanel" hidden>
         <h3>它长在自然里</h3>
         <div class="gl-facts">
           <div class="gl-fact"><b>斜线与高度</b>斜线长度为r，与水平面夹角θ时，高度为r sinθ；影长与塔高则使用正切关系。</div>
@@ -823,7 +874,7 @@ footer a:hover{color:var(--c-primary)}
           <div class="gl-fact"><b>圆周投影</b>匀速圆周运动在坐标轴上的投影呈正弦或余弦变化；并非每种周期现象都是单一正弦。</div>
         </div>
       </div>
-      <div class="gl-panel" data-gl="2">
+      <div class="gl-panel" id="gl-2" data-gl="2" role="tabpanel" hidden>
         <h3>从生活话到符号，三级台阶</h3>
         <div class="ladder">
           <div class="rung"><b>REAL · 现实</b>这个斜坡有多"陡"？影子有多长？</div>
@@ -831,37 +882,38 @@ footer a:hover{color:var(--c-primary)}
           <div class="rung"><b>SYMBOL · 符号</b>sin θ = 对边/斜边 → 单位圆定义 → 波形。</div>
         </div>
       </div>
-      <div class="gl-panel" data-gl="3">
-        <h3>从这里开始练</h3>
+      <div class="gl-panel" id="gl-3" data-gl="3" role="tabpanel" hidden>
+        <h3>学会正弦以后，可以做什么</h3>
         <div class="gl-facts">
-          <div class="gl-fact"><b>影长测量</b>已知太阳仰角 30°，塔高 30m，影长？<br><span style="color:var(--c-primary);font-weight:700">试做 →（注册后进学习端）</span></div>
-          <div class="gl-fact"><b>信号叠加</b>为什么方波可以拆成一串正弦？（L4 阶梯题）</div>
-          <div class="gl-fact"><b>解三角形</b>已知两边一角，正弦定理何时有两解？</div>
+          <div class="gl-fact"><b>空间测量</b>由角度与一段已知长度估算高度或距离。</div>
+          <div class="gl-fact"><b>周期建模</b>用参数描述理想单频振动的幅值、周期和相位。</div>
+          <div class="gl-fact"><b>连接后续概念</b>从单位圆进入余弦、正切、正弦定理与波形分析。</div>
         </div>
       </div>
+      <div class="gl-fact" style="margin-top:20px"><b>代表题 · 单独展示</b>已知仰角与一段距离，怎样求物体高度？作答流程进入学习端后继续。</div>
 
       <h4 style="margin-top:34px;font-family:var(--font-serif)">相关词条</h4>
       <div class="relchips">
-        <span class="chip">余弦</span><span class="chip">正切</span>
-        <span class="chip">单位圆</span><span class="chip">傅里叶级数</span>
-        <span class="chip">勾股定理</span>
+        <button type="button" class="chip" data-preview="余弦词条">余弦</button><button type="button" class="chip" data-preview="正切词条">正切</button>
+        <button type="button" class="chip" data-preview="单位圆词条">单位圆</button><button type="button" class="chip" data-preview="傅里叶级数词条">傅里叶级数</button>
+        <button type="button" class="chip" data-view="formula">勾股定理</button>
       </div>
 
       <div class="relay" style="--rp:.35">
-        <div class="side prev"><span>◀ 上一站</span><b>余弦 cosine</b></div>
+        <div class="side prev" data-preview="上一站：余弦词条"><span>◀ 上一站</span><b>余弦 cosine</b></div>
         <div class="mid">正弦</div>
-        <div class="side next"><span>下一站 ▶</span><b>正切 tangent</b></div>
+        <div class="side next" data-preview="下一站：正切词条"><span>下一站 ▶</span><b>正切 tangent</b></div>
       </div>
 
       <div class="cta-band" style="margin-top:34px;padding:38px 30px">
         <h3>读完了？去学习端把它的推理链玩一遍</h3>
         <p style="color:var(--ink5);margin:10px 0 22px">保留当前词条与输入 · 注册后继续学习原目标</p>
-        <button class="btn btn-primary btn-lg">打开学习端 · 继续学这个知识点</button>
+        <button class="btn btn-primary btn-lg" data-intent="正弦函数词条">预览继续学习</button>
       </div>
 
       <div class="grid3" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:34px auto 0">
-        <a class="card" href="#"><div class="blog-cover" style="aspect-ratio:2/1">sin</div><div class="blog-body"><span class="meta">相关文章</span><h3>三角函数为什么存在？</h3></div></a>
-        <a class="card" href="#"><div class="blog-cover" style="aspect-ratio:2/1">∑</div><div class="blog-body"><span class="meta">相关文章</span><h3>从弦表到傅里叶：正弦简史</h3></div></a>
+        <a class="card" href="#" data-preview="三角函数为什么存在？文章"><div class="blog-cover" style="aspect-ratio:2/1">sin</div><div class="blog-body"><span class="meta">规划文章</span><h3>三角函数为什么存在？</h3></div></a>
+        <a class="card" href="#" data-preview="从弦表到傅里叶文章"><div class="blog-cover" style="aspect-ratio:2/1">∑</div><div class="blog-body"><span class="meta">规划文章</span><h3>从弦表到傅里叶：正弦简史</h3></div></a>
       </div>
     </div>
   </header>
@@ -876,7 +928,7 @@ footer a:hover{color:var(--c-primary)}
       <div class="gl-badges">
         <span class="gl-badge">几何 · tier 1 基础</span>
         <span class="fx-proof p1">✓ 严格证明</span>
-        <button class="gl-share" onclick="toast('已复制公式页链接')">分享</button>
+        <button class="gl-share" data-preview="公式分享卡">分享</button>
       </div>
       <h1>勾股定理</h1>
       <p style="color:var(--ink5);margin:8px 0 22px">别名：毕达哥拉斯定理 · 商高定理 · 直角三角形三边关系</p>
@@ -885,8 +937,8 @@ footer a:hover{color:var(--c-primary)}
       <div class="fx-cond">⚠ 成立条件：仅适用于直角三角形（∠C = 90°），a、b 为直角边，c 为斜边<small>边长必须为正实数；推广到任意三角形请用余弦定理 a²+b²−2ab·cosC = c²</small></div>
       <div class="fx-tools">
         <button class="mini-btn" id="copyFx">⧉ 复制公式</button>
-        <button class="mini-btn" data-view="glossary">关联词条 · 直角三角形</button>
-        <span style="font-size:13.5px;color:var(--ink4)">起源：古埃及丈地 → 毕达哥拉斯学派严格化 → 赵爽弦图（中国独立证明）</span>
+        <button class="mini-btn" data-preview="直角三角形词条">关联词条 · 直角三角形</button>
+        <span style="font-size:13.5px;color:var(--ink4)">起源文案待史实审核后发布；此处展示公式研习页面的内容位置。</span>
       </div>
 
       <div class="fx-steps">
@@ -897,7 +949,7 @@ footer a:hover{color:var(--c-primary)}
 
       <div class="fx-fam">
         <h4 style="font-family:var(--font-serif);margin-bottom:8px">家族关系</h4>
-        <a data-view="formula">余弦定理（推广）</a><a data-view="glossary">射影定理（特例族）</a><a data-view="formula">求根公式（配方同源）</a><a>向量点积形式（等价）</a>
+        <a href="#" data-preview="余弦定理详情">余弦定理（推广）</a><a href="#" data-preview="射影定理详情">射影定理（特例族）</a><a href="#" data-preview="求根公式详情">求根公式（配方同源）</a><a href="#" data-preview="向量点积形式">向量点积形式（等价）</a>
       </div>
 
       <div class="fx-err">
@@ -908,12 +960,13 @@ footer a:hover{color:var(--c-primary)}
       <div class="fx-lock">
         <div class="lk">🔓</div>
         <div class="grow"><b style="font-family:var(--font-serif);font-size:17px;color:var(--ink9)">试做第 1 题（题面公开）</b>
-          <p style="font-size:14px;color:var(--ink5)">直角三角形两直角边 3、4，斜边 = ？　A. 6　B. 5　C. 7　D. √7</p></div>
-        <button class="btn btn-primary btn-md" onclick="toast('作答需登录 —— 转化位设计（13 §4.4）')">提交答案 → 登录后判分</button>
+          <p style="font-size:14px;color:var(--ink5)">直角三角形两直角边 3、4，斜边 = ？</p>
+          <div class="fx-choices" aria-label="选择答案"><label><input type="radio" name="fxChoice" value="A"> A. 6</label><label><input type="radio" name="fxChoice" value="B"> B. 5</label><label><input type="radio" name="fxChoice" value="C"> C. 7</label><label><input type="radio" name="fxChoice" value="D"> D. √7</label></div></div>
+        <button class="btn btn-primary btn-md" data-intent="勾股定理试做">预览登录后判分</button>
       </div>
 
       <div class="grid3" style="grid-template-columns:repeat(2,1fr);max-width:820px;margin:34px auto 0">
-        <a class="card" href="#"><div class="blog-cover" style="aspect-ratio:2/1">⊥</div><div class="blog-body"><span class="meta">相关文章</span><h3>勾股定理的 300 种证法在证什么</h3></div></a>
+        <a class="card" href="#" data-preview="勾股定理的证法文章"><div class="blog-cover" style="aspect-ratio:2/1">⊥</div><div class="blog-body"><span class="meta">规划文章</span><h3>勾股定理的不同证法在证什么</h3></div></a>
         <a class="card" href="#" data-view="timeline"><div class="blog-cover" style="aspect-ratio:2/1">300BC</div><div class="blog-body"><span class="meta">年表</span><h3>欧几里得《几何原本》第 1 卷命题 47</h3></div></a>
       </div>
     </div>
@@ -928,7 +981,7 @@ footer a:hover{color:var(--c-primary)}
       <div class="crumb"><a href="#" data-view="home">首页</a> / 资源 / 数学年表</div>
       <div class="sec-eyebrow">TIMELINE · 数学是怎么长出来的</div>
       <h1 style="font-size:clamp(34px,4.5vw,54px)">一条时间线，看数学被什么逼出来</h1>
-      <p style="color:var(--ink5);max-width:640px;margin-top:8px">拖拽或滚动横向浏览；点节点看起源摘要（全部来自四卡/词条素材 · V1 全量）。</p>
+      <p style="color:var(--ink5);max-width:640px;margin-top:8px">桌面横向、移动端纵向浏览；点节点看摘要。本时间线为版式示例，年代、叙述和出处须经内容审核。</p>
     </div>
     <div class="container" style="max-width:none;padding-right:0">
       <div class="tl-scroll" id="tlScroll">
@@ -949,12 +1002,12 @@ footer a:hover{color:var(--c-primary)}
         <div class="sec-eyebrow">ORIGIN · 摘要</div>
         <h3 id="tlDTitle">点上方任意节点</h3>
         <p id="tlDText" style="color:var(--ink5);margin-top:8px">每个节点都有一张词条卡在等你——摘要只是开头。</p>
-        <p style="margin-top:14px"><a href="#" data-view="glossary" style="color:var(--c-primary);font-weight:700">深入词条 →</a></p>
+        <p style="margin-top:14px"><a href="#" data-preview="年表节点关联词条" style="color:var(--c-primary);font-weight:700">关联词条规划 →</a></p>
       </div>
       <div class="cta-band" style="margin-top:40px">
         <h2>想亲历这些推导，而不只是听说？</h2>
         <p style="color:var(--ink5);margin:12px 0 26px">学习端里，每一段历史都能变成你手上的推理链</p>
-        <button class="btn btn-primary btn-lg">免费开始学习</button>
+        <button class="btn btn-primary btn-lg" data-intent="数学年表">预览学习衔接</button>
       </div>
     </div>
   </header>
@@ -980,31 +1033,32 @@ footer a:hover{color:var(--c-primary)}
           <button class="btn btn-primary btn-md" id="drawBtn">绘制</button>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px">
-          <span class="chip" data-p="sin(x)">sin(x)</span><span class="chip" data-p="x*x">x²</span>
-          <span class="chip" data-p="exp(x)/10">eˣ/10</span><span class="chip" data-p="1/x">1/x</span>
-          <span class="chip" data-p="sqrt(x)">√x</span><span class="chip" data-p="tan(x)">tan(x)</span>
+          <button type="button" class="chip" data-p="sin(x)">sin(x)</button><button type="button" class="chip" data-p="x*x">x²</button>
+          <button type="button" class="chip" data-p="exp(x)/10">eˣ/10</button><button type="button" class="chip" data-p="1/x">1/x</button>
+          <button type="button" class="chip" data-p="sqrt(x)">√x</button><button type="button" class="chip" data-p="tan(x)">tan(x)</button>
         </div>
-        <canvas id="plot" width="640" height="400"></canvas>
+        <canvas id="plot" width="640" height="400" role="img" aria-label="函数图像"></canvas>
+        <p id="plotStatus" role="status" style="font-size:13px;color:var(--ink5);margin-top:8px">等待绘制</p>
         <p style="font-size:13px;color:var(--ink4);margin-top:10px">支持：x、+ − * / ^、sin cos tan sqrt exp log ln、括号　｜ 生产版含悬停读坐标（安全解析器，非 eval）</p>
-        <p style="margin-top:12px"><a href="#" style="color:var(--c-primary);font-weight:700">用这个函数去做题 →（学习端）</a></p>
+        <p style="margin-top:12px"><a href="#" data-intent="函数画板表达式" style="color:var(--c-primary);font-weight:700">预览带着当前函数去做题 →</a></p>
       </div>
       <div class="cheat reveal">
         <div class="sec-eyebrow">② 公式速查表</div>
         <details open><summary>代数</summary><ul>
-          <li data-view="formula"><span>求根公式</span><i>x = (−b ± √(b²−4ac)) / 2a</i></li>
-          <li data-view="formula"><span>完全平方</span><i>(a±b)² = a² ± 2ab + b²</i></li>
-          <li data-view="formula"><span>均值不等式</span><i>(a+b)/2 ≥ √(ab)</i></li>
+          <li data-preview="求根公式详情"><span>求根公式</span><i>x = (−b ± √(b²−4ac)) / 2a</i></li>
+          <li data-preview="完全平方公式详情"><span>完全平方</span><i>(a±b)² = a² ± 2ab + b²</i></li>
+          <li data-preview="均值不等式详情"><span>均值不等式</span><i>(a+b)/2 ≥ √(ab)</i></li>
         </ul></details>
         <details><summary>几何 · 三角</summary><ul>
           <li data-view="formula"><span>勾股定理 ⚠直角</span><i>a² + b² = c²</i></li>
-          <li data-view="formula"><span>正弦定理</span><i>a/sinA = 2R</i></li>
-          <li data-view="formula"><span>余弦定理</span><i>c² = a² + b² − 2ab·cosC</i></li>
+          <li data-preview="正弦定理详情"><span>正弦定理</span><i>a/sinA = 2R</i></li>
+          <li data-preview="余弦定理详情"><span>余弦定理</span><i>c² = a² + b² − 2ab·cosC</i></li>
         </ul></details>
         <details><summary>分析</summary><ul>
-          <li data-view="formula"><span>导数公式</span><i>(xⁿ)′ = n·xⁿ⁻¹</i></li>
-          <li data-view="formula"><span>泰勒展开(eˣ)</span><i>Σ xⁿ/n!</i></li>
+          <li data-preview="导数公式详情"><span>导数公式</span><i>(xⁿ)′ = n·xⁿ⁻¹</i></li>
+          <li data-preview="泰勒展开详情"><span>泰勒展开(eˣ)</span><i>Σ xⁿ/n!</i></li>
         </ul></details>
-        <p style="font-size:13.5px;color:var(--ink5);margin-top:12px">共 <b>600+</b> 条 · 按领域持续扩充（12 号公式管道供给）</p>
+        <p style="font-size:13.5px;color:var(--ink5);margin-top:12px">以上为速查表内容示例；正式条目以审核发布的数据为准。</p>
       </div>
     </div>
   </section>
@@ -1015,12 +1069,12 @@ footer a:hover{color:var(--c-primary)}
   <div class="container">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="logo" href="#"><span class="mark">π</span>数源 MathOrigin</a>
+        <a class="logo" href="#" data-view="home"><span class="mark">π</span>数源 MathOrigin</a>
         <p>数之源：概念的起源、推导的源头。可追溯的推理，可感知的世界。</p>
-        <a class="rss" href="#">◈ 订阅 RSS / Atom</a>
+        <span class="rss">RSS / Atom · 发布后开放</span>
       </div>
       <div><h4>产品</h4><ul>
-        <li><a href="#" data-view="path">六条路径</a></li><li><a href="#cores">推理链深钻</a></li>
+        <li><a href="#" data-view="home" data-section="paths">六条路径</a></li><li><a href="#cores">推理链深钻</a></li>
         <li><a href="#cores">概念四卡</a></li><li><a href="#" data-view="formula">公式馆</a></li>
         <li><a href="#ai">AI 导师</a></li></ul></div>
       <div><h4>资源</h4><ul>
@@ -1032,34 +1086,56 @@ footer a:hover{color:var(--c-primary)}
         <li><a href="#">媒体素材</a></li><li><a href="#">路线图 / 更新日志</a></li>
         <li><a href="#">联系我们</a></li></ul></div>
       <div><h4>订阅周报</h4>
-        <form onsubmit="event.preventDefault();this.querySelector('button').textContent='✓ 已订阅';this.querySelector('button').disabled=true" style="display:flex;gap:8px;margin-bottom:14px">
-          <input type="email" placeholder="邮箱" required style="flex:1;min-width:0;height:40px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink9);padding:0 10px;font-size:14px">
-          <button class="btn btn-primary btn-md" style="height:40px;padding:0 14px">订阅</button>
+        <form id="footNlForm" style="display:flex;gap:8px;margin-bottom:14px">
+          <input type="email" placeholder="邮箱" aria-label="订阅邮箱" required style="flex:1;min-width:0;height:40px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink9);padding:0 10px;font-size:14px">
+          <button class="btn btn-primary btn-md" style="height:40px;padding:0 14px">预览反馈</button>
         </form>
         <div class="foot-qr" aria-hidden="true">公众号<br>二维码占位</div></div>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 数源 MathOrigin · <span class="status-badge">全部服务正常</span></span>
-      <span><a href="#">隐私政策</a> · <a href="#">用户协议</a> · <a href="#">京ICP备XXXXXXXX号</a> · <a href="#">RSS</a></span>
+      <span>© 2026 数源 MathOrigin · <span class="status-badge">服务状态页待接入</span></span>
+      <span><a href="#" data-preview="隐私政策页">隐私政策</a> · <a href="#" data-preview="用户协议页">用户协议</a> · 备案信息发布时填写 · RSS 待上线</span>
     </div>
   </div>
 </footer>
 
 <!-- ================= ⌘K 面板 ================= -->
-<div id="cmdk" role="dialog" aria-label="全站搜索">
+<div id="cmdk" role="dialog" aria-modal="true" aria-label="全站搜索">
   <div class="cmdk-box">
     <input id="cmdkInput" placeholder="搜索词条、公式、文章、路径…（试试 正弦 / 勾股 / 测评）" autocomplete="off">
     <div class="cmdk-res" id="cmdkRes"></div>
   </div>
 </div>
 <div id="toast" role="status"></div>
+<dialog id="intentDialog" class="intent-dialog" aria-labelledby="intentTitle">
+  <button type="button" class="close" id="intentClose" aria-label="关闭">×</button>
+  <div class="sec-eyebrow">UX FLOW · 目标恢复</div>
+  <h2 id="intentTitle">带着目标进入学习端</h2>
+  <p id="intentTarget">你选择的学习目标会在登录注册后恢复。</p>
+  <ol class="intent-steps">
+    <li>① 公开浏览时选择词条、公式、路径或题目</li>
+    <li>② 进入登录注册；当前目标与试做输入保留在本页演示状态</li>
+    <li>③ 登录后返回原目标；测评为可跳过的建议步骤</li>
+  </ol>
+  <div class="intent-actions"><button type="button" class="btn btn-outline btn-md" id="intentBack">继续浏览公开内容</button><a class="btn btn-primary btn-md" href="../web/index.html">查看学习端设计稿</a></div>
+  <p style="margin-top:16px">这是设计流程预览，尚未连接注册、判分或目标恢复服务。</p>
+</dialog>
 
 <script>
 /* ===== 主题（V3） ===== */
 const themeBtn=document.getElementById('themeBtn');
-function applyTheme(t){document.documentElement.setAttribute('data-theme',t);themeBtn.textContent=t==='dark'?'☀️':'🌙';try{localStorage.setItem('lm-theme',t)}catch(e){}}
+function applyTheme(t,persist=false){
+  document.documentElement.setAttribute('data-theme',t);
+  themeBtn.textContent=t==='dark'?'☀️':'🌙';
+  themeBtn.setAttribute('aria-label',t==='dark'?'切换到亮色主题':'切换到暗色主题');
+  if(persist)try{localStorage.setItem('lm-theme',t)}catch(e){}
+}
 applyTheme(document.documentElement.getAttribute('data-theme')||'light');
-themeBtn.onclick=()=>applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+themeBtn.onclick=()=>{applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark',true);draw()};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+  try{if(localStorage.getItem('lm-theme'))return}catch(err){}
+  applyTheme(e.matches?'dark':'light');draw();
+});
 
 /* ===== 进度条 + 导航收缩 ===== */
 const prog=document.getElementById('progress'),nav=document.getElementById('nav');
@@ -1070,16 +1146,48 @@ addEventListener('scroll',()=>{
 },{passive:true});
 
 /* ===== 视图切换（6 视图） ===== */
-function showView(v){
+function showView(v,section){
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   const t=document.getElementById('view-'+v)||document.getElementById('view-home');
   t.classList.add('active');scrollTo({top:0,behavior:'instant'});
+  t.tabIndex=-1;t.focus({preventScroll:true});
+  document.title=(t.querySelector('h1')?.textContent.trim()||'首页')+'｜数源 MathOrigin · 官网 UI/UX 交互评审稿';
   if(v==='glossary')remember('正弦函数');
+  if(v==='tools')draw();
+  if(section)requestAnimationFrame(()=>document.getElementById(section)?.scrollIntoView({block:'start'}));
 }
+const menuBtn=document.getElementById('menuBtn'),mobileMenu=document.getElementById('mobileMenu');
+function closeMenu(){mobileMenu.hidden=true;menuBtn.setAttribute('aria-expanded','false');menuBtn.setAttribute('aria-label','打开菜单');menuBtn.textContent='☰';document.body.classList.remove('menu-open')}
+menuBtn.onclick=()=>{const opening=mobileMenu.hidden;mobileMenu.hidden=!opening;menuBtn.setAttribute('aria-expanded',String(opening));menuBtn.setAttribute('aria-label',opening?'关闭菜单':'打开菜单');menuBtn.textContent=opening?'×':'☰';document.body.classList.toggle('menu-open',opening)};
+const intentDialog=document.getElementById('intentDialog');
+function openIntent(target){
+  const chosen=document.querySelector('input[name="fxChoice"]:checked');
+  const suffix=target==='勾股定理试做'&&chosen?'；本页暂存选项 '+chosen.value:
+    target==='函数画板表达式'?'；本页暂存 '+document.getElementById('expr').value:'。';
+  document.getElementById('intentTarget').textContent='当前目标：'+target+suffix;
+  if(typeof intentDialog.showModal==='function')intentDialog.showModal();
+}
+document.getElementById('intentClose').onclick=()=>intentDialog.close();
+document.getElementById('intentBack').onclick=()=>intentDialog.close();
+intentDialog.onclick=e=>{if(e.target===intentDialog)intentDialog.close()};
+function preview(label){toast(label+'：此处展示页面结构与交互方向，详细内容待制作')}
 document.addEventListener('click',e=>{
-  const el=e.target.closest('[data-view]');
-  if(el){e.preventDefault();showView(el.dataset.view);}
+  const el=e.target.closest('[data-view],[data-intent],[data-preview],a[href^="#"]');
+  if(!el)return;
+  if(el.hasAttribute('data-view')){e.preventDefault();showView(el.dataset.view,el.dataset.section);closeMenu();return;}
+  if(el.hasAttribute('data-intent')){e.preventDefault();closeMenu();openIntent(el.dataset.intent);return;}
+  if(el.hasAttribute('data-preview')){e.preventDefault();preview(el.dataset.preview);closeMenu();return;}
+  const id=el.getAttribute('href').slice(1);
+  e.preventDefault();closeMenu();
+  if(id&&document.getElementById(id))showView('home',id);
+  else preview(el.textContent.trim()||'当前页面');
 });
+document.querySelectorAll('[data-view],[data-preview],.tl-node').forEach(el=>{
+  if(el.matches('button,a'))return;
+  el.setAttribute('role','button');el.tabIndex=0;
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click()}});
+});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!mobileMenu.hidden){closeMenu();menuBtn.focus()}});
 
 /* ===== 浏览记忆（F-12） ===== */
 function remember(title){try{localStorage.setItem('lm-last',title);
@@ -1089,52 +1197,74 @@ try{const last=localStorage.getItem('lm-last');if(last){const c=document.getElem
 /* ===== ⌘K（14 §4.2） ===== */
 const INDEX=[
  {g:'词条',ic:'§',t:'正弦函数',d:'从古希腊弦表说起',v:'glossary'},
- {g:'词条',ic:'§',t:'对数',d:'为少乘几次长数而生',v:'glossary'},
- {g:'词条',ic:'§',t:'傅里叶级数',d:'任何波都是正弦的叠加',v:'glossary'},
+ {g:'词条',ic:'§',t:'对数',d:'词条详情待稿',p:'对数词条'},
+ {g:'词条',ic:'§',t:'傅里叶级数',d:'词条详情待稿',p:'傅里叶级数词条'},
  {g:'公式',ic:'ƒ',t:'勾股定理',d:'⚠ 仅直角三角形',v:'formula'},
- {g:'公式',ic:'ƒ',t:'求根公式',d:'配方法的终点',v:'formula'},
- {g:'公式',ic:'ƒ',t:'正弦定理',d:'a/sinA = 2R',v:'formula'},
- {g:'文章',ic:'✎',t:'三角函数为什么存在？',d:'概念起源 · 博客',v:'home'},
- {g:'文章',ic:'✎',t:'应用题怎么找等量关系',d:'解题方法 · 博客',v:'home'},
+ {g:'公式',ic:'ƒ',t:'求根公式',d:'公式详情待稿',p:'求根公式详情'},
+ {g:'公式',ic:'ƒ',t:'正弦定理',d:'公式详情待稿',p:'正弦定理详情'},
+ {g:'文章',ic:'✎',t:'三角函数为什么存在？',d:'概念起源 · 选题示例',p:'三角函数文章'},
+ {g:'文章',ic:'✎',t:'应用题怎么找等量关系',d:'解题方法 · 选题示例',p:'应用题文章'},
  {g:'路径',ic:'▶',t:'系统课程路径',d:'按部就班的走法',v:'path'},
- {g:'路径',ic:'▶',t:'阶梯刷题路径',d:'L1→L5 逐级解锁',v:'path'},
+ {g:'路径',ic:'▶',t:'阶梯刷题路径',d:'路径详情待稿',p:'阶梯刷题路径'},
  {g:'工具',ic:'⚒',t:'函数图像画板',d:'表达式实时绘图',v:'tools'},
  {g:'工具',ic:'⚒',t:'数学年表',d:'起源故事时间线',v:'timeline'},
 ];
 const cmdk=document.getElementById('cmdk'),cmdkIn=document.getElementById('cmdkInput'),cmdkRes=document.getElementById('cmdkRes');
+let cmdkSelected=0;
 function openCmdk(){cmdk.classList.add('on');cmdkIn.value='';renderCmdk('');cmdkIn.focus()}
-function closeCmdk(){cmdk.classList.remove('on')}
+function closeCmdk(){cmdk.classList.remove('on');document.getElementById('kBtn').focus()}
 document.getElementById('kBtn').onclick=openCmdk;
 cmdk.onclick=e=>{if(e.target===cmdk)closeCmdk()};
 addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();cmdk.classList.contains('on')?closeCmdk():openCmdk();}
-  if(e.key==='Escape')closeCmdk();
+  if(e.key==='/'&&!cmdk.classList.contains('on')&&!e.target.matches('input,textarea,[contenteditable]')){e.preventDefault();openCmdk()}
+  if(e.key==='Escape'&&cmdk.classList.contains('on'))closeCmdk();
 });
 let cmdkTimer;
 cmdkIn.oninput=()=>{clearTimeout(cmdkTimer);cmdkTimer=setTimeout(()=>renderCmdk(cmdkIn.value.trim()),200)};
+cmdkIn.onkeydown=e=>{
+  const items=[...cmdkRes.querySelectorAll('.cmdk-item')];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();if(!items.length)return;
+    cmdkSelected=(cmdkSelected+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;
+    items.forEach((it,i)=>it.classList.toggle('selected',i===cmdkSelected));items[cmdkSelected].scrollIntoView({block:'nearest'});
+  }
+  if(e.key==='Enter'&&items.length){e.preventDefault();items[cmdkSelected].click()}
+};
+cmdk.addEventListener('keydown',e=>{
+  if(e.key!=='Tab')return;
+  const focusables=[cmdkIn,...cmdkRes.querySelectorAll('.cmdk-item')];
+  const i=focusables.indexOf(document.activeElement);
+  if(e.shiftKey&&i===0){e.preventDefault();focusables.at(-1).focus()}
+  else if(!e.shiftKey&&i===focusables.length-1){e.preventDefault();cmdkIn.focus()}
+});
 function renderCmdk(q){
   const hits=INDEX.filter(i=>!q||i.t.includes(q)||i.d.includes(q));
+  cmdkSelected=0;
   if(!hits.length){
-    cmdkRes.innerHTML='<div class="cmdk-empty">没有找到「'+q+'」<br><br>试试：<br><span class="chip">正弦起源</span><span class="chip">勾股定理</span><span class="chip">每日一题</span></div>';return;
+    cmdkRes.replaceChildren();
+    const empty=document.createElement('div');empty.className='cmdk-empty';empty.textContent='没有找到「'+q+'」。试试：正弦函数、勾股定理、数学年表。';cmdkRes.append(empty);return;
   }
   const groups={};hits.forEach(i=>{(groups[i.g]=groups[i.g]||[]).push(i)});
   cmdkRes.innerHTML=Object.entries(groups).map(([g,arr])=>
     '<div class="cmdk-grp">'+g+'</div>'+arr.map(i=>
-      '<div class="cmdk-item" data-v="'+i.v+'"><span class="ic">'+i.ic+'</span>'+i.t+'<span class="desc">'+i.d+'</span></div>').join('')).join('');
-  cmdkRes.querySelectorAll('.cmdk-item').forEach(it=>it.onclick=()=>{closeCmdk();showView(it.dataset.v)});
+      '<button type="button" class="cmdk-item" '+(i.v?'data-v="'+i.v+'"':'data-preview="'+i.p+'"')+'><span class="ic">'+i.ic+'</span>'+i.t+'<span class="desc">'+i.d+'</span></button>').join('')).join('');
+  cmdkRes.querySelector('.cmdk-item')?.classList.add('selected');
+  cmdkRes.querySelectorAll('.cmdk-item').forEach(it=>it.onclick=e=>{e.stopPropagation();closeCmdk();if(it.dataset.v)showView(it.dataset.v);else preview(it.dataset.preview)});
 }
 
 /* ===== 每日一题（V5） ===== */
 document.querySelectorAll('#dailyOpts .opt').forEach(b=>b.onclick=()=>{
   if(document.querySelector('#dailyOpts .opt.right'))return;
   document.querySelectorAll('#dailyOpts .opt').forEach(x=>{if(x.dataset.a==='1')x.classList.add('right')});
-  if(b.dataset.a!=='1')b.classList.add('wrong');else toast('✓ 答对了！解析已为你展开');
-  if(b.dataset.a==='1')document.querySelector('#daily details').open=true;
+  if(b.dataset.a!=='1')b.classList.add('wrong');
+  document.querySelector('#daily details').open=true;
+  toast(b.dataset.a==='1'?'✓ 答对了！解析已展开':'再看一下配方过程，解析已展开');
 });
 function tickCd(){
   const now=new Date(),mid=new Date(now);mid.setHours(24,0,0,0);
-  let s=Math.floor((mid-now)/1000);const h=String(Math.floor(s/3600)).padStart(2,'0');
-  s%=60;const m=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');
+  const s=Math.max(0,Math.floor((mid-now)/1000));const h=String(Math.floor(s/3600)).padStart(2,'0');
+  const m=String(Math.floor((s%3600)/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');
   document.getElementById('cdTxt').textContent=h+':'+m+':'+ss;
   document.getElementById('cdRing').style.setProperty('--p',1-(mid-now)/864e5);
 }
@@ -1161,7 +1291,7 @@ function renderQuiz(){
   }else{
     const win=Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0],P=PC[win];
     document.querySelectorAll('#quizBox .q-dot').forEach(d=>d.classList.add('on'));
-    body.innerHTML='<div class="q-result"><div class="sec-eyebrow">YOUR PATH · 你的路径</div><div class="tier" style="--pc:'+P[1]+'">'+P[0]+'</div><p>'+P[2]+'</p><button class="btn btn-primary btn-lg" data-view="path">开始这条路径（from=quiz）</button> <button class="mini-btn" id="qAgain" style="margin-left:10px">再测一次</button></div>';
+    body.innerHTML='<div class="q-result"><div class="sec-eyebrow">YOUR PATH · 你的路径</div><div class="tier" style="--pc:'+P[1]+'">'+P[0]+'</div><p>'+P[2]+'</p><button class="btn btn-primary btn-lg" data-intent="'+P[0]+'路径">预览这条路径的学习入口</button> <button class="mini-btn" id="qAgain" style="margin-left:10px">再测一次</button></div>';
     document.getElementById('qAgain').onclick=()=>{qi=0;tally={};renderQuiz()};
   }
 }
@@ -1170,29 +1300,35 @@ renderQuiz();
 /* ===== Newsletter（V4） ===== */
 document.getElementById('nlForm').onsubmit=e=>{
   e.preventDefault();
-  const btn=e.target.querySelector('button');btn.textContent='提交中…';btn.disabled=true;
-  setTimeout(()=>{btn.style.display='none';e.target.querySelector('input').style.display='none';document.getElementById('nlOk').style.display='inline'},600);
+  const btn=e.target.querySelector('button');btn.style.display='none';
+  e.target.querySelector('input').style.display='none';document.getElementById('nlOk').style.display='inline';
 };
+document.getElementById('footNlForm').onsubmit=e=>{e.preventDefault();toast('界面演示：订阅反馈已预览，未发送邮箱')};
 
 /* ===== 公式复制 ===== */
 document.getElementById('copyFx').onclick=()=>{
   const txt='a^2 + b^2 = c^2';
-  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('✓ 已复制 a²+b²=c²')).catch(()=>toast('✓ 已复制 a²+b²=c²（原型降级）'));
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('✓ 已复制 a²+b²=c²')).catch(()=>toast('当前环境无法复制，请手动选中公式'));
 };
 
 /* ===== 词条 Tabs ===== */
 document.querySelectorAll('.gl-tab').forEach(tab=>tab.onclick=()=>{
-  document.querySelectorAll('.gl-tab').forEach(t=>t.classList.remove('on'));tab.classList.add('on');
-  document.querySelectorAll('.gl-panel').forEach(p=>p.classList.toggle('on',p.dataset.gl===tab.dataset.gl));
+  document.querySelectorAll('.gl-tab').forEach(t=>{const on=t===tab;t.classList.toggle('on',on);t.setAttribute('aria-selected',String(on))});
+  document.querySelectorAll('.gl-panel').forEach(p=>{const on=p.dataset.gl===tab.dataset.gl;p.classList.toggle('on',on);p.hidden=!on});
 });
+document.querySelector('.gl-tabs').onkeydown=e=>{
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  const tabs=[...document.querySelectorAll('.gl-tab')],i=tabs.indexOf(document.activeElement);
+  if(i<0)return;e.preventDefault();const next=tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];next.focus();next.click();
+};
 
 /* ===== 年表：拖拽 + 点击 ===== */
 const tl=document.getElementById('tlScroll');
 let down=false,sx=0,sl=0;
-tl.addEventListener('pointerdown',e=>{down=true;sx=e.clientX;sl=tl.scrollLeft;tl.classList.add('drag')});
+tl.addEventListener('pointerdown',e=>{if(matchMedia('(max-width:1023px)').matches)return;down=true;sx=e.clientX;sl=tl.scrollLeft;tl.classList.add('drag')});
 addEventListener('pointerup',()=>{down=false;tl.classList.remove('drag')});
 tl.addEventListener('pointermove',e=>{if(down)tl.scrollLeft=sl-(e.clientX-sx)});
-tl.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){tl.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
+tl.addEventListener('wheel',e=>{if(matchMedia('(max-width:1023px)').matches)return;if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){tl.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
 const TLD={t0:['莱因德纸草书','1800BC 的埃及书吏用 8 张纸草记录分数加法——数学最早的出生证明是"记账"。'],
  t1:['《几何原本》','23 个定义、5 条公设、465 个命题：人类第一次规定"什么才算证明"。'],
  t2:['阿基米德','用内外接正多边形把 π 夹在中间——穷竭法比微积分早两千年摸到了极限。'],
@@ -1211,16 +1347,36 @@ tl.querySelectorAll('.tl-node').forEach(n=>n.onclick=()=>{
   box.scrollIntoView({behavior:'smooth',block:'center'});
 });
 
-/* ===== 函数画板（V2 · 原型用 Function，生产版走安全解析器） ===== */
+/* ===== 函数画板（V2 · 受限表达式解析，不执行输入代码） ===== */
 const cv=document.getElementById('plot'),ctx=cv&&cv.getContext('2d');
-function safeEval(src){
-  const s=src.replace(/\^/g,'**').replace(/\b(sin|cos|tan|sqrt|exp|log|ln|abs)\b/g,'Math.$1')
-             .replace(/Math\.ln/g,'Math.log').replace(/[^x0-9+\-*/().,a-zA-Z]/g,'');
-  if(/[a-df-qrt-wyzA-DF-Z]/.test(s.replace(/Math/g,'')))throw 0;
-  return new Function('x','with(Math){return '+s+'}');
+function parseExpression(src){
+  if(src.length>120)throw Error('表达式过长');
+  const compact=src.replace(/\s/g,'');
+  const tokens=compact.match(/(?:\d+(?:\.\d*)?|\.\d+)|[a-zA-Z]+|[()+\-*/^]/g)||[];
+  if(tokens.join('')!==compact||!tokens.length)throw Error('不支持的字符');
+  const fn={sin:Math.sin,cos:Math.cos,tan:Math.tan,sqrt:Math.sqrt,exp:Math.exp,log:Math.log10,ln:Math.log,abs:Math.abs};
+  let pos=0;
+  function take(value){if(tokens[pos]===value){pos++;return true}return false}
+  function primary(){
+    if(take('(')){const node=expression();if(!take(')'))throw Error('缺少右括号');return node}
+    const token=tokens[pos++];
+    if(token==='x')return x=>x;
+    if(token&&/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(token)){const n=Number(token);return ()=>n}
+    if(Object.prototype.hasOwnProperty.call(fn,token)){
+      if(!take('('))throw Error('函数缺少左括号');const arg=expression();
+      if(!take(')'))throw Error('函数缺少右括号');return x=>fn[token](arg(x));
+    }
+    throw Error('不支持的表达式');
+  }
+  function power(){const left=primary();if(take('^')){const right=unary();return x=>left(x)**right(x)}return left}
+  function unary(){if(take('+'))return unary();if(take('-')){const inner=unary();return x=>-inner(x)}return power()}
+  function term(){let left=unary();while(tokens[pos]==='*'||tokens[pos]==='/'){const op=tokens[pos++],right=unary(),prev=left;left=op==='*'?x=>prev(x)*right(x):x=>prev(x)/right(x)}return left}
+  function expression(){let left=term();while(tokens[pos]==='+'||tokens[pos]==='-'){const op=tokens[pos++],right=term(),prev=left;left=op==='+'?x=>prev(x)+right(x):x=>prev(x)-right(x)}return left}
+  const compiled=expression();if(pos!==tokens.length)throw Error('表达式未解析完成');return compiled;
 }
 function draw(){
   if(!ctx)return;
+  cv.width=640;cv.height=matchMedia('(max-width:767px)').matches?480:400;
   const w=cv.width,h=cv.height,xd=6.3;
   ctx.clearRect(0,0,w,h);
   const x2p=x=>w/2+x/xd*(w/2), y2p=y=>h/2-y/xd*(w/2);
@@ -1232,7 +1388,7 @@ function draw(){
   for(let gy=-3;gy<=3;gy++){ctx.beginPath();ctx.moveTo(0,y2p(gy));ctx.lineTo(w,y2p(gy));ctx.stroke()}
   ctx.strokeStyle=prim;ctx.lineWidth=2.4;ctx.beginPath();let started=false;
   try{
-    const f=safeEval(document.getElementById('expr').value);
+    const f=parseExpression(document.getElementById('expr').value);
     for(let px=0;px<=w;px+=1){
       const x=(px-w/2)/(w/2)*xd;let y;
       try{y=f(x)}catch(e){y=NaN}
@@ -1242,14 +1398,15 @@ function draw(){
     }
     ctx.stroke();
     document.getElementById('expr').classList.remove('bad');
-  }catch(e){document.getElementById('expr').classList.add('bad')}
+    document.getElementById('plotStatus').textContent='已绘制当前表达式';
+  }catch(e){document.getElementById('expr').classList.add('bad');document.getElementById('plotStatus').textContent='表达式暂无法绘制：'+e.message}
 }
 document.getElementById('drawBtn').onclick=draw;
 document.getElementById('expr').addEventListener('keydown',e=>{if(e.key==='Enter')draw()});
 document.querySelectorAll('.chip[data-p]').forEach(c=>c.onclick=()=>{document.getElementById('expr').value=c.dataset.p;draw()});
 let dTimer;document.getElementById('expr').addEventListener('input',()=>{clearTimeout(dTimer);dTimer=setTimeout(draw,300)});
 if(cv)draw();
-addEventListener('resize',()=>{if(cv&&document.getElementById('view-tools').classList.contains('active'))draw()});
+addEventListener('resize',()=>{if(innerWidth>1023)closeMenu();if(cv&&document.getElementById('view-tools').classList.contains('active'))draw()});
 
 /* ===== 入场 + 计数 ===== */
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.15});
@@ -1267,6 +1424,5 @@ let tTimer;
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
   clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('on'),2200)}
 </script>
-<script src="../shared/review-enhancements.js"></script>
 </body>
 </html>
